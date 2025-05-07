@@ -1,4 +1,4 @@
-package srangeldev.proyectoequipofutboljavafx.models
+package srangeldev.models
 
 import java.time.LocalDate
 import java.time.LocalDateTime
