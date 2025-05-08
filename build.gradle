@@ -27,7 +27,7 @@ tasks.withType(JavaCompile) {
 
 application {
     mainModule = 'srangeldev.proyectoequipofutboljavafx'
-    mainClass = 'srangeldev.proyectoequipofutboljavafx.HelloApplication'
+    mainClass = 'srangeldev.proyectoequipofutboljavafx.NewTeamApplication'
 }
 kotlin {
     jvmToolchain(21)
