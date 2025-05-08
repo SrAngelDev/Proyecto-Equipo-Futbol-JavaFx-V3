@@ -41,5 +41,10 @@ module srangeldev.proyectoequipofutboljavafx {
 
 
     opens srangeldev.proyectoequipofutboljavafx to javafx.fxml;
+    opens srangeldev.proyectoequipofutboljavafx.Controllers to javafx.fxml;
+
+    //Logging
     exports srangeldev.proyectoequipofutboljavafx;
+    exports srangeldev.proyectoequipofutboljavafx.Controllers;
+
 }
