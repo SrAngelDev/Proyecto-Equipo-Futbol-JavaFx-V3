@@ -9,8 +9,16 @@ import javafx.scene.control.PasswordField
 import javafx.scene.control.TextField
 import javafx.scene.image.ImageView
 import javafx.stage.Stage
+import org.lighthousegames.logging.logging
+import srangeldev.models.User
+import srangeldev.proyectoequipofutboljavafx.routes.RoutesManager.app
+import srangeldev.repository.UserRepository
+import srangeldev.repository.UserRepositoryImpl
+import srangeldev.session.Session
 
 class LoggingController {
+    private val logger = logging()
+    private val userRepository: UserRepository = UserRepositoryImpl()
 
     @FXML
     private lateinit var usuarioField: TextField
@@ -26,16 +34,23 @@ class LoggingController {
 
     @FXML
     private fun initialize() {
+        logger.debug { "Inicializando LoggingController" }
+
+        // Inicializar el repositorio de usuarios (esto creará la tabla y los usuarios por defecto si no existen)
+        userRepository.initDefaultUsers()
+
         // Configurar el evento del botón ingresar
         ingresarButton.setOnAction { handleIngresar() }
     }
 
     private fun handleIngresar() {
-        val usuario = usuarioField.text.trim()
+        logger.debug { "Procesando intento de login" }
+
+        val username = usuarioField.text.trim()
         val password = passwordField.text.trim()
 
         // Validar campos vacíos
-        if (usuario.isEmpty() || password.isEmpty()) {
+        if (username.isEmpty() || password.isEmpty()) {
             showAlert(
                 Alert.AlertType.ERROR,
                 "Campos vacíos",
@@ -44,21 +59,25 @@ class LoggingController {
             return
         }
 
-        when {
-            usuario == "admin" && password == "admin" -> {
-                handleSuccessfulLogin(TipoUsuario.ADMIN)
+        // Verificar credenciales usando el repositorio de usuarios
+        val user = userRepository.verifyCredentials(username, password)
+
+        if (user != null) {
+            // Establecer el usuario en la sesión
+            Session.setCurrentUser(user)
+
+            // Manejar login exitoso según el rol del usuario
+            when (user.role) {
+                User.Role.ADMIN -> handleSuccessfulLogin(TipoUsuario.ADMIN)
+                User.Role.USER -> handleSuccessfulLogin(TipoUsuario.USUARIO)
             }
-            usuario == "user" && password == "user" -> {
-                handleSuccessfulLogin(TipoUsuario.USUARIO)
-            }
-            else -> {
-                showAlert(
-                    Alert.AlertType.ERROR,
-                    "Credenciales inválidas",
-                    "Usuario o contraseña incorrectos"
-                )
-                passwordField.clear()
-            }
+        } else {
+            showAlert(
+                Alert.AlertType.ERROR,
+                "Credenciales inválidas",
+                "Usuario o contraseña incorrectos"
+            )
+            passwordField.clear()
         }
     }
 
@@ -80,9 +99,9 @@ class LoggingController {
 
     private fun cargarVistaAdmin() {
         try {
-            val loader = FXMLLoader(javaClass.getResource("views/vista-admin.fxml"))
+            val loader = FXMLLoader(app::class.java.getResource("views/newTeam/vista-admin.fxml"))
             val stage = usuarioField.scene.window as Stage
-            stage.scene = Scene(loader.load(), 800.0, 600.0)
+            stage.scene = Scene(loader.load())
             stage.title = "Panel de Administración"
         } catch (e: Exception) {
             showAlert(
@@ -95,9 +114,9 @@ class LoggingController {
 
     private fun cargarVistaUsuario() {
         try {
-            val loader = FXMLLoader(javaClass.getResource("views/vista-normal.fxml"))
+            val loader = FXMLLoader(app::class.java.getResource("views/newTeam/vista-normal.fxml"))
             val stage = usuarioField.scene.window as Stage
-            stage.scene = Scene(loader.load(), 800.0, 600.0)
+            stage.scene = Scene(loader.load())
             stage.title = "Panel de Usuario Normal"
         } catch (e: Exception) {
             showAlert(

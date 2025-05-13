@@ -16,7 +16,7 @@ class PersonalStorageCsv : PersonalStorageFile {
 
     companion object {
         private const val CSV_HEADER =
-            "tipo,id,nombre,apellidos,fechaNacimiento,fechaIncorporacion,salario,paisOrigen,especializacion,posicion,dorsal,altura,peso,goles,partidosJugados\n"
+            "tipo,id,nombre,apellidos,fechaNacimiento,fechaIncorporacion,salario,paisOrigen,especializacion,posicion,dorsal,altura,peso,goles,partidosJugados,minutosJugados\n"
     }
 
     init {

@@ -9,46 +9,31 @@ import javafx.scene.Scene
 import javafx.scene.image.Image
 import javafx.stage.Stage
 import javafx.util.Duration
+import org.koin.core.component.KoinComponent
+import org.koin.core.context.GlobalContext.startKoin
 import srangeldev.proyectoequipofutboljavafx.Controllers.SplashScreenController
+import srangeldev.proyectoequipofutboljavafx.routes.RoutesManager
+import java.time.LocalDateTime
 
-class NewTeamApplication : Application() {
-    override fun start(stage: Stage) {
-        val fxmlLoader = FXMLLoader(NewTeamApplication::class.java.getResource("views/splash-screen.fxml"))
-        val scene = Scene(fxmlLoader.load())
-        val controller = fxmlLoader.getController<SplashScreenController>()
+class NewTeamApplication : Application(), KoinComponent {
 
-        stage.apply {
-            isResizable = false
-            icons.add(Image(NewTeamApplication::class.java.getResourceAsStream("icons/newTeamLogo.png")))
-            title = "Cargando..."
-            this.scene = scene
-            show()
+    init {
+        println(LocalDateTime.now().toString())
+        // creamos Koin
+        startKoin {
+            printLogger() // Logger de Koin
+            //modules(appModule) // Módulos de Koin
         }
-
-        // Create timeline for smooth progress bar animation
-        val timeline = Timeline(
-            KeyFrame(
-                Duration.seconds(5.0),
-                KeyValue(controller.progressBar.progressProperty(), 1.0)
-            )
-        )
-        timeline.setOnFinished {
-            loggingStage(stage)
-        }
-
-        timeline.play()
     }
 
-    private fun loggingStage(stage: Stage) {
-        val fxmlLoader = FXMLLoader(NewTeamApplication::class.java.getResource("views/logging.fxml"))
-        stage.apply {
-            scene = Scene(fxmlLoader.load(), 600.0, 400.0)
-            title = "Login"
-            show()
+    override fun start(stage: Stage) {
+        RoutesManager.apply {
+            app = this@NewTeamApplication
+        }.run {
+            initSplashScreenStage(stage)
         }
     }
 }
-
 fun main() {
     Application.launch(NewTeamApplication::class.java)
 }

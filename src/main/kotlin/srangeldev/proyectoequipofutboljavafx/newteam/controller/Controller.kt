@@ -207,7 +207,7 @@ class Controller {
             altura,
             peso,
             goles,
-            partidosJugados
+            partidosJugados,
         )
         return service.update(jugador.id, jugador) as Jugador
     }

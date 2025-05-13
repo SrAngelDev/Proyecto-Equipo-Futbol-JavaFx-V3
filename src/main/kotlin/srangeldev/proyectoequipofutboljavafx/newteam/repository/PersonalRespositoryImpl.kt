@@ -8,6 +8,7 @@ import srangeldev.models.Jugador
 import srangeldev.models.Personal
 import java.sql.Statement
 import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 /**
  * Implementación del repositorio de personal.
@@ -15,6 +16,8 @@ import java.time.LocalDateTime
 class PersonalRespositoryImpl : PersonalRepository {
     private val logger = logging()
     private val personal = mutableMapOf<Int, Personal>()
+    // SQLite stores timestamps in the format "YYYY-MM-DD HH:MM:SS"
+    private val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
 
     init {
         logger.debug { "Inicializando repositorio de personal" }
@@ -124,8 +127,8 @@ class PersonalRespositoryImpl : PersonalRepository {
                             salario = res.getDouble("salario"),
                             paisOrigen = res.getString("paisOrigen"),
                             especializacion = Entrenador.Especializacion.valueOf(res.getString("especializacion")),
-                            createdAt = LocalDateTime.parse(res.getString("createdAt")),
-                            updatedAt = LocalDateTime.parse(res.getString("updatedAt"))
+                            createdAt = LocalDateTime.parse(res.getString("created_at"), formatter),
+                            updatedAt = LocalDateTime.parse(res.getString("updated_at"), formatter)
                         )
 
                         "Jugador" -> Jugador(
@@ -142,8 +145,8 @@ class PersonalRespositoryImpl : PersonalRepository {
                             peso = res.getDouble("peso"),
                             goles = res.getInt("goles"),
                             partidosJugados = res.getInt("partidosJugados"),
-                            createdAt = LocalDateTime.parse(res.getString("createdAt")),
-                            updatedAt = LocalDateTime.parse(res.getString("updatedAt"))
+                            createdAt = LocalDateTime.parse(res.getString("created_at"), formatter),
+                            updatedAt = LocalDateTime.parse(res.getString("updated_at"), formatter)
                         )
 
                         else -> null
