@@ -25,6 +25,8 @@ import srangeldev.proyectoequipofutboljavafx.newteam.repository.UserRepository
 import srangeldev.proyectoequipofutboljavafx.newteam.repository.UserRepositoryImpl
 import srangeldev.session.Session
 import srangeldev.theme.Theme
+import srangeldev.utils.HtmlReportGenerator
+import java.awt.Desktop
 import java.io.File
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -631,7 +633,38 @@ class VistaAdminController {
 
         // Imprimir HTML
         printHtmlMenuItem.setOnAction {
-            showInfoDialog("Imprimir HTML", "Funcionalidad de impresión HTML.")
+            try {
+                // Crear directorio de informes si no existe
+                val reportsDir = File("reports")
+                if (!reportsDir.exists()) {
+                    reportsDir.mkdirs()
+                }
+
+                // Generar nombre de archivo con timestamp
+                val timestamp = LocalDateTime.now().toString().replace(":", "-").replace(".", "-")
+                val outputPath = "reports/plantilla_${timestamp}.html"
+
+                // Generar el informe HTML
+                val reportPath = HtmlReportGenerator.generateReport(personalList, outputPath)
+
+                // Abrir el informe en el navegador predeterminado
+                val file = File(reportPath)
+                try {
+                    if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+                        Desktop.getDesktop().browse(file.toURI())
+                        showInfoDialog("Informe HTML generado", "El informe HTML ha sido generado y abierto en su navegador predeterminado.\n\nRuta: $reportPath")
+                    } else {
+                        logger.error { "No se puede abrir el navegador predeterminado" }
+                        showInfoDialog("Informe HTML generado", "El informe HTML ha sido generado pero no se pudo abrir automáticamente.\n\nRuta: $reportPath")
+                    }
+                } catch (e: Exception) {
+                    logger.error { "No se puede abrir el navegador predeterminado: ${e.message}" }
+                    showInfoDialog("Informe HTML generado", "El informe HTML ha sido generado pero no se pudo abrir automáticamente.\n\nRuta: $reportPath")
+                }
+            } catch (e: Exception) {
+                logger.error { "Error al generar el informe HTML: ${e.message}" }
+                showErrorDialog("Error", "No se pudo generar el informe HTML: ${e.message}")
+            }
         }
 
         // Cerrar sesión

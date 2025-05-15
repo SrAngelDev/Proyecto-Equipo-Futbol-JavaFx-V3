@@ -3,6 +3,9 @@ module srangeldev.proyectoequipofutboljavafx {
     requires javafx.controls;
     requires javafx.fxml;
 
+    // Java
+    requires java.desktop;
+
     // Kotlin
     requires kotlin.stdlib;
 
