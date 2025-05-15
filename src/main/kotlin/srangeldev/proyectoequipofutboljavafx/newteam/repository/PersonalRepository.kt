@@ -1,6 +1,6 @@
-package srangeldev.repository
+package srangeldev.proyectoequipofutboljavafx.newteam.repository
 
-import srangeldev.models.Personal
+import srangeldev.proyectoequipofutboljavafx.newteam.models.Personal
 
 /**
  * Interfaz del repositorio de personal que extiende CrudRepository.

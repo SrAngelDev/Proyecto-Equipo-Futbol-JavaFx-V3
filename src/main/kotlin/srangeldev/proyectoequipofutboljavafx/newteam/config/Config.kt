@@ -1,4 +1,4 @@
-package srangeldev.config
+package srangeldev.proyectoequipofutboljavafx.newteam.config
 
 import org.lighthousegames.logging.logging
 import java.nio.file.Files

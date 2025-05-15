@@ -1,6 +1,6 @@
 package srangeldev.service
 
-import srangeldev.models.Personal
+import srangeldev.proyectoequipofutboljavafx.newteam.models.Personal
 import srangeldev.storage.FileFormat
 
 /**

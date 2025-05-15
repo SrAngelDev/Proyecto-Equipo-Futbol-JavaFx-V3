@@ -15,6 +15,7 @@ import srangeldev.proyectoequipofutboljavafx.Controllers.SplashScreenController
 import srangeldev.proyectoequipofutboljavafx.routes.RoutesManager
 import java.time.LocalDateTime
 
+
 class NewTeamApplication : Application(), KoinComponent {
 
     init {

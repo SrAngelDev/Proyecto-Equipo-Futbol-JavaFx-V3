@@ -1,4 +1,4 @@
-package srangeldev.repository
+package srangeldev.proyectoequipofutboljavafx.newteam.repository
 
 /**
  * Interfaz que define las operaciones básicas de un repositorio.

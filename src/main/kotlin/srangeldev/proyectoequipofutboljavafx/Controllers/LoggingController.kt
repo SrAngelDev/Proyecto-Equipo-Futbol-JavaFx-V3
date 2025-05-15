@@ -10,10 +10,10 @@ import javafx.scene.control.TextField
 import javafx.scene.image.ImageView
 import javafx.stage.Stage
 import org.lighthousegames.logging.logging
-import srangeldev.models.User
+import srangeldev.proyectoequipofutboljavafx.newteam.models.User
+import srangeldev.proyectoequipofutboljavafx.newteam.repository.UserRepository
+import srangeldev.proyectoequipofutboljavafx.newteam.repository.UserRepositoryImpl
 import srangeldev.proyectoequipofutboljavafx.routes.RoutesManager.app
-import srangeldev.repository.UserRepository
-import srangeldev.repository.UserRepositoryImpl
 import srangeldev.session.Session
 
 class LoggingController {

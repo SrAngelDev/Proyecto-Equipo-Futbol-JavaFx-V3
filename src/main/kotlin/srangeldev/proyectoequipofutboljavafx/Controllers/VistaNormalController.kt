@@ -14,10 +14,12 @@ import javafx.scene.input.MouseEvent
 import javafx.stage.Stage
 import org.lighthousegames.logging.logging
 import srangeldev.controller.Controller
-import srangeldev.models.Entrenador
-import srangeldev.models.Jugador
-import srangeldev.models.Personal
+import srangeldev.proyectoequipofutboljavafx.newteam.models.Entrenador
+import srangeldev.proyectoequipofutboljavafx.newteam.models.Jugador
+import srangeldev.proyectoequipofutboljavafx.newteam.models.Personal
 import srangeldev.proyectoequipofutboljavafx.NewTeamApplication
+import srangeldev.proyectoequipofutboljavafx.newteam.models.User
+import srangeldev.proyectoequipofutboljavafx.newteam.repository.UserRepositoryImpl
 import srangeldev.proyectoequipofutboljavafx.routes.RoutesManager
 import srangeldev.session.Session
 import srangeldev.storage.FileFormat
@@ -553,10 +555,10 @@ class VistaNormalController {
 
                 passwordDialog.showAndWait().ifPresent { password ->
                     // Verificar credenciales usando el repositorio de usuarios
-                    val userRepository = srangeldev.repository.UserRepositoryImpl()
+                    val userRepository = UserRepositoryImpl()
                     val user = userRepository.verifyCredentials(username, password)
 
-                    if (user != null && user.role == srangeldev.models.User.Role.ADMIN) {
+                    if (user != null && user.role == User.Role.ADMIN) {
                         // Actualizar la sesión con el nuevo usuario
                         Session.setCurrentUser(user)
                         isAdmin = true

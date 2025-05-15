@@ -1,6 +1,6 @@
 package srangeldev.storage
 
-import srangeldev.models.Personal
+import srangeldev.proyectoequipofutboljavafx.newteam.models.Personal
 import java.io.File
 
 /**

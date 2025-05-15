@@ -4,9 +4,9 @@ import org.lighthousegames.logging.logging
 import srangeldev.Cache.Cache
 import srangeldev.Cache.CacheImpl
 import srangeldev.exceptions.PersonalException
-import srangeldev.models.Personal
-import srangeldev.repository.PersonalRepository
-import srangeldev.repository.PersonalRespositoryImpl
+import srangeldev.proyectoequipofutboljavafx.newteam.models.Personal
+import srangeldev.proyectoequipofutboljavafx.newteam.repository.PersonalRepository
+import srangeldev.proyectoequipofutboljavafx.newteam.repository.PersonalRespositoryImpl
 import srangeldev.storage.FileFormat
 import srangeldev.storage.PersonalStorage
 import srangeldev.storage.PersonalStorageImpl

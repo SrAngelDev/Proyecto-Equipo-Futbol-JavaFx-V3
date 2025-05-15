@@ -1,6 +1,6 @@
 package srangeldev.session
 
-import srangeldev.models.User
+import srangeldev.proyectoequipofutboljavafx.newteam.models.User
 
 /**
  * Clase singleton que gestiona la sesión del usuario actual.

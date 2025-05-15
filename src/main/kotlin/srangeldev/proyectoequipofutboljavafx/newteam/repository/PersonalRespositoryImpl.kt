@@ -1,14 +1,13 @@
-package srangeldev.repository
+package srangeldev.proyectoequipofutboljavafx.newteam.repository
 
 import org.lighthousegames.logging.logging
-import srangeldev.database.DataBaseManager
-import srangeldev.dto.PersonalXmlDto
-import srangeldev.models.Entrenador
-import srangeldev.models.Jugador
-import srangeldev.models.Personal
+import srangeldev.proyectoequipofutboljavafx.newteam.database.DataBaseManager
+import srangeldev.proyectoequipofutboljavafx.newteam.models.Entrenador
+import srangeldev.proyectoequipofutboljavafx.newteam.models.Jugador
+import srangeldev.proyectoequipofutboljavafx.newteam.models.Personal
 import java.sql.Statement
 import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
+// import java.time.format.DateTimeFormatter (no longer needed)
 
 /**
  * Implementación del repositorio de personal.
@@ -17,7 +16,8 @@ class PersonalRespositoryImpl : PersonalRepository {
     private val logger = logging()
     private val personal = mutableMapOf<Int, Personal>()
     // SQLite stores timestamps in the format "YYYY-MM-DD HH:MM:SS"
-    private val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+    // No longer needed as we're using getTimestamp instead of getString for datetime fields
+    // private val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
 
     init {
         logger.debug { "Inicializando repositorio de personal" }
@@ -48,8 +48,8 @@ class PersonalRespositoryImpl : PersonalRepository {
                     salario = res.getDouble("salario"),
                     paisOrigen = res.getString("pais_origen"),
                     especializacion = Entrenador.Especializacion.valueOf(res.getString("especializacion")),
-                    createdAt = LocalDateTime.now(),
-                    updatedAt = LocalDateTime.now()
+                    createdAt = res.getTimestamp("created_at")?.toLocalDateTime() ?: LocalDateTime.now(),
+                    updatedAt = res.getTimestamp("updated_at")?.toLocalDateTime() ?: LocalDateTime.now()
                 )
                 personal[entrenador.id] = entrenador
             }
@@ -82,8 +82,8 @@ class PersonalRespositoryImpl : PersonalRepository {
                     peso = res.getDouble("peso"),
                     goles = res.getInt("goles"),
                     partidosJugados = res.getInt("partidos_jugados"),
-                    createdAt = LocalDateTime.now(),
-                    updatedAt = LocalDateTime.now()
+                    createdAt = res.getTimestamp("created_at")?.toLocalDateTime() ?: LocalDateTime.now(),
+                    updatedAt = res.getTimestamp("updated_at")?.toLocalDateTime() ?: LocalDateTime.now()
                 )
                 personal[jugador.id] = jugador
             }
@@ -109,52 +109,77 @@ class PersonalRespositoryImpl : PersonalRepository {
      */
     override fun getById(id: Int): Personal? {
         logger.debug { "Obteniendo personal por ID: $id" }
-        var personal: Personal? = null
 
-        val sql = "SELECT * FROM Personal"
+        // First try to find an Entrenador
+        val sqlEntrenador = """
+            SELECT p.*, e.especializacion 
+            FROM Personal p
+            INNER JOIN Entrenadores e ON p.id = e.id
+            WHERE p.id = ?
+        """.trimIndent()
 
+        var entrenador: Entrenador? = null
         DataBaseManager.use { db ->
-            val res = db.connection?.prepareStatement(sql)!!.executeQuery()
-            while (res.next()) {
-                if (res.getInt("id") == id) {
-                    personal = when (res.getString("tipo")) {
-                        "Entrenador" -> Entrenador(
-                            id = res.getInt("id"),
-                            nombre = res.getString("nombre"),
-                            apellidos = res.getString("apellidos"),
-                            fechaNacimiento = res.getDate("fechaNacimiento").toLocalDate(),
-                            fechaIncorporacion = res.getDate("fechaIncorporacion").toLocalDate(),
-                            salario = res.getDouble("salario"),
-                            paisOrigen = res.getString("paisOrigen"),
-                            especializacion = Entrenador.Especializacion.valueOf(res.getString("especializacion")),
-                            createdAt = LocalDateTime.parse(res.getString("created_at"), formatter),
-                            updatedAt = LocalDateTime.parse(res.getString("updated_at"), formatter)
-                        )
+            val preparedStatement = db.connection?.prepareStatement(sqlEntrenador)
+            preparedStatement?.setInt(1, id)
+            val res = preparedStatement?.executeQuery()
 
-                        "Jugador" -> Jugador(
-                            id = res.getInt("id"),
-                            nombre = res.getString("nombre"),
-                            apellidos = res.getString("apellidos"),
-                            fechaNacimiento = res.getDate("fechaNacimiento").toLocalDate(),
-                            fechaIncorporacion = res.getDate("fechaIncorporacion").toLocalDate(),
-                            salario = res.getDouble("salario"),
-                            paisOrigen = res.getString("paisOrigen"),
-                            posicion = Jugador.Posicion.valueOf(res.getString("posicion")),
-                            dorsal = res.getInt("dorsal"),
-                            altura = res.getDouble("altura"),
-                            peso = res.getDouble("peso"),
-                            goles = res.getInt("goles"),
-                            partidosJugados = res.getInt("partidosJugados"),
-                            createdAt = LocalDateTime.parse(res.getString("created_at"), formatter),
-                            updatedAt = LocalDateTime.parse(res.getString("updated_at"), formatter)
-                        )
-
-                        else -> null
-                    }
-                }
+            if (res?.next() == true) {
+                entrenador = Entrenador(
+                    id = res.getInt("id"),
+                    nombre = res.getString("nombre"),
+                    apellidos = res.getString("apellidos"),
+                    fechaNacimiento = res.getDate("fecha_nacimiento").toLocalDate(),
+                    fechaIncorporacion = res.getDate("fecha_incorporacion").toLocalDate(),
+                    salario = res.getDouble("salario"),
+                    paisOrigen = res.getString("pais_origen"),
+                    especializacion = Entrenador.Especializacion.valueOf(res.getString("especializacion")),
+                    createdAt = res.getTimestamp("created_at")?.toLocalDateTime() ?: LocalDateTime.now(),
+                    updatedAt = res.getTimestamp("updated_at")?.toLocalDateTime() ?: LocalDateTime.now()
+                )
             }
         }
-        return personal
+
+        if (entrenador != null) {
+            return entrenador
+        }
+
+        // If not found, try to find a Jugador
+        val sqlJugador = """
+            SELECT p.*, j.posicion, j.dorsal, j.altura, j.peso, j.goles, j.partidos_jugados 
+            FROM Personal p
+            INNER JOIN Jugadores j ON p.id = j.id
+            WHERE p.id = ?
+        """.trimIndent()
+
+        var jugador: Jugador? = null
+        DataBaseManager.use { db ->
+            val preparedStatement = db.connection?.prepareStatement(sqlJugador)
+            preparedStatement?.setInt(1, id)
+            val res = preparedStatement?.executeQuery()
+
+            if (res?.next() == true) {
+                jugador = Jugador(
+                    id = res.getInt("id"),
+                    nombre = res.getString("nombre"),
+                    apellidos = res.getString("apellidos"),
+                    fechaNacimiento = res.getDate("fecha_nacimiento").toLocalDate(),
+                    fechaIncorporacion = res.getDate("fecha_incorporacion").toLocalDate(),
+                    salario = res.getDouble("salario"),
+                    paisOrigen = res.getString("pais_origen"),
+                    posicion = Jugador.Posicion.valueOf(res.getString("posicion")),
+                    dorsal = res.getInt("dorsal"),
+                    altura = res.getDouble("altura"),
+                    peso = res.getDouble("peso"),
+                    goles = res.getInt("goles"),
+                    partidosJugados = res.getInt("partidos_jugados"),
+                    createdAt = res.getTimestamp("created_at")?.toLocalDateTime() ?: LocalDateTime.now(),
+                    updatedAt = res.getTimestamp("updated_at")?.toLocalDateTime() ?: LocalDateTime.now()
+                )
+            }
+        }
+
+        return jugador
     }
 
     /**
@@ -276,31 +301,55 @@ class PersonalRespositoryImpl : PersonalRepository {
         val timeStamp = LocalDateTime.now()
 
         if (personal != null) {
-            val sql = when (entidad) {
-                is Jugador -> "UPDATE Jugadores SET nombre = ?, apellidos = ?, fechaNacimiento = ?, fechaIncorporacion = ?, salario = ?, paisOrigen = ?, posicion = ?, dorsal = ?, altura = ?, peso = ?, goles = ?, partidosJugados = ? WHERE id = ?"
-                is Entrenador -> "UPDATE Entrenadores SET nombre = ?, apellidos = ?, fechaNacimiento = ?, fechaIncorporacion = ?, salario = ?, paisOrigen = ?, especializacion = ? WHERE id = ?"
-                else -> throw IllegalArgumentException("Tipo desconocido de Personal")
-            }
+            // First update the Personal table
+            val sqlPersonal = """
+                UPDATE Personal 
+                SET nombre = ?, apellidos = ?, fecha_nacimiento = ?, fecha_incorporacion = ?, 
+                    salario = ?, pais_origen = ?, updated_at = CURRENT_TIMESTAMP
+                WHERE id = ?
+            """.trimIndent()
+
             DataBaseManager.use { db ->
-                val preparedStatement = db.connection?.prepareStatement(sql)!!
+                val preparedStatement = db.connection?.prepareStatement(sqlPersonal)!!
                 preparedStatement.setString(1, entidad.nombre)
                 preparedStatement.setString(2, entidad.apellidos)
                 preparedStatement.setDate(3, java.sql.Date.valueOf(entidad.fechaNacimiento))
                 preparedStatement.setDate(4, java.sql.Date.valueOf(entidad.fechaIncorporacion))
                 preparedStatement.setDouble(5, entidad.salario)
                 preparedStatement.setString(6, entidad.paisOrigen)
+                preparedStatement.setInt(7, id)
+                preparedStatement.executeUpdate()
+            }
+
+            // Then update the specific table
+            val sql = when (entidad) {
+                is Jugador -> """
+                    UPDATE Jugadores 
+                    SET posicion = ?, dorsal = ?, altura = ?, peso = ?, goles = ?, partidos_jugados = ? 
+                    WHERE id = ?
+                """.trimIndent()
+                is Entrenador -> """
+                    UPDATE Entrenadores 
+                    SET especializacion = ? 
+                    WHERE id = ?
+                """.trimIndent()
+                else -> throw IllegalArgumentException("Tipo desconocido de Personal")
+            }
+
+            DataBaseManager.use { db ->
+                val preparedStatement = db.connection?.prepareStatement(sql)!!
 
                 if (entidad is Jugador) {
-                    preparedStatement.setString(7, entidad.posicion.name)
-                    preparedStatement.setInt(8, entidad.dorsal)
-                    preparedStatement.setDouble(9, entidad.altura)
-                    preparedStatement.setDouble(10, entidad.peso)
-                    preparedStatement.setInt(11, entidad.goles)
-                    preparedStatement.setInt(12, entidad.partidosJugados)
-                    preparedStatement.setInt(13, id)
+                    preparedStatement.setString(1, entidad.posicion.name)
+                    preparedStatement.setInt(2, entidad.dorsal)
+                    preparedStatement.setDouble(3, entidad.altura)
+                    preparedStatement.setDouble(4, entidad.peso)
+                    preparedStatement.setInt(5, entidad.goles)
+                    preparedStatement.setInt(6, entidad.partidosJugados)
+                    preparedStatement.setInt(7, id)
                 } else if (entidad is Entrenador) {
-                    preparedStatement.setString(7, entidad.especializacion.name)
-                    preparedStatement.setInt(8, id)
+                    preparedStatement.setString(1, entidad.especializacion.name)
+                    preparedStatement.setInt(2, id)
                 }
 
                 preparedStatement.executeUpdate()

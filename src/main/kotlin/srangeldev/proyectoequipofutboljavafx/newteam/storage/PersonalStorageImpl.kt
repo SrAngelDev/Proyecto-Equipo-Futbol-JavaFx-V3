@@ -1,7 +1,7 @@
 package srangeldev.storage
 
 import org.lighthousegames.logging.logging
-import srangeldev.models.Personal
+import srangeldev.proyectoequipofutboljavafx.newteam.models.Personal
 import java.io.File
 
 /**

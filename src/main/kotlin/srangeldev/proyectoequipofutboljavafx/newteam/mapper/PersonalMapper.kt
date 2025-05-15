@@ -1,14 +1,36 @@
 package srangeldev.mapper
 
+import org.lighthousegames.logging.logging
 import srangeldev.dto.*
-import srangeldev.models.Entrenador
-import srangeldev.models.Jugador
+import srangeldev.proyectoequipofutboljavafx.newteam.models.Entrenador
+import srangeldev.proyectoequipofutboljavafx.newteam.models.Jugador
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeParseException
 
-// Formatter for parsing dates consistently
-private val dateFormatter = DateTimeFormatter.ISO_LOCAL_DATE
+private val logger = logging()
+
+// Formatters for parsing dates consistently
+private val isoDateFormatter = DateTimeFormatter.ISO_LOCAL_DATE
+private val dashDateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+
+// Function to safely parse dates with multiple formatters
+private fun parseDate(dateString: String): LocalDate {
+    return try {
+        // First try ISO format
+        LocalDate.parse(dateString, isoDateFormatter)
+    } catch (e: DateTimeParseException) {
+        try {
+            // Then try dash format
+            LocalDate.parse(dateString, dashDateFormatter)
+        } catch (e: DateTimeParseException) {
+            logger.error { "Error parsing date: $dateString. Using current date instead." }
+            // Return current date as fallback
+            LocalDate.now()
+        }
+    }
+}
 
 fun Entrenador.toCsvDto(): PersonalCsvDto {
     return PersonalCsvDto(
@@ -124,8 +146,8 @@ fun PersonalCsvDto.toEntrenador(): Entrenador {
         id = this.id,
         nombre = this.nombre,
         apellidos = this.apellidos,
-        fechaNacimiento = LocalDate.parse(this.fechaNacimiento, dateFormatter),
-        fechaIncorporacion = LocalDate.parse(this.fechaIncorporacion, dateFormatter),
+        fechaNacimiento = parseDate(this.fechaNacimiento),
+        fechaIncorporacion = parseDate(this.fechaIncorporacion),
         salario = this.salario,
         paisOrigen = this.paisOrigen,
         createdAt = LocalDateTime.now(),
@@ -139,8 +161,8 @@ fun PersonalCsvDto.toJugador(): Jugador {
         id = this.id,
         nombre = this.nombre,
         apellidos = this.apellidos,
-        fechaNacimiento = LocalDate.parse(this.fechaNacimiento, dateFormatter),
-        fechaIncorporacion = LocalDate.parse(this.fechaIncorporacion, dateFormatter),
+        fechaNacimiento = parseDate(this.fechaNacimiento),
+        fechaIncorporacion = parseDate(this.fechaIncorporacion),
         salario = this.salario,
         paisOrigen = this.paisOrigen,
         createdAt = LocalDateTime.now(),
@@ -169,8 +191,8 @@ fun PersonalJsonDto.toEntrenador(): Entrenador {
         id = this.id,
         nombre = this.nombre,
         apellidos = this.apellidos,
-        fechaNacimiento = LocalDate.parse(this.fechaNacimiento, dateFormatter),
-        fechaIncorporacion = LocalDate.parse(this.fechaIncorporacion, dateFormatter),
+        fechaNacimiento = parseDate(this.fechaNacimiento),
+        fechaIncorporacion = parseDate(this.fechaIncorporacion),
         salario = this.salario,
         paisOrigen = this.pais,
         createdAt = LocalDateTime.now(),
@@ -184,8 +206,8 @@ fun PersonalJsonDto.toJugador(): Jugador {
         id = this.id,
         nombre = this.nombre,
         apellidos = this.apellidos,
-        fechaNacimiento = LocalDate.parse(this.fechaNacimiento, dateFormatter),
-        fechaIncorporacion = LocalDate.parse(this.fechaIncorporacion, dateFormatter),
+        fechaNacimiento = parseDate(this.fechaNacimiento),
+        fechaIncorporacion = parseDate(this.fechaIncorporacion),
         salario = this.salario,
         paisOrigen = this.pais,
         createdAt = LocalDateTime.now(),
@@ -214,8 +236,8 @@ fun PersonalXmlDto.toEntrenador(): Entrenador {
         id = this.id,
         nombre = this.nombre,
         apellidos = this.apellidos,
-        fechaNacimiento = LocalDate.parse(this.fechaNacimiento, dateFormatter),
-        fechaIncorporacion = LocalDate.parse(this.fechaIncorporacion, dateFormatter),
+        fechaNacimiento = parseDate(this.fechaNacimiento),
+        fechaIncorporacion = parseDate(this.fechaIncorporacion),
         salario = this.salario,
         paisOrigen = this.pais,
         createdAt = LocalDateTime.now(),
@@ -229,8 +251,8 @@ fun PersonalXmlDto.toJugador(): Jugador {
         id = this.id,
         nombre = this.nombre,
         apellidos = this.apellidos,
-        fechaNacimiento = LocalDate.parse(this.fechaNacimiento, dateFormatter),
-        fechaIncorporacion = LocalDate.parse(this.fechaIncorporacion, dateFormatter),
+        fechaNacimiento = parseDate(this.fechaNacimiento),
+        fechaIncorporacion = parseDate(this.fechaIncorporacion),
         salario = this.salario,
         paisOrigen = this.pais,
         createdAt = LocalDateTime.now(),
@@ -292,8 +314,8 @@ fun PersonalBinDto.toEntrenador(): Entrenador {
         id = this.id,
         nombre = this.nombre,
         apellidos = this.apellidos,
-        fechaNacimiento = LocalDate.parse(this.fechaNacimiento, dateFormatter),
-        fechaIncorporacion = LocalDate.parse(this.fechaIncorporacion, dateFormatter),
+        fechaNacimiento = parseDate(this.fechaNacimiento),
+        fechaIncorporacion = parseDate(this.fechaIncorporacion),
         salario = this.salario,
         paisOrigen = this.pais,
         createdAt = LocalDateTime.now(),
@@ -307,8 +329,8 @@ fun PersonalBinDto.toJugador(): Jugador {
         id = this.id,
         nombre = this.nombre,
         apellidos = this.apellidos,
-        fechaNacimiento = LocalDate.parse(this.fechaNacimiento, dateFormatter),
-        fechaIncorporacion = LocalDate.parse(this.fechaIncorporacion, dateFormatter),
+        fechaNacimiento = parseDate(this.fechaNacimiento),
+        fechaIncorporacion = parseDate(this.fechaIncorporacion),
         salario = this.salario,
         paisOrigen = this.pais,
         createdAt = LocalDateTime.now(),

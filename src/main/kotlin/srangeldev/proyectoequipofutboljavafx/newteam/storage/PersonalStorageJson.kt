@@ -7,9 +7,9 @@ import srangeldev.exceptions.PersonalException
 import srangeldev.mapper.toJsonDto
 import srangeldev.mapper.toEntrenador
 import srangeldev.mapper.toJugador
-import srangeldev.models.Entrenador
-import srangeldev.models.Jugador
-import srangeldev.models.Personal
+import srangeldev.proyectoequipofutboljavafx.newteam.models.Entrenador
+import srangeldev.proyectoequipofutboljavafx.newteam.models.Jugador
+import srangeldev.proyectoequipofutboljavafx.newteam.models.Personal
 import java.io.File
 
 class PersonalStorageJson: PersonalStorageFile {

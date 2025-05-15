@@ -1,9 +1,9 @@
 package srangeldev.controller
 
 import org.lighthousegames.logging.logging
-import srangeldev.config.Config
-import srangeldev.models.Entrenador
-import srangeldev.models.Jugador
+import srangeldev.proyectoequipofutboljavafx.newteam.config.Config
+import srangeldev.proyectoequipofutboljavafx.newteam.models.Entrenador
+import srangeldev.proyectoequipofutboljavafx.newteam.models.Jugador
 import srangeldev.service.PersonalServiceImpl
 import srangeldev.storage.FileFormat
 import java.nio.file.Paths
@@ -41,7 +41,8 @@ class Controller {
     }
 
     private fun constructFilePath(formato: String): String {
-        val dataDir = Paths.get(Config.configProperties.dataDir).toAbsolutePath().toString()
+        // Use the data directory directly from config without converting to absolute path
+        val dataDir = Config.configProperties.dataDir
         val fileName = when (formato) {
             "CSV" -> "personal.csv"
             "XML" -> "personal.xml"

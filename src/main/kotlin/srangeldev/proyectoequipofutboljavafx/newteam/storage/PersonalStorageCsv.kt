@@ -6,9 +6,9 @@ import srangeldev.exceptions.PersonalException
 import srangeldev.mapper.toCsvDto
 import srangeldev.mapper.toEntrenador
 import srangeldev.mapper.toJugador
-import srangeldev.models.Entrenador
-import srangeldev.models.Jugador
-import srangeldev.models.Personal
+import srangeldev.proyectoequipofutboljavafx.newteam.models.Entrenador
+import srangeldev.proyectoequipofutboljavafx.newteam.models.Jugador
+import srangeldev.proyectoequipofutboljavafx.newteam.models.Personal
 import java.io.File
 
 class PersonalStorageCsv : PersonalStorageFile {
@@ -16,7 +16,7 @@ class PersonalStorageCsv : PersonalStorageFile {
 
     companion object {
         private const val CSV_HEADER =
-            "tipo,id,nombre,apellidos,fechaNacimiento,fechaIncorporacion,salario,paisOrigen,especializacion,posicion,dorsal,altura,peso,goles,partidosJugados,minutosJugados\n"
+            "id,nombre,apellidos,fecha_nacimiento,fecha_incorporacion,salario,pais,rol,especialidad,posicion,dorsal,altura,peso,goles,partidos_jugados\n"
     }
 
     init {

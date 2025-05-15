@@ -2,7 +2,7 @@ package srangeldev.dto
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import srangeldev.models.Entrenador
+import srangeldev.proyectoequipofutboljavafx.newteam.models.Entrenador
 
 @Serializable
 data class PersonalJsonDto(

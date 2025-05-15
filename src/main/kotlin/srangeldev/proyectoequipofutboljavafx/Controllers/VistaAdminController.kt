@@ -14,21 +14,23 @@ import javafx.scene.input.MouseEvent
 import javafx.stage.DirectoryChooser
 import javafx.stage.Stage
 import org.lighthousegames.logging.logging
-import srangeldev.models.Entrenador
-import srangeldev.models.Jugador
-import srangeldev.models.Personal
-import srangeldev.models.User
+import srangeldev.proyectoequipofutboljavafx.newteam.models.Entrenador
+import srangeldev.proyectoequipofutboljavafx.newteam.models.Jugador
+import srangeldev.proyectoequipofutboljavafx.newteam.models.Personal
+import srangeldev.proyectoequipofutboljavafx.newteam.models.User
 import srangeldev.proyectoequipofutboljavafx.NewTeamApplication
-import srangeldev.config.Config
+import srangeldev.proyectoequipofutboljavafx.newteam.config.Config
 import srangeldev.proyectoequipofutboljavafx.routes.RoutesManager
-import srangeldev.repository.UserRepository
-import srangeldev.repository.UserRepositoryImpl
+import srangeldev.proyectoequipofutboljavafx.newteam.repository.UserRepository
+import srangeldev.proyectoequipofutboljavafx.newteam.repository.UserRepositoryImpl
 import srangeldev.session.Session
 import srangeldev.theme.Theme
 import java.io.File
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.Period
+
+
 
 /**
  * Controlador para la vista de administración

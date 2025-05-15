@@ -1,9 +1,9 @@
-package srangeldev.repository
+package srangeldev.proyectoequipofutboljavafx.newteam.repository
 
 import org.lighthousegames.logging.logging
-import srangeldev.database.DataBaseManager
-import srangeldev.models.User
-import srangeldev.utils.BCryptUtil
+import srangeldev.proyectoequipofutboljavafx.newteam.database.DataBaseManager
+import srangeldev.proyectoequipofutboljavafx.newteam.models.User
+import srangeldev.proyectoequipofutboljavafx.newteam.utils.BCryptUtil
 import java.sql.Statement
 import java.time.LocalDateTime
 

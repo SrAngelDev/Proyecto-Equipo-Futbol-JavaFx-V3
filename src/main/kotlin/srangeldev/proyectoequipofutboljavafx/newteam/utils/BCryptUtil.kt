@@ -1,4 +1,4 @@
-package srangeldev.utils
+package srangeldev.proyectoequipofutboljavafx.newteam.utils
 
 import java.security.MessageDigest
 import java.util.Base64
@@ -10,7 +10,7 @@ import java.util.Base64
  * En un entorno de producción, se debería usar una biblioteca de BCrypt real.
  */
 object BCryptUtil {
-    
+
     /**
      * Genera un hash de la contraseña proporcionada.
      * 
@@ -25,7 +25,7 @@ object BCryptUtil {
         val digest = md.digest(bytes)
         return Base64.getEncoder().encodeToString(digest)
     }
-    
+
     /**
      * Verifica si una contraseña coincide con un hash.
      * 
