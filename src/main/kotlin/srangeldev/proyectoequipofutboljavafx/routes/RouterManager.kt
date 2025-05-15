@@ -139,4 +139,32 @@ object RoutesManager {
             }
         }
     }
+
+    /**
+     * Muestra un diálogo de confirmación para cerrar sesión y volver a la pantalla de login.
+     * 
+     * @param title El título del diálogo.
+     * @param headerText El texto de cabecera del diálogo.
+     * @param contentText El texto de contenido del diálogo.
+     */
+    fun onLogout(
+        title: String = "Cerrar sesión",
+        headerText: String = "¿Estás seguro de que quieres cerrar sesión?",
+        contentText: String = "Si cierras sesión, volverás a la pantalla de inicio de sesión."
+    ) {
+        logger.debug { "Cerrando sesión..." }
+        // Mostramos diálogo de confirmación
+        Alert(Alert.AlertType.CONFIRMATION).apply {
+            this.title = title
+            this.headerText = headerText
+            this.contentText = contentText
+        }.showAndWait().ifPresent { opcion ->
+            if (opcion == ButtonType.OK) {
+                // Cerrar sesión
+                srangeldev.session.Session.logout()
+                // Volver a la pantalla de login
+                loggingStage(mainStage)
+            }
+        }
+    }
 }

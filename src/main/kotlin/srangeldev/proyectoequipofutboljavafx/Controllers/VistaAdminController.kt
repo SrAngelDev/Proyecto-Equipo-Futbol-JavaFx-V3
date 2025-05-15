@@ -24,7 +24,6 @@ import srangeldev.proyectoequipofutboljavafx.routes.RoutesManager
 import srangeldev.proyectoequipofutboljavafx.newteam.repository.UserRepository
 import srangeldev.proyectoequipofutboljavafx.newteam.repository.UserRepositoryImpl
 import srangeldev.session.Session
-import srangeldev.theme.Theme
 import srangeldev.utils.HtmlReportGenerator
 import java.awt.Desktop
 import java.io.File
@@ -133,14 +132,6 @@ class VistaAdminController {
 
         // Configurar eventos del menú
         setupMenuItems()
-
-        // Aplicar el tema actual
-        playersTableView.scene?.let { scene ->
-            // Inicializar el texto del menú según el tema actual
-            toggleThemeMenuItem.text = if (Theme.isDarkTheme()) "Cambiar a tema claro" else "Cambiar a tema oscuro"
-            // Aplicar el tema
-            Theme.applyTheme(scene)
-        }
     }
 
     private fun initializePersonalTab() {
@@ -669,26 +660,16 @@ class VistaAdminController {
 
         // Cerrar sesión
         closeMenuItem.setOnAction {
-            RoutesManager.onAppExit(
+            RoutesManager.onLogout(
                 "Cerrar sesión",
                 "¿Estás seguro de que quieres cerrar sesión?",
-                "Se cerrará la sesión actual."
+                "Si cierras sesión, volverás a la pantalla de inicio de sesión."
             )
         }
 
         // Acerca de
         aboutMenuItem.setOnAction {
             showAboutDialog()
-        }
-
-        // Cambiar tema
-        toggleThemeMenuItem.setOnAction {
-            // Obtener la escena actual
-            val scene = toggleThemeMenuItem.parentPopup.ownerWindow.scene
-            // Cambiar el tema
-            Theme.toggleTheme(scene)
-            // Actualizar el texto del menú según el tema actual
-            toggleThemeMenuItem.text = if (Theme.isDarkTheme()) "Cambiar a tema claro" else "Cambiar a tema oscuro"
         }
     }
 

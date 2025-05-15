@@ -23,7 +23,6 @@ import srangeldev.proyectoequipofutboljavafx.newteam.repository.UserRepositoryIm
 import srangeldev.proyectoequipofutboljavafx.routes.RoutesManager
 import srangeldev.session.Session
 import srangeldev.storage.FileFormat
-import srangeldev.theme.Theme
 import srangeldev.utils.HtmlReportGenerator
 import java.awt.Desktop
 import java.io.File
@@ -370,7 +369,7 @@ class VistaNormalController {
 
         // Configurar el evento del menú Cerrar
         closeMenuItem.setOnAction {
-            RoutesManager.onAppExit(
+            RoutesManager.onLogout(
                 title = "Cerrar sesión",
                 headerText = "¿Estás seguro de que quieres cerrar sesión?",
                 contentText = "Si cierras sesión, volverás a la pantalla de inicio de sesión."
@@ -627,9 +626,11 @@ class VistaNormalController {
             title = "Acerca De"
             headerText = "Gestor de Jugadores de Fútbol"
             contentText = "Versión 1.0\n" +
-                    "Desarrollado como proyecto de ejemplo para JavaFX con Kotlin.\n\n" +
+                    "Desarrollado por y para todos" +
                     "Desarrolladores:\n" +
-                    "- Equipo de Desarrollo"
+                    "- Ángel Sánchez Gasanz" +
+                    "- Jorge Morgado Giménez" +
+                    "- Antoine López"
         }.showAndWait()
     }
 }
