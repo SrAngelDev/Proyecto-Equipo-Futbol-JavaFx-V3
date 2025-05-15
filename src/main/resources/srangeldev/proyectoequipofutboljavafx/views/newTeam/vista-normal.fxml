@@ -31,9 +31,9 @@
    <children>
       <SplitPane dividerPositions="0.65" prefHeight="720.0" prefWidth="1280.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
         <items>
-          <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0" style="-fx-background-color: white;">
+          <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0" styleClass="card">
                <children>
-                  <MenuBar prefHeight="28.0" prefWidth="636.0" style="-fx-background-color: #4CAF50;">
+                  <MenuBar prefHeight="28.0" prefWidth="636.0">
                     <menus>
                       <Menu mnemonicParsing="false" text="Opciones">
                         <items>
@@ -53,19 +53,13 @@
                   </MenuBar>
                   <VBox layoutX="14.0" layoutY="40.0" prefHeight="668.0" prefWidth="800.0" spacing="10.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="40.0">
                      <children>
-                        <Label text="Gestión de Jugadores" textFill="#4caf50">
-                           <font>
-                              <Font name="System Bold" size="24.0" />
-                           </font>
+                        <Label text="Gestión de Jugadores" styleClass="title-label">
                         </Label>
                         <HBox alignment="CENTER_LEFT" spacing="15.0">
                            <children>
-                              <Label text="Buscar:" textFill="#333333">
-                                 <font>
-                                    <Font size="14.0" />
-                                 </font>
+                              <Label text="Buscar:">
                               </Label>
-                              <TextField fx:id="searchField" prefHeight="30.0" prefWidth="250.0" promptText="Ingrese nombre o ID" style="-fx-background-radius: 5; -fx-border-radius: 5; -fx-border-color: #cccccc; -fx-border-width: 1;" />
+                              <TextField fx:id="searchField" prefHeight="30.0" prefWidth="250.0" promptText="Ingrese nombre o ID" />
                               <Label text="Filtrar por:">
                                  <HBox.margin>
                                     <Insets left="20.0" />
@@ -83,7 +77,7 @@
                               <Insets bottom="10.0" top="10.0" />
                            </VBox.margin>
                         </HBox>
-                        <TableView fx:id="playersTableView" prefHeight="550.0" prefWidth="780.0" style="-fx-background-radius: 5; -fx-border-radius: 5; -fx-border-color: #cccccc; -fx-border-width: 1;">
+                        <TableView fx:id="playersTableView" prefHeight="550.0" prefWidth="780.0">
                           <columns>
                             <TableColumn fx:id="idColumn" prefWidth="75.0" text="ID" />
                             <TableColumn fx:id="nombreColumn" prefWidth="150.0" text="Nombre" />
@@ -102,19 +96,16 @@
                   </VBox>
                </children>
             </AnchorPane>
-          <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0" style="-fx-background-color: #f5f5f5;">
+          <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0" styleClass="card">
                <children>
                   <VBox alignment="TOP_CENTER" layoutX="14.0" layoutY="14.0" prefHeight="718.0" prefWidth="444.0" spacing="20.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                      <children>
-                        <Label text="Datos del Jugador" textFill="#4caf50">
-                           <font>
-                              <Font name="System Bold" size="24.0" />
-                           </font>
+                        <Label text="Datos del Jugador" styleClass="title-label">
                            <VBox.margin>
                               <Insets top="10.0" />
                            </VBox.margin>
                         </Label>
-                        <ImageView fx:id="playerImageView" fitHeight="150.0" fitWidth="150.0" pickOnBounds="true" preserveRatio="true" />
+                        <ImageView fx:id="playerImageView" fitHeight="150.0" fitWidth="150.0" pickOnBounds="true" preserveRatio="true" styleClass="image-view-container" />
                         <Separator prefWidth="200.0" />
                         <GridPane hgap="10.0" vgap="10.0">
                           <columnConstraints>
@@ -161,15 +152,9 @@
                         </HBox>
                         <HBox alignment="CENTER" spacing="20.0">
                            <children>
-                              <Button fx:id="saveButton" mnemonicParsing="false" prefHeight="40.0" prefWidth="120.0" style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-background-radius: 5;" text="Guardar">
-                                 <font>
-                                    <Font size="14.0" />
-                                 </font>
+                              <Button fx:id="saveButton" mnemonicParsing="false" prefHeight="40.0" prefWidth="120.0" styleClass="button,animated-button" text="Guardar">
                               </Button>
-                              <Button fx:id="cancelButton" mnemonicParsing="false" prefHeight="40.0" prefWidth="120.0" style="-fx-background-color: #f44336; -fx-text-fill: white; -fx-background-radius: 5;" text="Cancelar">
-                                 <font>
-                                    <Font size="14.0" />
-                                 </font>
+                              <Button fx:id="cancelButton" mnemonicParsing="false" prefHeight="40.0" prefWidth="120.0" styleClass="button-danger,animated-button" text="Cancelar">
                               </Button>
                            </children>
                            <VBox.margin>

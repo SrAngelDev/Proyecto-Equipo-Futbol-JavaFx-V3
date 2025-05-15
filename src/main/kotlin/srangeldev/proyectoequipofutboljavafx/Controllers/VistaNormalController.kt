@@ -626,7 +626,6 @@ class VistaNormalController {
             title = "Acerca De"
             headerText = "Gestor de Jugadores de Fútbol"
             contentText = "Versión 1.0\n" +
-                    "Desarrollado por y para todos" +
                     "Desarrolladores:\n" +
                     "- Ángel Sánchez Gasanz" +
                     "- Jorge Morgado Giménez" +

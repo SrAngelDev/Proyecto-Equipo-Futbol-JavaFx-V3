@@ -343,9 +343,108 @@ class VistaAdminController {
     }
 
     private fun savePersonalData() {
-        // Implementar lógica para guardar datos
-        showInfoDialog("Datos guardados", "Los datos se han guardado correctamente.")
-        clearDetailsPanel()
+        try {
+            // Verificar si hay un personal seleccionado
+            if (selectedPersonal == null) {
+                showErrorDialog("Error", "No hay ningún personal seleccionado para editar.")
+                return
+            }
+
+            // Crear una instancia del servicio
+            val service = srangeldev.service.PersonalServiceImpl()
+
+            // Obtener los datos comunes del formulario
+            val nombreCompleto = nombreTextField.text.trim().split(" ", limit = 2)
+            val nombre = nombreCompleto.getOrElse(0) { "" }
+            val apellidos = nombreCompleto.getOrElse(1) { "" }
+
+            // Calcular la fecha de nacimiento a partir de la edad
+            val edad = edadSpinner.value
+            val fechaNacimiento = LocalDate.now().minusYears(edad.toLong())
+
+            val salario = salarioTextField.text.toDoubleOrNull() ?: 0.0
+            val fechaIncorporacion = fechaIncorporacionPicker.value ?: LocalDate.now()
+
+            // Crear el objeto Personal según el tipo
+            val updatedPersonal = when (selectedPersonal) {
+                is Jugador -> {
+                    val posicionStr = posicionComboBox.value ?: "CENTROCAMPISTA"
+                    val posicion = try {
+                        Jugador.Posicion.valueOf(posicionStr)
+                    } catch (e: IllegalArgumentException) {
+                        Jugador.Posicion.CENTROCAMPISTA
+                    }
+
+                    val dorsal = dorsalTextField.text.toIntOrNull() ?: 0
+                    val partidosJugados = partidosTextField.text.toIntOrNull() ?: 0
+                    val goles = golesTextField.text.toIntOrNull() ?: 0
+
+                    // Crear un nuevo Jugador con los datos actualizados
+                    Jugador(
+                        id = selectedPersonal!!.id,
+                        nombre = nombre,
+                        apellidos = apellidos,
+                        fechaNacimiento = fechaNacimiento,
+                        fechaIncorporacion = fechaIncorporacion,
+                        salario = salario,
+                        paisOrigen = selectedPersonal!!.paisOrigen, // Mantener el país de origen original
+                        createdAt = selectedPersonal!!.createdAt,
+                        updatedAt = LocalDateTime.now(),
+                        posicion = posicion,
+                        dorsal = dorsal,
+                        altura = (selectedPersonal as Jugador).altura,
+                        peso = (selectedPersonal as Jugador).peso,
+                        goles = goles,
+                        partidosJugados = partidosJugados
+                    )
+                }
+                is Entrenador -> {
+                    val especializacionStr = especialidadComboBox.value ?: "ENTRENADOR_PRINCIPAL"
+                    val especializacion = try {
+                        Entrenador.Especializacion.valueOf(especializacionStr)
+                    } catch (e: IllegalArgumentException) {
+                        Entrenador.Especializacion.ENTRENADOR_PRINCIPAL
+                    }
+
+                    // Crear un nuevo Entrenador con los datos actualizados
+                    Entrenador(
+                        id = selectedPersonal!!.id,
+                        nombre = nombre,
+                        apellidos = apellidos,
+                        fechaNacimiento = fechaNacimiento,
+                        fechaIncorporacion = fechaIncorporacion,
+                        salario = salario,
+                        paisOrigen = selectedPersonal!!.paisOrigen, // Mantener el país de origen original
+                        createdAt = selectedPersonal!!.createdAt,
+                        updatedAt = LocalDateTime.now(),
+                        especializacion = especializacion
+                    )
+                }
+                else -> throw IllegalStateException("Tipo de personal no soportado")
+            }
+
+            // Actualizar el personal en la base de datos
+            val updatedResult = service.update(selectedPersonal!!.id, updatedPersonal)
+
+            if (updatedResult != null) {
+                // Actualizar la lista de personal
+                val index = personalList.indexOfFirst { it.id == updatedResult.id }
+                if (index >= 0) {
+                    personalList[index] = updatedResult
+                    playersTableView.refresh()
+                    updateStatistics()
+                }
+
+                showInfoDialog("Datos guardados", "Los datos se han guardado correctamente.")
+            } else {
+                showErrorDialog("Error", "No se pudo actualizar el personal en la base de datos.")
+            }
+
+            clearDetailsPanel()
+        } catch (e: Exception) {
+            logger.error { "Error al guardar datos: ${e.message}" }
+            showErrorDialog("Error", "No se pudieron guardar los datos: ${e.message}")
+        }
     }
 
     private fun clearDetailsPanel() {
@@ -606,10 +705,58 @@ class VistaAdminController {
         }
     }
 
+    /**
+     * Carga los datos de personal desde la base de datos y actualiza la UI.
+     */
+    private fun loadPersonalFromDatabase() {
+        try {
+            logger.debug { "Cargando datos de personal desde la base de datos" }
+
+            // Crear una instancia del servicio
+            val service = srangeldev.service.PersonalServiceImpl()
+
+            // Obtener todos los miembros del personal
+            val allPersonal = service.getAll()
+
+            // Limpiar la lista actual
+            personalList.clear()
+
+            // Añadir los nuevos datos
+            personalList.addAll(allPersonal)
+
+            // Actualizar la tabla
+            playersTableView.refresh()
+
+            // Actualizar estadísticas
+            updateStatistics()
+
+            logger.debug { "Datos cargados correctamente: ${personalList.size} miembros" }
+        } catch (e: Exception) {
+            logger.error { "Error al cargar datos desde la base de datos: ${e.message}" }
+            showErrorDialog("Error", "No se pudieron cargar los datos desde la base de datos: ${e.message}")
+        }
+    }
+
     private fun setupMenuItems() {
         // Cargar datos
         loadDataMenuItem.setOnAction {
-           // addSampleData()
+            try {
+                // Crear una instancia del controlador
+                val controller = srangeldev.controller.Controller()
+
+                // Cargar datos desde los archivos CSV, JSON y XML
+                controller.cargarDatos("CSV")
+                controller.cargarDatos("JSON")
+                controller.cargarDatos("XML")
+
+                // Actualizar la lista de personal con los datos cargados
+                loadPersonalFromDatabase()
+
+                showInfoDialog("Cargar datos", "Datos cargados correctamente desde los archivos CSV, JSON y XML.")
+            } catch (e: Exception) {
+                logger.error { "Error al cargar datos: ${e.message}" }
+                showErrorDialog("Error", "No se pudieron cargar los datos: ${e.message}")
+            }
         }
 
         // Exportar datos
@@ -691,11 +838,13 @@ class VistaAdminController {
 
     private fun showAboutDialog() {
         Alert(Alert.AlertType.INFORMATION).apply {
-            title = "Acerca de"
-            headerText = "Gestión de Equipo de Fútbol"
-            contentText = "Aplicación para la gestión de un equipo de fútbol.\n" +
-                    "Versión: 1.0\n" +
-                    "Desarrollado por: Equipo de Desarrollo"
+            title = "Acerca De"
+            headerText = "Gestor de Jugadores de Fútbol"
+            contentText = "Versión 1.0\n" +
+                    "Desarrolladores:\n" +
+                    "- Ángel Sánchez Gasanz" +
+                    "- Jorge Morgado Giménez" +
+                    "- Antoine López"
         }.showAndWait()
     }
 }
