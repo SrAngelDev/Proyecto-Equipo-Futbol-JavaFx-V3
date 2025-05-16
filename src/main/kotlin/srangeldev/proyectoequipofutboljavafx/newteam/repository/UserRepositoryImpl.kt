@@ -19,6 +19,39 @@ class UserRepositoryImpl : UserRepository {
         initDefaultUsers()
     }
 
+    override fun findAll(): List<User> {
+        logger.debug { "Obteniendo todos los usuarios" }
+
+        // Limpiar la caché para asegurarnos de obtener datos actualizados
+        users.clear()
+
+        val usersList = mutableListOf<User>()
+
+        val sql = "SELECT * FROM Usuarios"
+
+        DataBaseManager.use { db ->
+            val statement = db.connection?.createStatement()
+            val resultSet = statement?.executeQuery(sql)
+
+            while (resultSet?.next() == true) {
+                val user = User(
+                    id = resultSet.getInt("id"),
+                    username = resultSet.getString("username"),
+                    password = resultSet.getString("password"),
+                    role = User.Role.valueOf(resultSet.getString("role")),
+                    createdAt = LocalDateTime.parse(resultSet.getString("created_at")),
+                    updatedAt = LocalDateTime.parse(resultSet.getString("updated_at"))
+                )
+
+                // Añadir a la lista y a la caché
+                usersList.add(user)
+                users[user.username] = user
+            }
+        }
+
+        return usersList
+    }
+
     override fun getByUsername(username: String): User? {
         logger.debug { "Obteniendo usuario por nombre de usuario: $username" }
 

@@ -218,6 +218,7 @@
                                 <columns>
                                   <TableColumn fx:id="userIdColumn" prefWidth="75.0" text="ID" />
                                   <TableColumn fx:id="usernameColumn" prefWidth="150.0" text="Usuario" />
+                                  <TableColumn fx:id="passwordColumn" prefWidth="250.0" text="Contraseña (Hash)" />
                                   <TableColumn fx:id="roleColumn" prefWidth="150.0" text="Rol" />
                                 </columns>
                               </TableView>

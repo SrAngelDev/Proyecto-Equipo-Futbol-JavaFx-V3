@@ -35,4 +35,11 @@ interface UserRepository {
      * Inicializa la tabla de usuarios con datos por defecto si está vacía.
      */
     fun initDefaultUsers()
+
+    /**
+     * Obtiene todos los usuarios.
+     *
+     * @return Una lista con todos los usuarios.
+     */
+    fun findAll(): List<User>
 }

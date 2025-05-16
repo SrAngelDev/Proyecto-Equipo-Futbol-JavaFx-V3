@@ -87,6 +87,7 @@ class VistaAdminController {
     @FXML private lateinit var usersTableView: TableView<User>
     @FXML private lateinit var userIdColumn: TableColumn<User, Int>
     @FXML private lateinit var usernameColumn: TableColumn<User, String>
+    @FXML private lateinit var passwordColumn: TableColumn<User, String>
     @FXML private lateinit var roleColumn: TableColumn<User, String>
     @FXML private lateinit var usernameTextField: TextField
     @FXML private lateinit var passwordTextField: TextField
@@ -497,6 +498,7 @@ class VistaAdminController {
         // Configurar tabla de usuarios
         userIdColumn.cellValueFactory = PropertyValueFactory("id")
         usernameColumn.cellValueFactory = PropertyValueFactory("username")
+        passwordColumn.cellValueFactory = PropertyValueFactory("password")
         roleColumn.cellValueFactory = PropertyValueFactory("role")
 
         // Cargar usuarios
@@ -512,12 +514,9 @@ class VistaAdminController {
     private fun loadUsers() {
         usersList.clear()
 
-        // Cargar usuarios manualmente ya que no hay método findAll
-        val adminUser = userRepository.getByUsername("admin")
-        val normalUser = userRepository.getByUsername("user")
-
-        if (adminUser != null) usersList.add(adminUser)
-        if (normalUser != null) usersList.add(normalUser)
+        // Cargar todos los usuarios desde la base de datos
+        val allUsers = userRepository.findAll()
+        usersList.addAll(allUsers)
 
         usersTableView.items = filteredUsersList
 
@@ -579,7 +578,7 @@ class VistaAdminController {
 
     private fun showUserDetails(user: User) {
         usernameTextField.text = user.username
-        passwordTextField.clear() // Por seguridad no mostramos la contraseña
+        passwordTextField.text = user.password // Mostramos la contraseña hasheada
         roleComboBox.value = if (user.role == User.Role.ADMIN) "Administrador" else "Usuario"
         isEditingUser = true
     }
