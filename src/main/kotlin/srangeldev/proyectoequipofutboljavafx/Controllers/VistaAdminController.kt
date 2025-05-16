@@ -554,12 +554,29 @@ class VistaAdminController {
                     return@setOnAction
                 }
 
-                // No podemos eliminar usuarios ya que no hay método delete
-                showErrorDialog("Operación no soportada", "La eliminación de usuarios no está implementada en esta versión.")
+                // Confirmar eliminación
+                val alert = Alert(Alert.AlertType.CONFIRMATION)
+                alert.title = "Confirmar eliminación"
+                alert.headerText = "¿Está seguro de que desea eliminar este usuario?"
+                alert.contentText = "Esta acción no se puede deshacer."
 
-                // Recargar usuarios
-                loadUsers()
-                clearUserForm()
+                val result = alert.showAndWait()
+                if (result.isPresent && result.get() == ButtonType.OK) {
+                    try {
+                        val success = userRepository.delete(selected.id)
+                        if (success) {
+                            showInfoDialog("Operación exitosa", "Usuario eliminado correctamente.")
+                        } else {
+                            showErrorDialog("Error", "No se pudo eliminar el usuario.")
+                        }
+
+                        // Recargar usuarios
+                        loadUsers()
+                        clearUserForm()
+                    } catch (e: Exception) {
+                        showErrorDialog("Error", "No se pudo eliminar el usuario: ${e.message}")
+                    }
+                }
             } else {
                 showInfoDialog("Selección requerida", "Por favor, seleccione un usuario para eliminar.")
             }
@@ -595,8 +612,25 @@ class VistaAdminController {
 
         try {
             if (isEditingUser && selectedUser != null) {
-                // No podemos actualizar usuarios ya que no hay método update
-                showErrorDialog("Operación no soportada", "La actualización de usuarios no está implementada en esta versión.")
+                // Actualizar usuario existente
+                // Si la contraseña está vacía, mantener la contraseña actual
+                val updatedPassword = if (password.isEmpty()) selectedUser!!.password else password
+
+                val updatedUser = User(
+                    id = selectedUser!!.id,
+                    username = username,
+                    password = updatedPassword,
+                    role = role,
+                    createdAt = selectedUser!!.createdAt,
+                    updatedAt = LocalDateTime.now()
+                )
+
+                val result = userRepository.update(selectedUser!!.id, updatedUser)
+                if (result != null) {
+                    showInfoDialog("Operación exitosa", "Usuario actualizado correctamente.")
+                } else {
+                    showErrorDialog("Error", "No se pudo actualizar el usuario.")
+                }
             } else {
                 // Crear nuevo usuario
                 if (password.isEmpty()) {
@@ -760,12 +794,71 @@ class VistaAdminController {
 
         // Exportar datos
         exportDataMenuItem.setOnAction {
-            showInfoDialog("Exportar datos", "Funcionalidad de exportación de datos.")
+            try {
+                // Crear el directorio de backup si no existe
+                val backupDir = File(Config.configProperties.backupDir)
+                if (!backupDir.exists()) {
+                    backupDir.mkdirs()
+                }
+
+                // Generar nombre de archivo con timestamp
+                val timestamp = LocalDateTime.now().toString().replace(":", "-").replace(".", "-")
+                val outputPath = "${Config.configProperties.backupDir}/personal_${timestamp}.json"
+
+                // Crear una instancia del servicio
+                val service = srangeldev.service.PersonalServiceImpl()
+
+                // Exportar datos a JSON
+                service.exportToFile(outputPath, srangeldev.storage.FileFormat.JSON)
+
+                showInfoDialog("Exportar datos", "Datos exportados correctamente a JSON.\n\nRuta: $outputPath")
+            } catch (e: Exception) {
+                logger.error { "Error al exportar datos: ${e.message}" }
+                showErrorDialog("Error", "No se pudieron exportar los datos: ${e.message}")
+            }
         }
 
         // Importar datos
         importDataMenuItem.setOnAction {
-            showInfoDialog("Importar datos", "Funcionalidad de importación de datos.")
+            try {
+                // Crear un FileChooser para seleccionar el archivo a importar
+                val fileChooser = javafx.stage.FileChooser()
+                fileChooser.title = "Seleccionar archivo para importar"
+
+                // Configurar filtros para los tipos de archivo soportados
+                fileChooser.extensionFilters.addAll(
+                    javafx.stage.FileChooser.ExtensionFilter("Archivos CSV", "*.csv"),
+                    javafx.stage.FileChooser.ExtensionFilter("Archivos JSON", "*.json"),
+                    javafx.stage.FileChooser.ExtensionFilter("Archivos XML", "*.xml")
+                )
+
+                // Mostrar el diálogo de selección de archivo
+                val selectedFile = fileChooser.showOpenDialog(playerImageView.scene.window as Stage)
+
+                if (selectedFile != null) {
+                    // Determinar el formato del archivo según su extensión
+                    val fileFormat = when {
+                        selectedFile.name.endsWith(".csv", ignoreCase = true) -> srangeldev.storage.FileFormat.CSV
+                        selectedFile.name.endsWith(".json", ignoreCase = true) -> srangeldev.storage.FileFormat.JSON
+                        selectedFile.name.endsWith(".xml", ignoreCase = true) -> srangeldev.storage.FileFormat.XML
+                        else -> throw IllegalArgumentException("Formato de archivo no soportado")
+                    }
+
+                    // Crear una instancia del servicio
+                    val service = srangeldev.service.PersonalServiceImpl()
+
+                    // Importar datos desde el archivo seleccionado
+                    service.importFromFile(selectedFile.absolutePath, fileFormat)
+
+                    // Actualizar la lista de personal con los datos importados
+                    loadPersonalFromDatabase()
+
+                    showInfoDialog("Importar datos", "Datos importados correctamente desde ${selectedFile.name}.")
+                }
+            } catch (e: Exception) {
+                logger.error { "Error al importar datos: ${e.message}" }
+                showErrorDialog("Error", "No se pudieron importar los datos: ${e.message}")
+            }
         }
 
         // Imprimir HTML

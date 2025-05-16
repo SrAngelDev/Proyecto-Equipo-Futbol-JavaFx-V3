@@ -150,6 +150,146 @@ class UserRepositoryImpl : UserRepository {
         return savedUser
     }
 
+    override fun update(id: Int, user: User): User? {
+        logger.debug { "Actualizando usuario con ID: $id" }
+
+        // Verificar si el usuario existe
+        val existingUser = getById(id)
+        if (existingUser == null) {
+            logger.debug { "No se encontró el usuario con ID: $id" }
+            return null
+        }
+
+        val timeStamp = LocalDateTime.now()
+
+        // Hasheamos la contraseña si ha cambiado
+        val hashedPassword = if (user.password != existingUser.password) {
+            BCryptUtil.hashPassword(user.password)
+        } else {
+            user.password
+        }
+
+        var rowsAffected = 0
+
+        DataBaseManager.use { db ->
+            val connection = db.connection ?: throw IllegalStateException("Conexión a la base de datos no disponible")
+
+            val sql = """
+                UPDATE Usuarios 
+                SET username = ?, password = ?, role = ?, updated_at = ? 
+                WHERE id = ?
+            """.trimIndent()
+
+            val preparedStatement = connection.prepareStatement(sql)
+            preparedStatement.apply {
+                setString(1, user.username)
+                setString(2, hashedPassword)
+                setString(3, user.role.name)
+                setString(4, timeStamp.toString())
+                setInt(5, id)
+            }
+
+            rowsAffected = preparedStatement.executeUpdate()
+        }
+
+        if (rowsAffected == 0) {
+            logger.debug { "No se actualizó ningún usuario con ID: $id" }
+            return null
+        }
+
+        val updatedUser = User(
+            id = id,
+            username = user.username,
+            password = hashedPassword,
+            role = user.role,
+            createdAt = existingUser.createdAt,
+            updatedAt = timeStamp
+        )
+
+        // Actualizar la caché
+        users[user.username] = updatedUser
+
+        return updatedUser
+    }
+
+    override fun delete(id: Int): Boolean {
+        logger.debug { "Eliminando usuario con ID: $id" }
+
+        // Verificar si el usuario existe
+        val existingUser = getById(id)
+        if (existingUser == null) {
+            logger.debug { "No se encontró el usuario con ID: $id" }
+            return false
+        }
+
+        var success = false
+
+        DataBaseManager.use { db ->
+            val connection = db.connection ?: throw IllegalStateException("Conexión a la base de datos no disponible")
+
+            val sql = "DELETE FROM Usuarios WHERE id = ?"
+
+            val preparedStatement = connection.prepareStatement(sql)
+            preparedStatement.setInt(1, id)
+
+            val rowsAffected = preparedStatement.executeUpdate()
+            success = rowsAffected > 0
+
+            if (success) {
+                // Eliminar de la caché
+                users.remove(existingUser.username)
+                logger.debug { "Usuario eliminado correctamente: ${existingUser.username}" }
+            } else {
+                logger.debug { "No se eliminó ningún usuario con ID: $id" }
+            }
+        }
+
+        return success
+    }
+
+    /**
+     * Obtiene un usuario por su ID.
+     *
+     * @param id El ID del usuario.
+     * @return El usuario con el ID especificado, o null si no se encuentra.
+     */
+    private fun getById(id: Int): User? {
+        logger.debug { "Obteniendo usuario por ID: $id" }
+
+        // Buscar en la caché
+        val cachedUser = users.values.find { it.id == id }
+        if (cachedUser != null) {
+            return cachedUser
+        }
+
+        // Si no está en la caché, buscamos en la base de datos
+        var user: User? = null
+
+        val sql = "SELECT * FROM Usuarios WHERE id = ?"
+
+        DataBaseManager.use { db ->
+            val preparedStatement = db.connection?.prepareStatement(sql)
+            preparedStatement?.setInt(1, id)
+            val resultSet = preparedStatement?.executeQuery()
+
+            if (resultSet?.next() == true) {
+                user = User(
+                    id = resultSet.getInt("id"),
+                    username = resultSet.getString("username"),
+                    password = resultSet.getString("password"),
+                    role = User.Role.valueOf(resultSet.getString("role")),
+                    createdAt = LocalDateTime.parse(resultSet.getString("created_at")),
+                    updatedAt = LocalDateTime.parse(resultSet.getString("updated_at"))
+                )
+
+                // Añadimos el usuario a la caché
+                users[user!!.username] = user!!
+            }
+        }
+
+        return user
+    }
+
     override fun initDefaultUsers() {
         logger.debug { "Inicializando usuarios por defecto" }
 
