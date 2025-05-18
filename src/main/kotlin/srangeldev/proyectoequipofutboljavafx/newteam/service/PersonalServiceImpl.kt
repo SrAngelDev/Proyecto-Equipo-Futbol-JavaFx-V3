@@ -1,15 +1,15 @@
-package srangeldev.service
+package srangeldev.proyectoequipofutboljavafx.newteam.service
 
 import org.lighthousegames.logging.logging
-import srangeldev.Cache.Cache
-import srangeldev.Cache.CacheImpl
-import srangeldev.exceptions.PersonalException
+import srangeldev.proyectoequipofutboljavafx.newteam.cache.Cache
+import srangeldev.proyectoequipofutboljavafx.newteam.cache.CacheImpl
+import srangeldev.proyectoequipofutboljavafx.newteam.exceptions.PersonalException
 import srangeldev.proyectoequipofutboljavafx.newteam.models.Personal
 import srangeldev.proyectoequipofutboljavafx.newteam.repository.PersonalRepository
 import srangeldev.proyectoequipofutboljavafx.newteam.repository.PersonalRespositoryImpl
-import srangeldev.storage.FileFormat
-import srangeldev.storage.PersonalStorage
-import srangeldev.storage.PersonalStorageImpl
+import srangeldev.proyectoequipofutboljavafx.newteam.storage.FileFormat
+import srangeldev.proyectoequipofutboljavafx.newteam.storage.PersonalStorage
+import srangeldev.proyectoequipofutboljavafx.newteam.storage.PersonalStorageImpl
 import srangeldev.validator.validate
 import java.io.File
 

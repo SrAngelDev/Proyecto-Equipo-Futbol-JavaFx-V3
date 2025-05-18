@@ -1,17 +1,12 @@
 package srangeldev.proyectoequipofutboljavafx
 
-import javafx.animation.KeyFrame
-import javafx.animation.KeyValue
-import javafx.animation.Timeline
 import javafx.application.Application
-import javafx.fxml.FXMLLoader
-import javafx.scene.Scene
-import javafx.scene.image.Image
 import javafx.stage.Stage
-import javafx.util.Duration
 import org.koin.core.component.KoinComponent
-import org.koin.core.context.GlobalContext.startKoin
-import srangeldev.proyectoequipofutboljavafx.Controllers.SplashScreenController
+import org.koin.core.context.startKoin
+import org.koin.core.logger.Level
+import org.koin.dsl.module
+import srangeldev.proyectoequipofutboljavafx.di.appModule
 import srangeldev.proyectoequipofutboljavafx.routes.RoutesManager
 import java.time.LocalDateTime
 
@@ -22,8 +17,8 @@ class NewTeamApplication : Application(), KoinComponent {
         println(LocalDateTime.now().toString())
         // creamos Koin
         startKoin {
-            printLogger() // Logger de Koin
-            //modules(appModule) // Módulos de Koin
+            printLogger(Level.INFO) // Logger de Koin
+            modules(appModule) // Módulos de Koin
         }
     }
 

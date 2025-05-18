@@ -1,12 +1,13 @@
-package srangeldev.storage
+package srangeldev.proyectoequipofutboljavafx.newteam.storage
 
+import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
 import org.lighthousegames.logging.logging
-import srangeldev.dto.PersonalJsonDto
-import srangeldev.exceptions.PersonalException
-import srangeldev.mapper.toJsonDto
-import srangeldev.mapper.toEntrenador
-import srangeldev.mapper.toJugador
+import srangeldev.proyectoequipofutboljavafx.newteam.dto.PersonalJsonDto
+import srangeldev.proyectoequipofutboljavafx.newteam.exceptions.PersonalException
+import srangeldev.proyectoequipofutboljavafx.newteam.mapper.toJsonDto
+import srangeldev.proyectoequipofutboljavafx.newteam.mapper.toEntrenador
+import srangeldev.proyectoequipofutboljavafx.newteam.mapper.toJugador
 import srangeldev.proyectoequipofutboljavafx.newteam.models.Entrenador
 import srangeldev.proyectoequipofutboljavafx.newteam.models.Jugador
 import srangeldev.proyectoequipofutboljavafx.newteam.models.Personal
@@ -27,7 +28,7 @@ class PersonalStorageJson: PersonalStorageFile {
             throw PersonalException.PersonalStorageException("El fichero no existe, o no es un fichero o no se puede leer: $file")
         }
         val json = Json { ignoreUnknownKeys = true }
-        return json.decodeFromString<List<PersonalJsonDto>>(file.readText()).map {
+        return json.decodeFromString(kotlinx.serialization.builtins.ListSerializer(PersonalJsonDto.serializer()), file.readText()).map {
             when (it.rol) {
                 "Entrenador" -> it.toEntrenador()
                 "Jugador" -> it.toJugador()
@@ -61,7 +62,7 @@ class PersonalStorageJson: PersonalStorageFile {
             }
         }
 
-        file.writeText(json.encodeToString<List<PersonalJsonDto>>(jsonDtos))
+        file.writeText(json.encodeToString(ListSerializer(PersonalJsonDto.serializer()), jsonDtos))
         logger.debug { "Personal guardado en fichero JSON: $file" }
     }
 }

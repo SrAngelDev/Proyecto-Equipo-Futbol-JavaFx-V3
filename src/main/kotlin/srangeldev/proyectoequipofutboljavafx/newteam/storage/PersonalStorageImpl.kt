@@ -1,4 +1,4 @@
-package srangeldev.storage
+package srangeldev.proyectoequipofutboljavafx.newteam.storage
 
 import org.lighthousegames.logging.logging
 import srangeldev.proyectoequipofutboljavafx.newteam.models.Personal

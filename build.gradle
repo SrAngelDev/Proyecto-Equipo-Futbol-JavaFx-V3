@@ -1,7 +1,7 @@
 plugins {
     id 'java'
     id 'application'
-    id 'org.jetbrains.kotlin.jvm' version '2.1.0'
+    id 'org.jetbrains.kotlin.jvm' version '1.9.23'
     id 'org.javamodularity.moduleplugin' version '1.8.12'
     id 'org.openjfx.javafxplugin' version '0.0.13'
     id 'org.beryx.jlink' version '2.25.0'
@@ -39,11 +39,11 @@ javafx {
 }
 
 dependencies {
-    implementation("io.github.pdvrieze.xmlutil:serialization-jvm:0.91.0")
+    implementation("io.github.pdvrieze.xmlutil:serialization-jvm:0.86.0")
 
     // Logger
     implementation("org.lighthousegames:logging:1.5.0")
-    implementation("ch.qos.logback:logback-classic:1.5.12")
+    implementation('ch.qos.logback:logback-classic:1.5.13')
 
     // BBDD
     implementation("org.xerial:sqlite-jdbc:3.49.1.0")
@@ -55,13 +55,13 @@ dependencies {
     implementation("org.jdbi:jdbi3-sqlobject:3.48.0") // SQL Object para DAO
     implementation("org.jdbi:jdbi3-kotlin:3.48.0") // Kotlin extension
     implementation("org.jdbi:jdbi3-kotlin-sqlobject:3.48.0") // Kotlin extension para SQL Object
-    implementation("org.jetbrains.kotlin:kotlin-stdlib:2.1.10")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib:1.9.23")
 
 
     // Librería para serialización en JSON
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
     // Librería para serialización en XML
-    implementation("io.github.pdvrieze.xmlutil:serialization-jvm:0.90.3")
+    implementation("io.github.pdvrieze.xmlutil:serialization-jvm:0.86.0")
 
     // Result
     implementation("com.michael-bull.kotlin-result:kotlin-result:2.0.0")
@@ -118,4 +118,53 @@ jlink {
 
 jlinkZip {
     group = 'distribution'
+}
+
+// Jar ejecutable
+
+jar {
+    manifest {
+        attributes 'Main-Class': 'srangeldev.proyectoequipofutboljavafx.NewTeamApplication'
+    }
+    from {
+        configurations["compileClasspath"].collect { it.isDirectory() ? it : zipTree(it) }
+    }
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+}
+
+jacocoTestReport {
+    dependsOn test
+
+    reports {
+        xml.required = false
+        csv.required = false
+        html.required = true
+        // html.outputLocation = layout.buildDirectory.dir("jacocoHtml") // Ubicación del reporte HTML
+    }
+
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: [
+                    "**/model/**",
+                    "**/exceptions/**",
+                    "**/*Main*.*"
+            ])
+        }))
+    }
+}
+
+jacocoTestCoverageVerification {
+    violationRules {
+        rule {
+            limit {
+                minimum = 0.8 // 80% de cobertura mínima
+            }
+        }
+    }
+}
+
+task testCoverage(group: 'verification', description: 'Runs the unit tests with coverage') {
+    dependsOn test,
+            jacocoTestReport,
+            jacocoTestCoverageVerification
 }

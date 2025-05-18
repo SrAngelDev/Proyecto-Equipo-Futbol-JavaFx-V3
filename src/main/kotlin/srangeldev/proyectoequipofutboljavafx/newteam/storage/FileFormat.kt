@@ -1,4 +1,4 @@
-package srangeldev.storage
+package srangeldev.proyectoequipofutboljavafx.newteam.storage
 
 /**
  * Enumeración que representa los diferentes formatos de archivo para el almacenamiento de datos de personal.

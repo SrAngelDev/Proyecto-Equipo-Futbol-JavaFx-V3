@@ -1,4 +1,4 @@
-package srangeldev.Cache
+package srangeldev.proyectoequipofutboljavafx.newteam.cache
 
 /**
  * Interfaz que define los métodos para una caché genérica.

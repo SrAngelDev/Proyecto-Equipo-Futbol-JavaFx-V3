@@ -1,7 +1,7 @@
-package srangeldev.service
+package srangeldev.proyectoequipofutboljavafx.newteam.service
 
 import srangeldev.proyectoequipofutboljavafx.newteam.models.Personal
-import srangeldev.storage.FileFormat
+import srangeldev.proyectoequipofutboljavafx.newteam.storage.FileFormat
 
 /**
  * Interfaz para el servicio de gestión de personal.

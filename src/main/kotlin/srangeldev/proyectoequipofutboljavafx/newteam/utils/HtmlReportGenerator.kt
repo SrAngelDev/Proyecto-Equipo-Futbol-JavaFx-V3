@@ -1,9 +1,10 @@
-package srangeldev.utils
+package srangeldev.proyectoequipofutboljavafx.newteam.utils
 
 import srangeldev.proyectoequipofutboljavafx.newteam.models.Entrenador
 import srangeldev.proyectoequipofutboljavafx.newteam.models.Jugador
 import srangeldev.proyectoequipofutboljavafx.newteam.models.Personal
 import java.io.File
+import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 /**
@@ -156,7 +157,7 @@ object HtmlReportGenerator {
                 </div>
                 
                 <footer>
-                    <p>Informe generado el ${java.time.LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"))}</p>
+                    <p>Informe generado el ${LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"))}</p>
                 </footer>
             </body>
             </html>

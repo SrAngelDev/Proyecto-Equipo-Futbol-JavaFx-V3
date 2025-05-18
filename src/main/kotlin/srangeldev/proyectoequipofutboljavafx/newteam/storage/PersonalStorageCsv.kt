@@ -1,11 +1,11 @@
-package srangeldev.storage
+package srangeldev.proyectoequipofutboljavafx.newteam.storage
 
 import org.lighthousegames.logging.logging
-import srangeldev.dto.PersonalCsvDto
-import srangeldev.exceptions.PersonalException
-import srangeldev.mapper.toCsvDto
-import srangeldev.mapper.toEntrenador
-import srangeldev.mapper.toJugador
+import srangeldev.proyectoequipofutboljavafx.newteam.dto.PersonalCsvDto
+import srangeldev.proyectoequipofutboljavafx.newteam.exceptions.PersonalException
+import srangeldev.proyectoequipofutboljavafx.newteam.mapper.toCsvDto
+import srangeldev.proyectoequipofutboljavafx.newteam.mapper.toEntrenador
+import srangeldev.proyectoequipofutboljavafx.newteam.mapper.toJugador
 import srangeldev.proyectoequipofutboljavafx.newteam.models.Entrenador
 import srangeldev.proyectoequipofutboljavafx.newteam.models.Jugador
 import srangeldev.proyectoequipofutboljavafx.newteam.models.Personal

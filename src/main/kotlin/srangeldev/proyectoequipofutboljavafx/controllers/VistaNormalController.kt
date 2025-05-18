@@ -1,4 +1,4 @@
-package srangeldev.proyectoequipofutboljavafx.Controllers
+package srangeldev.proyectoequipofutboljavafx.controllers
 
 import javafx.beans.property.SimpleIntegerProperty
 import javafx.beans.property.SimpleStringProperty
@@ -18,8 +18,8 @@ import srangeldev.proyectoequipofutboljavafx.newteam.models.User
 import srangeldev.proyectoequipofutboljavafx.newteam.repository.UserRepositoryImpl
 import srangeldev.proyectoequipofutboljavafx.routes.RoutesManager
 import srangeldev.proyectoequipofutboljavafx.newteam.session.Session
-import srangeldev.service.PersonalServiceImpl
-import srangeldev.utils.HtmlReportGenerator
+import srangeldev.proyectoequipofutboljavafx.newteam.service.PersonalServiceImpl
+import srangeldev.proyectoequipofutboljavafx.newteam.utils.HtmlReportGenerator
 import java.awt.Desktop
 import java.io.File
 import java.time.LocalDate
@@ -193,7 +193,7 @@ class VistaNormalController {
     }
 
     private fun applyFilters(searchText: String) {
-        filteredPersonal.setPredicate(object : java.util.function.Predicate<Personal> {
+        filteredPersonal.predicate = object : java.util.function.Predicate<Personal> {
             override fun test(personal: Personal): Boolean {
                 // Filtrar por tipo (todos, jugador o entrenador)
                 val matchesType = when {
@@ -215,7 +215,7 @@ class VistaNormalController {
 
                 return matchesSearch && matchesType
             }
-        })
+        }
     }
 
     private fun setupMenuItems() {

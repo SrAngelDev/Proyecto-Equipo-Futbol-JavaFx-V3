@@ -44,12 +44,12 @@ module srangeldev.proyectoequipofutboljavafx {
 
 
     opens srangeldev.proyectoequipofutboljavafx to javafx.fxml;
-    opens srangeldev.proyectoequipofutboljavafx.Controllers to javafx.fxml;
+    opens srangeldev.proyectoequipofutboljavafx.controllers to javafx.fxml;
     opens srangeldev.proyectoequipofutboljavafx.newteam.models to javafx.base;
 
     //Logging
     exports srangeldev.proyectoequipofutboljavafx;
-    exports srangeldev.proyectoequipofutboljavafx.Controllers;
+    exports srangeldev.proyectoequipofutboljavafx.controllers;
     exports srangeldev.proyectoequipofutboljavafx.routes;
 
 }

@@ -1,6 +1,6 @@
 package srangeldev.validator
 
-import srangeldev.exceptions.PersonalException
+import srangeldev.proyectoequipofutboljavafx.newteam.exceptions.PersonalException
 import srangeldev.proyectoequipofutboljavafx.newteam.models.Personal
 
 /**

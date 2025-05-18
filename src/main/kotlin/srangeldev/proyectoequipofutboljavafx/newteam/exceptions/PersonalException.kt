@@ -1,4 +1,4 @@
-package srangeldev.exceptions
+package srangeldev.proyectoequipofutboljavafx.newteam.exceptions
 
 /**
  * Clase sellada que representa excepciones relacionadas con el personal.

@@ -1,4 +1,4 @@
-package srangeldev.Cache
+package srangeldev.proyectoequipofutboljavafx.newteam.cache
 
 import com.github.benmanes.caffeine.cache.Caffeine
 import com.github.benmanes.caffeine.cache.Cache as CaffeineCache
@@ -9,7 +9,7 @@ import java.util.concurrent.ConcurrentHashMap
  *
  * @param capacidad La capacidad máxima de la caché.
  */
-class CacheImpl<K, V>(
+class CacheImpl<K : Any, V>(
     private val capacidad: Int = 5
 ) : Cache<K, V> {
     private val caffeineCache: CaffeineCache<K, Any> = Caffeine.newBuilder()

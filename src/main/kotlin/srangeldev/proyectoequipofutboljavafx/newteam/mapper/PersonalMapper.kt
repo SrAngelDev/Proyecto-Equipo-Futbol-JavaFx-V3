@@ -1,7 +1,9 @@
-package srangeldev.mapper
+package srangeldev.proyectoequipofutboljavafx.newteam.mapper
 
 import org.lighthousegames.logging.logging
-import srangeldev.dto.*
+import srangeldev.proyectoequipofutboljavafx.newteam.dto.PersonalCsvDto
+import srangeldev.proyectoequipofutboljavafx.newteam.dto.PersonalJsonDto
+import srangeldev.proyectoequipofutboljavafx.newteam.dto.PersonalXmlDto
 import srangeldev.proyectoequipofutboljavafx.newteam.models.Entrenador
 import srangeldev.proyectoequipofutboljavafx.newteam.models.Jugador
 import java.time.LocalDate

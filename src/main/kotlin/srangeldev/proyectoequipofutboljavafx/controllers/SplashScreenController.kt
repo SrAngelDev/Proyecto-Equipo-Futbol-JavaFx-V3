@@ -1,11 +1,8 @@
-package srangeldev.proyectoequipofutboljavafx.Controllers
+package srangeldev.proyectoequipofutboljavafx.controllers
 
 import javafx.animation.FadeTransition
-import javafx.application.Platform
-import javafx.beans.property.ReadOnlyDoubleProperty
 import javafx.fxml.FXML
 import javafx.scene.control.ProgressBar
-import javafx.scene.layout.VBox
 import javafx.scene.text.Text
 import javafx.util.Duration
 

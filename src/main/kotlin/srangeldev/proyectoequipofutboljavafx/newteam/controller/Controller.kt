@@ -4,8 +4,8 @@ import org.lighthousegames.logging.logging
 import srangeldev.proyectoequipofutboljavafx.newteam.config.Config
 import srangeldev.proyectoequipofutboljavafx.newteam.models.Entrenador
 import srangeldev.proyectoequipofutboljavafx.newteam.models.Jugador
-import srangeldev.service.PersonalServiceImpl
-import srangeldev.storage.FileFormat
+import srangeldev.proyectoequipofutboljavafx.newteam.service.PersonalServiceImpl
+import srangeldev.proyectoequipofutboljavafx.newteam.storage.FileFormat
 import java.nio.file.Paths
 import java.time.LocalDate
 import java.time.LocalDateTime

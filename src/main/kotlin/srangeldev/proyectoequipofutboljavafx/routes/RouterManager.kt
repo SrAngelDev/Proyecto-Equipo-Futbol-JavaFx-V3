@@ -15,7 +15,7 @@ import javafx.stage.Stage
 import javafx.stage.WindowEvent
 import javafx.util.Duration
 import org.lighthousegames.logging.logging
-import srangeldev.proyectoequipofutboljavafx.Controllers.SplashScreenController
+import srangeldev.proyectoequipofutboljavafx.controllers.SplashScreenController
 import srangeldev.proyectoequipofutboljavafx.NewTeamApplication
 import srangeldev.proyectoequipofutboljavafx.newteam.session.Session
 import java.net.URL

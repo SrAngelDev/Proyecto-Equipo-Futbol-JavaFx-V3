@@ -1,4 +1,4 @@
-package srangeldev.proyectoequipofutboljavafx.Controllers
+package srangeldev.proyectoequipofutboljavafx.controllers
 
 import javafx.collections.FXCollections
 import javafx.collections.ObservableList
@@ -22,8 +22,13 @@ import srangeldev.proyectoequipofutboljavafx.routes.RoutesManager
 import srangeldev.proyectoequipofutboljavafx.newteam.repository.UserRepository
 import srangeldev.proyectoequipofutboljavafx.newteam.repository.UserRepositoryImpl
 import srangeldev.proyectoequipofutboljavafx.newteam.session.Session
-import srangeldev.service.PersonalServiceImpl
-import srangeldev.utils.HtmlReportGenerator
+import srangeldev.proyectoequipofutboljavafx.newteam.service.PersonalServiceImpl
+import srangeldev.proyectoequipofutboljavafx.newteam.storage.FileFormat
+import srangeldev.proyectoequipofutboljavafx.newteam.storage.PersonalStorageCsv
+import srangeldev.proyectoequipofutboljavafx.newteam.storage.PersonalStorageJson
+import srangeldev.proyectoequipofutboljavafx.newteam.utils.ZipFile
+import srangeldev.proyectoequipofutboljavafx.newteam.storage.PersonalStorageXml
+import srangeldev.proyectoequipofutboljavafx.newteam.utils.HtmlReportGenerator
 import java.awt.Desktop
 import java.io.File
 import java.time.LocalDate
@@ -529,7 +534,7 @@ class VistaAdminController {
             }
 
             // Crear una instancia del servicio
-            val service = srangeldev.service.PersonalServiceImpl()
+            val service = PersonalServiceImpl()
 
             // Obtener los datos comunes del formulario
             val nombreCompleto = nombreTextField.text.trim().split(" ", limit = 2)
@@ -930,7 +935,7 @@ class VistaAdminController {
 
             // Crear una instancia del servicio
             logger.debug { "Creando instancia de PersonalServiceImpl" }
-            val service = srangeldev.service.PersonalServiceImpl()
+            val service = PersonalServiceImpl()
             logger.debug { "Instancia de PersonalServiceImpl creada correctamente" }
 
             // Obtener todos los miembros del personal
@@ -1010,7 +1015,7 @@ class VistaAdminController {
 
                 if (selectedFile != null) {
                     // Crear una instancia del servicio
-                    val service = srangeldev.service.PersonalServiceImpl()
+                    val service = PersonalServiceImpl()
 
                     // Determinar si es un archivo ZIP o JSON
                     if (selectedFile.name.endsWith(".zip", ignoreCase = true)) {
@@ -1022,10 +1027,10 @@ class VistaAdminController {
 
                         // Exportar datos a JSON en el directorio temporal
                         val tempJsonPath = "${tempDir.absolutePath}/personal.json"
-                        service.exportToFile(tempJsonPath, srangeldev.storage.FileFormat.JSON)
+                        service.exportToFile(tempJsonPath, FileFormat.JSON)
 
                         // Crear el archivo ZIP
-                        srangeldev.proyectoequipofutboljavafx.newteam.utils.ZipFile.createZipFile(
+                        ZipFile.createZipFile(
                             tempDir.absolutePath,
                             selectedFile.absolutePath
                         )
@@ -1039,7 +1044,7 @@ class VistaAdminController {
                         )
                     } else {
                         // Exportar datos a JSON
-                        service.exportToFile(selectedFile.absolutePath, srangeldev.storage.FileFormat.JSON)
+                        service.exportToFile(selectedFile.absolutePath, FileFormat.JSON)
                         showInfoDialog(
                             "Exportar datos",
                             "Datos exportados correctamente a JSON.\n\nRuta: ${selectedFile.absolutePath}"
@@ -1070,7 +1075,7 @@ class VistaAdminController {
 
                 if (selectedFile != null) {
                     // Crear una instancia del servicio
-                    val service = srangeldev.service.PersonalServiceImpl()
+                    val service = PersonalServiceImpl()
 
                     // Verificar si es un archivo ZIP
                     if (selectedFile.name.endsWith(".zip", ignoreCase = true)) {
@@ -1082,7 +1087,7 @@ class VistaAdminController {
                         }
 
                         // Extraer el archivo ZIP
-                        srangeldev.proyectoequipofutboljavafx.newteam.utils.ZipFile.extractFileToPath(
+                        ZipFile.extractFileToPath(
                             selectedFile.absolutePath,
                             tempDir.absolutePath
                         )
@@ -1095,9 +1100,9 @@ class VistaAdminController {
                         tempDir.walkTopDown().forEach { file ->
                             if (file.isFile) {
                                 val fileFormat = when {
-                                    file.name.endsWith(".csv", ignoreCase = true) -> srangeldev.storage.FileFormat.CSV
-                                    file.name.endsWith(".json", ignoreCase = true) -> srangeldev.storage.FileFormat.JSON
-                                    file.name.endsWith(".xml", ignoreCase = true) -> srangeldev.storage.FileFormat.XML
+                                    file.name.endsWith(".csv", ignoreCase = true) -> FileFormat.CSV
+                                    file.name.endsWith(".json", ignoreCase = true) -> FileFormat.JSON
+                                    file.name.endsWith(".xml", ignoreCase = true) -> FileFormat.XML
                                     else -> null
                                 }
 
@@ -1105,9 +1110,9 @@ class VistaAdminController {
                                     try {
                                         // Intentamos leer el archivo para verificar su estructura
                                         val storage = when (fileFormat) {
-                                            srangeldev.storage.FileFormat.CSV -> srangeldev.storage.PersonalStorageCsv()
-                                            srangeldev.storage.FileFormat.JSON -> srangeldev.storage.PersonalStorageJson()
-                                            srangeldev.storage.FileFormat.XML -> srangeldev.storage.PersonalStorageXml()
+                                            FileFormat.CSV -> PersonalStorageCsv()
+                                            FileFormat.JSON -> PersonalStorageJson()
+                                            FileFormat.XML -> PersonalStorageXml()
                                             else -> null
                                         }
 
@@ -1128,9 +1133,9 @@ class VistaAdminController {
                         validFiles.forEach { file ->
                             try {
                                 val fileFormat = when {
-                                    file.name.endsWith(".csv", ignoreCase = true) -> srangeldev.storage.FileFormat.CSV
-                                    file.name.endsWith(".json", ignoreCase = true) -> srangeldev.storage.FileFormat.JSON
-                                    file.name.endsWith(".xml", ignoreCase = true) -> srangeldev.storage.FileFormat.XML
+                                    file.name.endsWith(".csv", ignoreCase = true) -> FileFormat.CSV
+                                    file.name.endsWith(".json", ignoreCase = true) -> FileFormat.JSON
+                                    file.name.endsWith(".xml", ignoreCase = true) -> FileFormat.XML
                                     else -> null
                                 }
 
@@ -1164,9 +1169,9 @@ class VistaAdminController {
                     } else {
                         // Determinar el formato del archivo según su extensión
                         val fileFormat = when {
-                            selectedFile.name.endsWith(".csv", ignoreCase = true) -> srangeldev.storage.FileFormat.CSV
-                            selectedFile.name.endsWith(".json", ignoreCase = true) -> srangeldev.storage.FileFormat.JSON
-                            selectedFile.name.endsWith(".xml", ignoreCase = true) -> srangeldev.storage.FileFormat.XML
+                            selectedFile.name.endsWith(".csv", ignoreCase = true) -> FileFormat.CSV
+                            selectedFile.name.endsWith(".json", ignoreCase = true) -> FileFormat.JSON
+                            selectedFile.name.endsWith(".xml", ignoreCase = true) -> FileFormat.XML
                             else -> throw IllegalArgumentException("Formato de archivo no soportado")
                         }
 

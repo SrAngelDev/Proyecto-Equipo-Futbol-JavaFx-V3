@@ -1,4 +1,4 @@
-package srangeldev.proyectoequipofutboljavafx.Controllers
+package srangeldev.proyectoequipofutboljavafx.controllers
 
 import javafx.fxml.FXML
 import javafx.fxml.FXMLLoader

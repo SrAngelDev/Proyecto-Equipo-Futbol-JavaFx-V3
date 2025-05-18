@@ -1,4 +1,4 @@
-package srangeldev.dto
+package srangeldev.proyectoequipofutboljavafx.newteam.dto
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
