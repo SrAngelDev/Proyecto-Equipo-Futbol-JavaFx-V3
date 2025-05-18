@@ -14,7 +14,7 @@ import srangeldev.proyectoequipofutboljavafx.newteam.models.User
 import srangeldev.proyectoequipofutboljavafx.newteam.repository.UserRepository
 import srangeldev.proyectoequipofutboljavafx.newteam.repository.UserRepositoryImpl
 import srangeldev.proyectoequipofutboljavafx.routes.RoutesManager.app
-import srangeldev.session.Session
+import srangeldev.proyectoequipofutboljavafx.newteam.session.Session
 
 class LoggingController {
     private val logger = logging()

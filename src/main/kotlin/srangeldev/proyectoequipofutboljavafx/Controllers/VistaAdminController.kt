@@ -1,7 +1,5 @@
 package srangeldev.proyectoequipofutboljavafx.Controllers
 
-import javafx.beans.property.SimpleIntegerProperty
-import javafx.beans.property.SimpleStringProperty
 import javafx.collections.FXCollections
 import javafx.collections.ObservableList
 import javafx.collections.transformation.FilteredList
@@ -10,7 +8,6 @@ import javafx.scene.control.*
 import javafx.scene.control.cell.PropertyValueFactory
 import javafx.scene.image.Image
 import javafx.scene.image.ImageView
-import javafx.scene.input.MouseEvent
 import javafx.stage.DirectoryChooser
 import javafx.stage.Stage
 import org.lighthousegames.logging.logging
@@ -23,7 +20,7 @@ import srangeldev.proyectoequipofutboljavafx.newteam.config.Config
 import srangeldev.proyectoequipofutboljavafx.routes.RoutesManager
 import srangeldev.proyectoequipofutboljavafx.newteam.repository.UserRepository
 import srangeldev.proyectoequipofutboljavafx.newteam.repository.UserRepositoryImpl
-import srangeldev.session.Session
+import srangeldev.proyectoequipofutboljavafx.newteam.session.Session
 import srangeldev.utils.HtmlReportGenerator
 import java.awt.Desktop
 import java.io.File
@@ -774,18 +771,10 @@ class VistaAdminController {
         // Cargar datos
         loadDataMenuItem.setOnAction {
             try {
-                // Crear una instancia del controlador
-                val controller = srangeldev.controller.Controller()
-
-                // Cargar datos desde los archivos CSV, JSON y XML
-                controller.cargarDatos("CSV")
-                controller.cargarDatos("JSON")
-                controller.cargarDatos("XML")
-
-                // Actualizar la lista de personal con los datos cargados
+                // Cargar datos directamente desde la base de datos
                 loadPersonalFromDatabase()
 
-                showInfoDialog("Cargar datos", "Datos cargados correctamente desde los archivos CSV, JSON y XML.")
+                showInfoDialog("Cargar datos", "Datos cargados correctamente desde la base de datos.")
             } catch (e: Exception) {
                 logger.error { "Error al cargar datos: ${e.message}" }
                 showErrorDialog("Error", "No se pudieron cargar los datos: ${e.message}")
@@ -795,23 +784,55 @@ class VistaAdminController {
         // Exportar datos
         exportDataMenuItem.setOnAction {
             try {
-                // Crear el directorio de backup si no existe
-                val backupDir = File(Config.configProperties.backupDir)
-                if (!backupDir.exists()) {
-                    backupDir.mkdirs()
-                }
+                // Crear un FileChooser para seleccionar el tipo de exportación
+                val fileChooser = javafx.stage.FileChooser()
+                fileChooser.title = "Guardar archivo"
+
+                // Configurar filtros para los tipos de archivo soportados
+                fileChooser.extensionFilters.addAll(
+                    javafx.stage.FileChooser.ExtensionFilter("Archivos JSON", "*.json"),
+                    javafx.stage.FileChooser.ExtensionFilter("Archivos ZIP", "*.zip")
+                )
 
                 // Generar nombre de archivo con timestamp
                 val timestamp = LocalDateTime.now().toString().replace(":", "-").replace(".", "-")
-                val outputPath = "${Config.configProperties.backupDir}/personal_${timestamp}.json"
+                fileChooser.initialFileName = "personal_${timestamp}"
 
-                // Crear una instancia del servicio
-                val service = srangeldev.service.PersonalServiceImpl()
+                // Mostrar el diálogo de selección de archivo
+                val selectedFile = fileChooser.showSaveDialog(playerImageView.scene.window as Stage)
 
-                // Exportar datos a JSON
-                service.exportToFile(outputPath, srangeldev.storage.FileFormat.JSON)
+                if (selectedFile != null) {
+                    // Crear una instancia del servicio
+                    val service = srangeldev.service.PersonalServiceImpl()
 
-                showInfoDialog("Exportar datos", "Datos exportados correctamente a JSON.\n\nRuta: $outputPath")
+                    // Determinar si es un archivo ZIP o JSON
+                    if (selectedFile.name.endsWith(".zip", ignoreCase = true)) {
+                        // Crear un directorio temporal para los archivos
+                        val tempDir = File("${Config.configProperties.backupDir}/temp_${timestamp}")
+                        if (!tempDir.exists()) {
+                            tempDir.mkdirs()
+                        }
+
+                        // Exportar datos a JSON en el directorio temporal
+                        val tempJsonPath = "${tempDir.absolutePath}/personal.json"
+                        service.exportToFile(tempJsonPath, srangeldev.storage.FileFormat.JSON)
+
+                        // Crear el archivo ZIP
+                        srangeldev.proyectoequipofutboljavafx.newteam.utils.ZipFile.createZipFile(
+                            tempDir.absolutePath,
+                            selectedFile.absolutePath
+                        )
+
+                        // Eliminar el directorio temporal
+                        tempDir.deleteRecursively()
+
+                        showInfoDialog("Exportar datos", "Datos exportados correctamente a ZIP.\n\nRuta: ${selectedFile.absolutePath}")
+                    } else {
+                        // Exportar datos a JSON
+                        service.exportToFile(selectedFile.absolutePath, srangeldev.storage.FileFormat.JSON)
+                        showInfoDialog("Exportar datos", "Datos exportados correctamente a JSON.\n\nRuta: ${selectedFile.absolutePath}")
+                    }
+                }
             } catch (e: Exception) {
                 logger.error { "Error al exportar datos: ${e.message}" }
                 showErrorDialog("Error", "No se pudieron exportar los datos: ${e.message}")
@@ -826,34 +847,118 @@ class VistaAdminController {
                 fileChooser.title = "Seleccionar archivo para importar"
 
                 // Configurar filtros para los tipos de archivo soportados
+                // Solo permitimos archivos ZIP para importar
                 fileChooser.extensionFilters.addAll(
-                    javafx.stage.FileChooser.ExtensionFilter("Archivos CSV", "*.csv"),
-                    javafx.stage.FileChooser.ExtensionFilter("Archivos JSON", "*.json"),
-                    javafx.stage.FileChooser.ExtensionFilter("Archivos XML", "*.xml")
+                    javafx.stage.FileChooser.ExtensionFilter("Archivos ZIP", "*.zip")
                 )
 
                 // Mostrar el diálogo de selección de archivo
                 val selectedFile = fileChooser.showOpenDialog(playerImageView.scene.window as Stage)
 
                 if (selectedFile != null) {
-                    // Determinar el formato del archivo según su extensión
-                    val fileFormat = when {
-                        selectedFile.name.endsWith(".csv", ignoreCase = true) -> srangeldev.storage.FileFormat.CSV
-                        selectedFile.name.endsWith(".json", ignoreCase = true) -> srangeldev.storage.FileFormat.JSON
-                        selectedFile.name.endsWith(".xml", ignoreCase = true) -> srangeldev.storage.FileFormat.XML
-                        else -> throw IllegalArgumentException("Formato de archivo no soportado")
-                    }
-
                     // Crear una instancia del servicio
                     val service = srangeldev.service.PersonalServiceImpl()
 
-                    // Importar datos desde el archivo seleccionado
-                    service.importFromFile(selectedFile.absolutePath, fileFormat)
+                    // Verificar si es un archivo ZIP
+                    if (selectedFile.name.endsWith(".zip", ignoreCase = true)) {
+                        // Crear un directorio temporal para extraer los archivos
+                        val timestamp = LocalDateTime.now().toString().replace(":", "-").replace(".", "-")
+                        val tempDir = File("${Config.configProperties.dataDir}/temp_${timestamp}")
+                        if (!tempDir.exists()) {
+                            tempDir.mkdirs()
+                        }
 
-                    // Actualizar la lista de personal con los datos importados
-                    loadPersonalFromDatabase()
+                        // Extraer el archivo ZIP
+                        srangeldev.proyectoequipofutboljavafx.newteam.utils.ZipFile.extractFileToPath(
+                            selectedFile.absolutePath,
+                            tempDir.absolutePath
+                        )
 
-                    showInfoDialog("Importar datos", "Datos importados correctamente desde ${selectedFile.name}.")
+                        // Buscar archivos de datos en el directorio extraído
+                        var importedAny = false
+                        val validFiles = mutableListOf<File>()
+
+                        // Primero verificamos que el ZIP contiene archivos con estructura válida
+                        tempDir.walkTopDown().forEach { file ->
+                            if (file.isFile) {
+                                val fileFormat = when {
+                                    file.name.endsWith(".csv", ignoreCase = true) -> srangeldev.storage.FileFormat.CSV
+                                    file.name.endsWith(".json", ignoreCase = true) -> srangeldev.storage.FileFormat.JSON
+                                    file.name.endsWith(".xml", ignoreCase = true) -> srangeldev.storage.FileFormat.XML
+                                    else -> null
+                                }
+
+                                if (fileFormat != null) {
+                                    try {
+                                        // Intentamos leer el archivo para verificar su estructura
+                                        val storage = when (fileFormat) {
+                                            srangeldev.storage.FileFormat.CSV -> srangeldev.storage.PersonalStorageCsv()
+                                            srangeldev.storage.FileFormat.JSON -> srangeldev.storage.PersonalStorageJson()
+                                            srangeldev.storage.FileFormat.XML -> srangeldev.storage.PersonalStorageXml()
+                                            else -> null
+                                        }
+
+                                        if (storage != null) {
+                                            // Si no lanza excepción, el archivo tiene estructura válida
+                                            storage.readFromFile(file)
+                                            validFiles.add(file)
+                                        }
+                                    } catch (e: Exception) {
+                                        logger.error { "Archivo con estructura inválida ${file.name}: ${e.message}" }
+                                        // No agregamos el archivo a la lista de válidos
+                                    }
+                                }
+                            }
+                        }
+
+                        // Ahora importamos solo los archivos con estructura válida
+                        validFiles.forEach { file ->
+                            try {
+                                val fileFormat = when {
+                                    file.name.endsWith(".csv", ignoreCase = true) -> srangeldev.storage.FileFormat.CSV
+                                    file.name.endsWith(".json", ignoreCase = true) -> srangeldev.storage.FileFormat.JSON
+                                    file.name.endsWith(".xml", ignoreCase = true) -> srangeldev.storage.FileFormat.XML
+                                    else -> null
+                                }
+
+                                if (fileFormat != null) {
+                                    // Importar datos desde el archivo
+                                    service.importFromFile(file.absolutePath, fileFormat)
+                                    importedAny = true
+                                }
+                            } catch (e: Exception) {
+                                logger.error { "Error al importar archivo ${file.name}: ${e.message}" }
+                                // Continuar con el siguiente archivo
+                            }
+                        }
+
+                        // Eliminar el directorio temporal
+                        tempDir.deleteRecursively()
+
+                        if (importedAny) {
+                            // Actualizar la lista de personal con los datos importados
+                            loadPersonalFromDatabase()
+                            showInfoDialog("Importar datos", "Datos importados correctamente desde el archivo ZIP ${selectedFile.name}.")
+                        } else {
+                            showErrorDialog("Error", "No se encontraron archivos con estructura válida en el archivo ZIP. Asegúrese de que el ZIP contiene archivos XML, JSON o CSV con el formato correcto.")
+                        }
+                    } else {
+                        // Determinar el formato del archivo según su extensión
+                        val fileFormat = when {
+                            selectedFile.name.endsWith(".csv", ignoreCase = true) -> srangeldev.storage.FileFormat.CSV
+                            selectedFile.name.endsWith(".json", ignoreCase = true) -> srangeldev.storage.FileFormat.JSON
+                            selectedFile.name.endsWith(".xml", ignoreCase = true) -> srangeldev.storage.FileFormat.XML
+                            else -> throw IllegalArgumentException("Formato de archivo no soportado")
+                        }
+
+                        // Importar datos desde el archivo seleccionado
+                        service.importFromFile(selectedFile.absolutePath, fileFormat)
+
+                        // Actualizar la lista de personal con los datos importados
+                        loadPersonalFromDatabase()
+
+                        showInfoDialog("Importar datos", "Datos importados correctamente desde ${selectedFile.name}.")
+                    }
                 }
             } catch (e: Exception) {
                 logger.error { "Error al importar datos: ${e.message}" }

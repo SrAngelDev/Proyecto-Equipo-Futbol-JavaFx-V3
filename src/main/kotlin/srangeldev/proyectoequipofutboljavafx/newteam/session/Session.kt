@@ -1,4 +1,4 @@
-package srangeldev.session
+package srangeldev.proyectoequipofutboljavafx.newteam.session
 
 import srangeldev.proyectoequipofutboljavafx.newteam.models.User
 
@@ -33,15 +33,6 @@ object Session {
      */
     fun isAdmin(): Boolean {
         return currentUser?.role == User.Role.ADMIN
-    }
-    
-    /**
-     * Comprueba si hay un usuario autenticado.
-     * 
-     * @return true si hay un usuario autenticado, false en caso contrario.
-     */
-    fun isAuthenticated(): Boolean {
-        return currentUser != null
     }
     
     /**

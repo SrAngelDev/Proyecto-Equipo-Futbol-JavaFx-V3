@@ -11,15 +11,13 @@ import javafx.scene.Scene
 import javafx.scene.control.Alert
 import javafx.scene.control.ButtonType
 import javafx.scene.image.Image
-import javafx.scene.layout.Pane
-import javafx.stage.Modality
 import javafx.stage.Stage
 import javafx.stage.WindowEvent
 import javafx.util.Duration
 import org.lighthousegames.logging.logging
 import srangeldev.proyectoequipofutboljavafx.Controllers.SplashScreenController
 import srangeldev.proyectoequipofutboljavafx.NewTeamApplication
-import java.io.InputStream
+import srangeldev.proyectoequipofutboljavafx.newteam.session.Session
 import java.net.URL
 import java.util.*
 
@@ -161,7 +159,7 @@ object RoutesManager {
         }.showAndWait().ifPresent { opcion ->
             if (opcion == ButtonType.OK) {
                 // Cerrar sesión
-                srangeldev.session.Session.logout()
+                Session.logout()
                 // Volver a la pantalla de login
                 loggingStage(mainStage)
             }

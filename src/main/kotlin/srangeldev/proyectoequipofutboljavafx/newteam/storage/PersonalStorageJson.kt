@@ -36,12 +36,16 @@ class PersonalStorageJson: PersonalStorageFile {
         }
     }
 
-    override fun writeToFile(personalList: List<Personal>) {
-        logger.debug { "Escribiendo personal en fichero JSON" }
+    override fun writeToFile(file: File, personalList: List<Personal>) {
+        logger.debug { "Escribiendo personal en fichero JSON: $file" }
 
-        val file = File("backup/personal_back.json")
         if (!file.parentFile.exists()) {
             file.parentFile.mkdirs()
+        }
+
+        if (!file.name.endsWith(".json", ignoreCase = true)) {
+            logger.error { "El fichero no tiene extensión JSON: $file" }
+            throw PersonalException.PersonalStorageException("El fichero no tiene extensión JSON: $file")
         }
 
         val json = Json {

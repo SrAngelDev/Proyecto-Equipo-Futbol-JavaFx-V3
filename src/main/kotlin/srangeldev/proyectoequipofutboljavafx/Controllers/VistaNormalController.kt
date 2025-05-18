@@ -3,15 +3,11 @@ package srangeldev.proyectoequipofutboljavafx.Controllers
 import javafx.beans.property.SimpleIntegerProperty
 import javafx.beans.property.SimpleStringProperty
 import javafx.collections.FXCollections
-import javafx.collections.ObservableList
 import javafx.collections.transformation.FilteredList
 import javafx.fxml.FXML
 import javafx.scene.control.*
-import javafx.scene.control.cell.PropertyValueFactory
 import javafx.scene.image.Image
 import javafx.scene.image.ImageView
-import javafx.scene.input.MouseEvent
-import javafx.stage.Stage
 import org.lighthousegames.logging.logging
 import srangeldev.controller.Controller
 import srangeldev.proyectoequipofutboljavafx.newteam.models.Entrenador
@@ -21,8 +17,7 @@ import srangeldev.proyectoequipofutboljavafx.NewTeamApplication
 import srangeldev.proyectoequipofutboljavafx.newteam.models.User
 import srangeldev.proyectoequipofutboljavafx.newteam.repository.UserRepositoryImpl
 import srangeldev.proyectoequipofutboljavafx.routes.RoutesManager
-import srangeldev.session.Session
-import srangeldev.storage.FileFormat
+import srangeldev.proyectoequipofutboljavafx.newteam.session.Session
 import srangeldev.utils.HtmlReportGenerator
 import java.awt.Desktop
 import java.io.File

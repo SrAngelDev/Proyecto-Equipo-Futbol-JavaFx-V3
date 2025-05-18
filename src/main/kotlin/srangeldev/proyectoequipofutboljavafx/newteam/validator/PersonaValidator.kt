@@ -4,7 +4,7 @@ import srangeldev.exceptions.PersonalException
 import srangeldev.proyectoequipofutboljavafx.newteam.models.Personal
 
 /**
- * Funcion para validar los datos del personal.
+ * Función para validar los datos del personal.
  */
 fun Personal.validate() {
     if (id < 0) {

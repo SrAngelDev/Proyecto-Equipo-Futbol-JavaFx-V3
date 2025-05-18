@@ -55,17 +55,16 @@ class PersonalStorageXml : PersonalStorageFile {
         }
     }
 
-    override fun writeToFile(personalList: List<Personal>) {
-        logger.debug { "Escribiendo personal en formato de fichero XML" }
-        val file = File("backup/personal_back.xml")
+    override fun writeToFile(file: File, personalList: List<Personal>) {
+        logger.debug { "Escribiendo personal en formato de fichero XML: $file" }
 
         if (!file.parentFile.exists()) {
             file.parentFile.mkdirs()
         }
 
-        if (!file.parentFile.isDirectory || !file.name.endsWith(".xml", true)) {
-            logger.error { "El directorio padre del fichero no es un directorio o el fichero no tiene extensión XML: ${file.parentFile.absolutePath}" }
-            throw PersonalException.PersonalStorageException("El directorio padre del fichero no es un directorio o el fichero no tiene extensión XML: ${file.parentFile.absolutePath}")
+        if (!file.name.endsWith(".xml", ignoreCase = true)) {
+            logger.error { "El fichero no tiene extensión XML: $file" }
+            throw PersonalException.PersonalStorageException("El fichero no tiene extensión XML: $file")
         }
 
         val xml = XML { indent = 4 }

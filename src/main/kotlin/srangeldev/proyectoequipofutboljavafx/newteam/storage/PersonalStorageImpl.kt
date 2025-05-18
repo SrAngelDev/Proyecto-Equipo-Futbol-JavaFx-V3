@@ -48,10 +48,10 @@ class PersonalStorageImpl(
     override fun writeToFile(file: File, fileFormat: FileFormat, personalList: List<Personal>) {
         logger.debug { "Escribiendo personal en fichero: $file" }
         when (fileFormat) {
-            FileFormat.JSON -> storageJson.writeToFile(personalList)
-            FileFormat.CSV -> storageCsv.writeToFile(personalList)
-            FileFormat.XML -> storageXml.writeToFile(personalList)
-            FileFormat.DEFAULT -> storageJson.writeToFile(personalList) // Por defecto se asume JSON
+            FileFormat.JSON -> storageJson.writeToFile(file, personalList)
+            FileFormat.CSV -> storageCsv.writeToFile(file, personalList)
+            FileFormat.XML -> storageXml.writeToFile(file, personalList)
+            FileFormat.DEFAULT -> storageJson.writeToFile(file, personalList) // Por defecto se asume JSON
         }
     }
 }

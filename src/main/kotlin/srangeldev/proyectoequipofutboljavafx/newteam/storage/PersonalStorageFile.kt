@@ -18,8 +18,8 @@ interface PersonalStorageFile {
     /**
      * Escribe una lista de objetos Personal en un archivo.
      *
+     * @param file El archivo en el cual escribir los datos.
      * @param personalList La lista de objetos Personal a escribir en el archivo.
-     * @return El archivo donde se ha escrito la lista de objetos Personal.
      */
-    fun writeToFile(personalList: List<Personal>)
+    fun writeToFile(file: File, personalList: List<Personal>)
 }

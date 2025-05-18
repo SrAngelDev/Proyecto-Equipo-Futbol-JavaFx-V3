@@ -68,18 +68,16 @@ class PersonalStorageCsv : PersonalStorageFile {
             }
     }
 
-    override fun writeToFile(personalList: List<Personal>) {
-        logger.debug { "Escribiendo personal en fichero CSV" }
-
-        val file = File("backup/personal_back.csv")
+    override fun writeToFile(file: File, personalList: List<Personal>) {
+        logger.debug { "Escribiendo personal en fichero CSV: $file" }
 
         if (!file.parentFile.exists()) {
             file.parentFile.mkdirs()
         }
 
-        if (!file.parentFile.isDirectory || !file.name.endsWith(".csv", true)) {
-            logger.error { "El directorio padre del fichero no es un directorio o el fichero no tiene extensión CSV: ${file.parentFile.absolutePath}" }
-            throw PersonalException.PersonalStorageException("El directorio padre del fichero no es un directorio o el fichero no tiene extensión CSV: ${file.parentFile.absolutePath}")
+        if (!file.name.endsWith(".csv", ignoreCase = true)) {
+            logger.error { "El fichero no tiene extensión CSV: $file" }
+            throw PersonalException.PersonalStorageException("El fichero no tiene extensión CSV: $file")
         }
 
         file.writeText(CSV_HEADER)
