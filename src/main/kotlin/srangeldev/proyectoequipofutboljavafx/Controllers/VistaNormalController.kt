@@ -584,8 +584,8 @@ class VistaNormalController {
             headerText = "Gestor de Jugadores de Fútbol"
             contentText = "Versión 1.0\n" +
                     "Desarrolladores:\n" +
-                    "- Ángel Sánchez Gasanz" +
-                    "- Jorge Morgado Giménez" +
+                    "- Ángel Sánchez Gasanz\n" +
+                    "- Jorge Morgado Giménez\n" +
                     "- Antoine López"
         }.showAndWait()
     }

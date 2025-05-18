@@ -1,50 +1,64 @@
 package srangeldev.Cache
 
+import com.github.benmanes.caffeine.cache.Caffeine
+import com.github.benmanes.caffeine.cache.Cache as CaffeineCache
+import java.util.concurrent.ConcurrentHashMap
+
 /**
- * Implementación de una caché con capacidad limitada.
+ * Implementación de una caché con capacidad limitada usando Caffeine.
  *
  * @param capacidad La capacidad máxima de la caché.
  */
 class CacheImpl<K, V>(
     private val capacidad: Int = 5
 ) : Cache<K, V> {
-    private val cache = object : LinkedHashMap<K, V>(
-        capacidad, 0.75f, true
-    ) {
-        override fun removeEldestEntry(antiguo: MutableMap.MutableEntry<K, V>?): Boolean {
-            return size > capacidad
-        }
-    }
+    private val caffeineCache: CaffeineCache<K, Any> = Caffeine.newBuilder()
+        .maximumSize(capacidad.toLong())
+        .build()
 
+    // Mapa auxiliar para mantener las entradas y poder implementar los métodos de la interfaz
+    private val entryMap = ConcurrentHashMap<K, V>()
+
+    @Suppress("UNCHECKED_CAST")
     override fun get(key: K): V? {
-        return cache[key]
+        return caffeineCache.getIfPresent(key) as V?
     }
 
     override fun remove(key: K): V? {
-        return cache.remove(key)
+        val oldValue = entryMap.remove(key)
+        caffeineCache.invalidate(key)
+        return oldValue
     }
 
     override fun put(key: K, value: V): V? {
-        return cache.put(key, value)
+        val oldValue = entryMap.put(key, value)
+        // Solo almacenamos valores no nulos en Caffeine
+        if (value != null) {
+            caffeineCache.put(key, value as Any)
+        } else {
+            caffeineCache.invalidate(key)
+        }
+        return oldValue
     }
 
     override fun keys(): Set<K> {
-        return cache.keys
+        return entryMap.keys
     }
 
     override fun values(): Collection<V> {
-        return cache.values
+        return entryMap.values
     }
 
     override fun clear() {
-        cache.clear()
+        entryMap.clear()
+        caffeineCache.invalidateAll()
     }
 
     override fun size(): Int {
-        return cache.size
+        return entryMap.size
     }
 
     override fun entries(): Set<Map.Entry<K, V>> {
-        return cache.entries
+        return entryMap.entries
     }
 }
