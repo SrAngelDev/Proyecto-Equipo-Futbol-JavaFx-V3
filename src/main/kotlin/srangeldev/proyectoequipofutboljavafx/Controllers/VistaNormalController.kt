@@ -75,6 +75,7 @@ class VistaNormalController {
     private lateinit var filteredPersonal: FilteredList<Personal>
     private var currentPersonal: Personal? = null
     private var isAdmin = false
+    private var dataLoaded = false
 
     @FXML
     private fun initialize() {
@@ -220,6 +221,12 @@ class VistaNormalController {
     private fun setupMenuItems() {
         // Configurar el evento del menú Cargar datos
         loadDataMenuItem.setOnAction {
+            // Verificar si los datos ya han sido cargados
+            if (dataLoaded) {
+                showInfoDialog("Cargar datos", "Los datos ya han sido cargados. Para evitar duplicidad, esta acción solo puede realizarse una vez.")
+                return@setOnAction
+            }
+
             try {
                 // Crear una instancia del controlador
                 val controller = Controller()
@@ -231,6 +238,10 @@ class VistaNormalController {
 
                 // Actualizar la lista de personal con los datos cargados
                 loadPersonalFromDatabase()
+
+                // Marcar que los datos han sido cargados y deshabilitar el menú
+                dataLoaded = true
+                loadDataMenuItem.isDisable = true
 
                 showInfoDialog("Cargar datos", "Datos cargados correctamente desde los archivos CSV, JSON y XML.")
             } catch (e: Exception) {
