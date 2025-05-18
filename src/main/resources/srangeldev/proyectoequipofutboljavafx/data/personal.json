@@ -14,7 +14,8 @@
     "altura": 1.82,
     "peso": 74.0,
     "goles": 50,
-    "partidos_jugados": 140
+    "partidos_jugados": 140,
+    "imagen_url": "https://www.example.com/images/players/carlos_santana.jpg"
   },
   {
     "id": 22,
@@ -31,7 +32,8 @@
     "altura": 1.76,
     "peso": 70.0,
     "goles": 25,
-    "partidos_jugados": 150
+    "partidos_jugados": 150,
+    "imagen_url": "https://www.example.com/images/players/miguel_rodriguez.jpg"
   },
   {
     "id": 23,
@@ -48,7 +50,8 @@
     "altura": 1.85,
     "peso": 78.0,
     "goles": 5,
-    "partidos_jugados": 160
+    "partidos_jugados": 160,
+    "imagen_url": "https://www.example.com/images/players/luca_bianchi.jpg"
   },
   {
     "id": 24,
@@ -65,7 +68,8 @@
     "altura": null,
     "peso": null,
     "goles": null,
-    "partidos_jugados": null
+    "partidos_jugados": null,
+    "imagen_url": "https://www.example.com/images/coaches/hans_keller.jpg"
   },
   {
     "id": 25,
@@ -82,7 +86,8 @@
     "altura": 1.90,
     "peso": 85.0,
     "goles": 0,
-    "partidos_jugados": 180
+    "partidos_jugados": 180,
+    "imagen_url": "https://www.example.com/images/players/juan_perez.jpg"
   },
   {
     "id": 26,
@@ -99,7 +104,8 @@
     "altura": 1.80,
     "peso": 72.0,
     "goles": 45,
-    "partidos_jugados": 135
+    "partidos_jugados": 135,
+    "imagen_url": "https://www.example.com/images/players/nicolas_gomez.jpg"
   },
   {
     "id": 27,
@@ -116,7 +122,8 @@
     "altura": 1.74,
     "peso": 68.0,
     "goles": 18,
-    "partidos_jugados": 130
+    "partidos_jugados": 130,
+    "imagen_url": "https://www.example.com/images/players/takeshi_yamamoto.jpg"
   },
   {
     "id": 28,
@@ -133,7 +140,8 @@
     "altura": null,
     "peso": null,
     "goles": null,
-    "partidos_jugados": null
+    "partidos_jugados": null,
+    "imagen_url": "https://www.example.com/images/coaches/samuel_johnson.jpg"
   },
   {
     "id": 29,
@@ -150,7 +158,8 @@
     "altura": 1.83,
     "peso": 75.0,
     "goles": 7,
-    "partidos_jugados": 145
+    "partidos_jugados": 145,
+    "imagen_url": "https://www.example.com/images/players/pierre_dupont.jpg"
   },
   {
     "id": 30,
@@ -167,7 +176,8 @@
     "altura": 1.88,
     "peso": 80.0,
     "goles": 55,
-    "partidos_jugados": 150
+    "partidos_jugados": 150,
+    "imagen_url": "https://www.example.com/images/players/igor_petrov.jpg"
   },
   {
     "id": 31,
@@ -184,7 +194,8 @@
     "altura": 1.70,
     "peso": 65.0,
     "goles": 20,
-    "partidos_jugados": 125
+    "partidos_jugados": 125,
+    "imagen_url": "https://www.example.com/images/players/luisa_martinez.jpg"
   },
   {
     "id": 32,
@@ -201,7 +212,8 @@
     "altura": 1.75,
     "peso": 68.0,
     "goles": 10,
-    "partidos_jugados": 140
+    "partidos_jugados": 140,
+    "imagen_url": "https://www.example.com/images/players/anita_lopez.jpg"
   },
   {
     "id": 33,
@@ -218,7 +230,8 @@
     "altura": 1.92,
     "peso": 82.0,
     "goles": 0,
-    "partidos_jugados": 170
+    "partidos_jugados": 170,
+    "imagen_url": "https://www.example.com/images/players/erik_svensson.jpg"
   },
   {
     "id": 34,
@@ -235,7 +248,8 @@
     "altura": 1.77,
     "peso": 70.0,
     "goles": 40,
-    "partidos_jugados": 130
+    "partidos_jugados": 130,
+    "imagen_url": "https://www.example.com/images/players/alicia_fernandez.jpg"
   },
   {
     "id": 35,
@@ -252,7 +266,8 @@
     "altura": 1.78,
     "peso": 72.0,
     "goles": 22,
-    "partidos_jugados": 150
+    "partidos_jugados": 150,
+    "imagen_url": "https://www.example.com/images/players/diego_cruz.jpg"
   },
   {
     "id": 36,
@@ -269,7 +284,8 @@
     "altura": 1.80,
     "peso": 74.0,
     "goles": 8,
-    "partidos_jugados": 135
+    "partidos_jugados": 135,
+    "imagen_url": "https://www.example.com/images/players/sofia_gonzalez.jpg"
   },
   {
     "id": 37,
@@ -286,7 +302,8 @@
     "altura": 1.84,
     "peso": 79.0,
     "goles": 0,
-    "partidos_jugados": 160
+    "partidos_jugados": 160,
+    "imagen_url": "https://www.example.com/images/players/hiroshi_tanaka.jpg"
   },
   {
     "id": 38,
@@ -303,7 +320,8 @@
     "altura": 1.81,
     "peso": 76.0,
     "goles": 48,
-    "partidos_jugados": 145
+    "partidos_jugados": 145,
+    "imagen_url": "https://www.example.com/images/players/marco_rossi.jpg"
   },
   {
     "id": 39,
@@ -320,7 +338,8 @@
     "altura": 1.72,
     "peso": 67.0,
     "goles": 19,
-    "partidos_jugados": 120
+    "partidos_jugados": 120,
+    "imagen_url": "https://www.example.com/images/players/elena_garcia.jpg"
   },
   {
     "id": 40,
@@ -337,6 +356,7 @@
     "altura": 1.86,
     "peso": 77.0,
     "goles": 9,
-    "partidos_jugados": 155
+    "partidos_jugados": 155,
+    "imagen_url": "https://www.example.com/images/players/pedro_silva.jpg"
   }
 ]

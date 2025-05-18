@@ -6,53 +6,77 @@
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.Rectangle?>
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
+<?import java.net.URL?>
 
-<VBox alignment="CENTER" prefHeight="400.0" prefWidth="600.0" spacing="20.0" style="-fx-background-color: linear-gradient(to bottom, #1E1E1E, #2A2A2A);" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="srangeldev.proyectoequipofutboljavafx.controllers.SplashScreenController">
-    <padding>
-        <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
-    </padding>
-   <children>
-      <AnchorPane prefHeight="360.0" prefWidth="560.0">
-         <children>
-            <ImageView fitHeight="234.0" fitWidth="240.0" layoutX="280.0" layoutY="41.0" pickOnBounds="true" preserveRatio="true">
-               <image>
-                  <Image url="@../../icons/newTeamLogo.png" />
-               </image>
-               <effect>
-                  <DropShadow color="#00000080" height="20.0" radius="9.5" width="20.0" />
-               </effect>
-            </ImageView>
-            <Text fill="WHITE" layoutX="40.0" layoutY="100.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Sistema de Gestión" textAlignment="CENTER" wrappingWidth="242.646484375">
-               <font>
-                  <Font name="System Bold" size="28.0" />
-               </font>
-               <effect>
-                  <DropShadow color="#00000080" height="5.0" radius="2.0" width="5.0" />
-               </effect>
-            </Text>
-            <Text fill="#4CAF50" layoutX="40.0" layoutY="186.0" strokeType="OUTSIDE" strokeWidth="0.0" text="NewTeam" textAlignment="CENTER" wrappingWidth="242.646484375">
-               <font>
-                  <Font name="System Bold" size="36.0" />
-               </font>
-               <effect>
-                  <DropShadow color="#00000080" height="5.0" radius="2.0" width="5.0" />
-               </effect>
-            </Text>
-            <ProgressBar fx:id="progressBar" layoutX="40.0" layoutY="220.0" prefHeight="25.0" prefWidth="220.0" progress="0.0" style="-fx-accent: #4CAF50;" />
-            <Text fx:id="loadingText" fill="#FFFFFF" layoutX="40.0" layoutY="270.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Cargando..." textAlignment="CENTER" wrappingWidth="220.0">
-               <font>
-                  <Font size="18.0" />
-               </font>
-            </Text>
-            <Text fill="#AAAAAA" layoutX="40.0" layoutY="330.0" strokeType="OUTSIDE" strokeWidth="0.0" text="© 2025 NewTeam - v1.0" textAlignment="CENTER" wrappingWidth="220.0">
-               <font>
-                  <Font size="12.0" />
-               </font>
-            </Text>
-         </children>
-      </AnchorPane>
-   </children>
-</VBox>
+<StackPane prefHeight="500.0" prefWidth="800.0" styleClass="main-container" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="srangeldev.proyectoequipofutboljavafx.controllers.SplashScreenController">
+    <stylesheets>
+        <URL value="@../../styles/splash-screen.css" />
+    </stylesheets>
+    <children>
+        <!-- Background elements -->
+        <Rectangle arcHeight="30.0" arcWidth="30.0" height="450.0" styleClass="background-rect" width="750.0" />
+
+        <!-- Content container -->
+        <VBox alignment="CENTER" maxWidth="700.0" spacing="20.0" styleClass="content-container">
+            <padding>
+                <Insets bottom="30.0" left="30.0" right="30.0" top="30.0" />
+            </padding>
+            <children>
+                <!-- Logo and text container -->
+                <AnchorPane prefHeight="360.0" prefWidth="640.0">
+                    <children>
+                        <!-- Logo with glow effect -->
+                        <ImageView fitHeight="250.0" fitWidth="250.0" layoutX="380.0" layoutY="55.0" pickOnBounds="true" preserveRatio="true" styleClass="logo-image">
+                            <image>
+                                <Image url="@../../icons/newTeamLogo.png" />
+                            </image>
+                        </ImageView>
+
+                        <!-- Title and app name with text effects -->
+                        <VBox alignment="CENTER_LEFT" layoutX="40.0" layoutY="80.0" spacing="15.0" styleClass="text-container">
+                            <children>
+                                <Text strokeType="OUTSIDE" strokeWidth="0.0" styleClass="title-text" text="Sistema de Gestión" textAlignment="LEFT">
+                                    <font>
+                                        <Font name="System Bold" size="32.0" />
+                                    </font>
+                                </Text>
+                                <Text strokeType="OUTSIDE" strokeWidth="0.0" styleClass="app-name-text" text="NewTeam" textAlignment="LEFT">
+                                    <font>
+                                        <Font name="System Bold" size="48.0" />
+                                    </font>
+                                </Text>
+
+                                <!-- Progress section -->
+                                <VBox spacing="10.0" styleClass="progress-container">
+                                    <children>
+                                        <ProgressBar fx:id="progressBar" prefHeight="30.0" prefWidth="280.0" progress="0.0" styleClass="progress-bar" />
+                                        <Text fx:id="loadingText" strokeType="OUTSIDE" strokeWidth="0.0" styleClass="loading-text" text="Cargando recursos..." textAlignment="CENTER">
+                                            <font>
+                                                <Font size="18.0" />
+                                            </font>
+                                        </Text>
+                                    </children>
+                                    <VBox.margin>
+                                        <Insets top="20.0" />
+                                    </VBox.margin>
+                                </VBox>
+                            </children>
+                        </VBox>
+
+                        <!-- Copyright text -->
+                        <Text layoutX="40.0" layoutY="330.0" strokeType="OUTSIDE" strokeWidth="0.0" styleClass="copyright-text" text="© 2025 NewTeam - v1.0" textAlignment="LEFT">
+                            <font>
+                                <Font size="12.0" />
+                            </font>
+                        </Text>
+                    </children>
+                </AnchorPane>
+            </children>
+        </VBox>
+    </children>
+</StackPane>

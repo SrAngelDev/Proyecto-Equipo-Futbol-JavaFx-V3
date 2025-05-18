@@ -12,6 +12,8 @@ import srangeldev.proyectoequipofutboljavafx.newteam.service.PersonalService
 import srangeldev.proyectoequipofutboljavafx.newteam.service.PersonalServiceImpl
 import srangeldev.proyectoequipofutboljavafx.newteam.storage.PersonalStorage
 import srangeldev.proyectoequipofutboljavafx.newteam.storage.PersonalStorageImpl
+import srangeldev.proyectoequipofutboljavafx.newteam.storage.PersonalStorageJson
+import srangeldev.proyectoequipofutboljavafx.viewmodels.PersonalViewModel
 
 private const val CACHE_SIZE = 5
 
@@ -22,13 +24,13 @@ val appModule = module {
     // Repositories
     single<UserRepository> { UserRepositoryImpl() }
     single<PersonalRepository> { PersonalRespositoryImpl() }
-    
+
     // Storage
     single<PersonalStorage> { PersonalStorageImpl() }
-    
+
     // Cache
     single<Cache<Int, Personal>> { CacheImpl(CACHE_SIZE) }
-    
+
     // Services
     single<PersonalService> { 
         PersonalServiceImpl(
@@ -37,4 +39,10 @@ val appModule = module {
             cache = get()
         ) 
     }
+
+    // Storage implementations
+    single { PersonalStorageJson() }
+
+    // ViewModels
+    factory { PersonalViewModel(get()) }
 }

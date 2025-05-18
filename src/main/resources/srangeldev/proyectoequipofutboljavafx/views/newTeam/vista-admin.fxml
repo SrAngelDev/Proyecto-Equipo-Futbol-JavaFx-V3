@@ -27,20 +27,24 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
+<?import java.net.URL?>
 
-<AnchorPane prefHeight="720.0" prefWidth="1280.0" style="-fx-background-color: #f0f0f0;" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="srangeldev.proyectoequipofutboljavafx.controllers.VistaAdminController">
+<AnchorPane prefHeight="1080.0" prefWidth="1920.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="srangeldev.proyectoequipofutboljavafx.controllers.VistaAdminController">
+   <stylesheets>
+      <URL value="@../../styles/vista-admin.css" />
+   </stylesheets>
    <children>
-      <TabPane prefHeight="720.0" prefWidth="1280.0" tabClosingPolicy="UNAVAILABLE" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+      <TabPane prefHeight="1080.0" prefWidth="1920.0" tabClosingPolicy="UNAVAILABLE" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
         <tabs>
           <Tab text="Gestión de Jugadores">
             <content>
               <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                 <children>
-                  <SplitPane dividerPositions="0.7" prefHeight="720.0" prefWidth="1280.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                  <SplitPane dividerPositions="0.7" prefHeight="1080.0" prefWidth="1920.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                     <items>
-                      <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0" style="-fx-background-color: white;">
+                      <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0" styleClass="white-panel">
                         <children>
-                          <MenuBar prefHeight="28.0" prefWidth="1280.0" style="-fx-background-color: #4CAF50;">
+                          <MenuBar prefHeight="28.0" prefWidth="1920.0" styleClass="menu-bar">
                             <menus>
                               <Menu mnemonicParsing="false" text="Opciones">
                                 <items>
@@ -58,25 +62,16 @@
                               </Menu>
                             </menus>
                           </MenuBar>
-                          <VBox layoutX="14.0" layoutY="40.0" prefHeight="668.0" prefWidth="800.0" spacing="10.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="40.0">
+                          <VBox layoutX="14.0" layoutY="40.0" prefHeight="1000.0" prefWidth="1200.0" spacing="10.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="40.0">
                             <children>
-                              <Label text="Gestión de Jugadores" textFill="#4caf50">
-                                <font>
-                                  <Font name="System Bold" size="24.0" />
-                                </font>
+                              <Label text="Gestión de Jugadores" styleClass="title-text">
                               </Label>
                               <HBox alignment="CENTER_LEFT" spacing="15.0">
                                 <children>
-                                  <Label text="Buscar:" textFill="#333333">
-                                    <font>
-                                      <Font size="14.0" />
-                                    </font>
+                                  <Label text="Buscar:" styleClass="dark-label">
                                   </Label>
-                                  <TextField fx:id="searchField" prefHeight="30.0" prefWidth="250.0" promptText="Ingrese nombre o ID" style="-fx-background-radius: 5; -fx-border-radius: 5; -fx-border-color: #cccccc; -fx-border-width: 1;" />
-                                  <Label text="Filtrar por:" textFill="#333333">
-                                    <font>
-                                      <Font size="14.0" />
-                                    </font>
+                                  <TextField fx:id="searchField" prefHeight="30.0" prefWidth="250.0" promptText="Ingrese nombre o ID" styleClass="styled-text-field" />
+                                  <Label text="Filtrar por:" styleClass="dark-label">
                                     <HBox.margin>
                                       <Insets left="20.0" />
                                     </HBox.margin>
@@ -93,12 +88,23 @@
                                   <Insets bottom="10.0" top="10.0" />
                                 </VBox.margin>
                               </HBox>
-                              <TableView fx:id="playersTableView" prefHeight="550.0" prefWidth="780.0" style="-fx-background-radius: 5; -fx-border-radius: 5; -fx-border-color: #cccccc; -fx-border-width: 1;">
+                              <TableView fx:id="playersTableView" prefHeight="550.0" prefWidth="780.0" styleClass="styled-table-view">
                                 <columns>
-                                  <TableColumn fx:id="idColumn" prefWidth="75.0" text="ID" />
-                                  <TableColumn fx:id="nombreColumn" prefWidth="150.0" text="Nombre" />
-                                  <TableColumn fx:id="apellidosColumn" prefWidth="150.0" text="Apellidos" />
+                                  <TableColumn fx:id="idColumn" prefWidth="50.0" text="ID" />
+                                  <TableColumn fx:id="nombreColumn" prefWidth="120.0" text="Nombre" />
+                                  <TableColumn fx:id="apellidosColumn" prefWidth="120.0" text="Apellidos" />
+                                  <TableColumn fx:id="posicionColumn" prefWidth="100.0" text="Posición" />
+                                  <TableColumn fx:id="edadColumn" prefWidth="50.0" text="Edad" />
+                                  <TableColumn fx:id="dorsalColumn" prefWidth="50.0" text="Dorsal" />
+                                  <TableColumn fx:id="golesColumn" prefWidth="60.0" text="Goles" />
+                                  <TableColumn fx:id="partidosColumn" prefWidth="70.0" text="Partidos" />
                                 </columns>
+                                <columnResizePolicy>
+                                  <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                                </columnResizePolicy>
+                                <placeholder>
+                                  <Label text="No hay jugadores disponibles" styleClass="table-placeholder" />
+                                </placeholder>
                               </TableView>
                               <HBox alignment="CENTER_LEFT" spacing="20.0">
                                 <children>
@@ -106,20 +112,11 @@
                                   <Label fx:id="avgMinutosLabel" text="0" />
                                   <Label text="Promedio goles anotados:" />
                                   <Label fx:id="avgGolesLabel" text="0" />
-                                  <Button fx:id="addPlayerButton" mnemonicParsing="false" prefHeight="30.0" prefWidth="120.0" style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-background-radius: 5;" text="Añadir Jugador">
-                                    <font>
-                                      <Font size="12.0" />
-                                    </font>
+                                  <Button fx:id="addPlayerButton" mnemonicParsing="false" prefHeight="30.0" prefWidth="120.0" styleClass="green-button" text="Añadir Jugador">
                                   </Button>
-                                  <Button fx:id="deletePlayerButton" mnemonicParsing="false" prefHeight="30.0" prefWidth="120.0" style="-fx-background-color: #f44336; -fx-text-fill: white; -fx-background-radius: 5;" text="Eliminar Jugador">
-                                    <font>
-                                      <Font size="12.0" />
-                                    </font>
+                                  <Button fx:id="deletePlayerButton" mnemonicParsing="false" prefHeight="30.0" prefWidth="120.0" styleClass="red-button" text="Eliminar Jugador">
                                   </Button>
-                                  <Button fx:id="deleteAllPlayersButton" mnemonicParsing="false" prefHeight="30.0" prefWidth="150.0" style="-fx-background-color: #f44336; -fx-text-fill: white; -fx-background-radius: 5;" text="Eliminar Todos">
-                                    <font>
-                                      <Font size="12.0" />
-                                    </font>
+                                  <Button fx:id="deleteAllPlayersButton" mnemonicParsing="false" prefHeight="30.0" prefWidth="150.0" styleClass="red-button" text="Eliminar Todos">
                                   </Button>
                                 </children>
                               </HBox>
@@ -127,11 +124,11 @@
                           </VBox>
                         </children>
                       </AnchorPane>
-                      <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0" style="-fx-background-color: #f5f5f5;">
+                      <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0" styleClass="light-gray-panel">
                         <children>
-                          <VBox alignment="TOP_CENTER" layoutX="14.0" layoutY="14.0" prefHeight="718.0" prefWidth="444.0" spacing="20.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                          <VBox alignment="TOP_CENTER" layoutX="14.0" layoutY="14.0" prefHeight="1080.0" prefWidth="670.0" spacing="20.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                             <children>
-                              <Label text="Datos del Jugador" textFill="#4caf50">
+                              <Label text="Datos del Jugador" styleClass="title-text">
                                 <font>
                                   <Font name="System Bold" size="24.0" />
                                 </font>
@@ -139,69 +136,102 @@
                                   <Insets top="10.0" />
                                 </VBox.margin>
                               </Label>
-                              <VBox alignment="CENTER" spacing="10.0">
-                                <ImageView fx:id="playerImageView" fitHeight="150.0" fitWidth="150.0" pickOnBounds="true" preserveRatio="true" />
-                                <Button fx:id="selectImageButton" mnemonicParsing="false" text="Seleccionar Imagen" style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-background-radius: 5;" />
+                              <VBox alignment="CENTER" spacing="15.0" styleClass="image-container">
+                                <ImageView fx:id="playerImageView" fitHeight="180.0" fitWidth="180.0" pickOnBounds="true" preserveRatio="true" styleClass="player-image" />
+                                <Label text="Foto del Jugador" styleClass="image-label" />
+                                <Button fx:id="selectImageButton" mnemonicParsing="false" text="Seleccionar Imagen" styleClass="image-select-button,animated-button">
+                                  <graphic>
+                                    <Label text="📷" styleClass="button-icon" />
+                                  </graphic>
+                                </Button>
                               </VBox>
                               <Separator prefWidth="200.0" />
-                              <GridPane hgap="10.0" vgap="10.0">
-                                <columnConstraints>
-                                  <ColumnConstraints hgrow="SOMETIMES" maxWidth="150.0" minWidth="10.0" prefWidth="150.0" />
-                                  <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="200.0" />
-                                </columnConstraints>
-                                <rowConstraints>
-                                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                                </rowConstraints>
+                              <VBox spacing="15" styleClass="form-section">
+                                <Label text="Información Personal" styleClass="section-title" />
+                                <GridPane hgap="15.0" vgap="15.0" styleClass="form-grid">
+                                  <columnConstraints>
+                                    <ColumnConstraints hgrow="NEVER" maxWidth="120.0" minWidth="120.0" prefWidth="120.0" />
+                                    <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="180.0" />
+                                  </columnConstraints>
+                                  <rowConstraints>
+                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                  </rowConstraints>
+                                  <children>
+                                    <Label text="Nombre completo:" styleClass="field-label" />
+                                    <TextField fx:id="nombreTextField" GridPane.columnIndex="1" />
+                                    <Label text="Edad:" styleClass="field-label" GridPane.rowIndex="1" />
+                                    <Spinner fx:id="edadSpinner" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                                    <Label text="Salario:" styleClass="field-label" GridPane.rowIndex="2" />
+                                    <TextField fx:id="salarioTextField" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                                  </children>
+                                  <padding>
+                                    <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                                  </padding>
+                                </GridPane>
+
+                                <Label text="Información Deportiva" styleClass="section-title" />
+                                <GridPane hgap="15.0" vgap="15.0" styleClass="form-grid">
+                                  <columnConstraints>
+                                    <ColumnConstraints hgrow="NEVER" maxWidth="120.0" minWidth="120.0" prefWidth="120.0" />
+                                    <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="180.0" />
+                                  </columnConstraints>
+                                  <rowConstraints>
+                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                  </rowConstraints>
+                                  <children>
+                                    <Label fx:id="especialidadLabel" text="Especialidad:" styleClass="field-label" />
+                                    <ComboBox fx:id="especialidadComboBox" prefWidth="150.0" GridPane.columnIndex="1" />
+                                    <Label fx:id="posicionLabel" text="Posición:" styleClass="field-label" GridPane.rowIndex="1" />
+                                    <ComboBox fx:id="posicionComboBox" prefWidth="150.0" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                                    <Label fx:id="dorsalLabel" text="Dorsal:" styleClass="field-label" GridPane.rowIndex="2" />
+                                    <TextField fx:id="dorsalTextField" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                                    <Label text="Fecha incorporación:" styleClass="field-label" GridPane.rowIndex="3" />
+                                    <DatePicker fx:id="fechaIncorporacionPicker" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+                                    <Label fx:id="partidosLabel" text="Nº de partidos:" styleClass="field-label" GridPane.rowIndex="4" />
+                                    <TextField fx:id="partidosTextField" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+                                    <Label fx:id="golesLabel" text="Nº de goles:" styleClass="field-label" GridPane.rowIndex="5" />
+                                    <TextField fx:id="golesTextField" GridPane.columnIndex="1" GridPane.rowIndex="5" />
+                                  </children>
+                                  <padding>
+                                    <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                                  </padding>
+                                </GridPane>
+                              </VBox>
+                              <VBox spacing="15" styleClass="form-section">
+                                <Label text="Estadísticas Adicionales" styleClass="section-title" />
+                                <HBox alignment="CENTER_LEFT" spacing="15.0" styleClass="stats-container">
+                                  <children>
+                                    <Label fx:id="minutosLabel" text="Minutos jugados:" styleClass="field-label" />
+                                    <TextField fx:id="minutosTextField" prefWidth="100.0" />
+                                  </children>
+                                  <padding>
+                                    <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                                  </padding>
+                                </HBox>
+                              </VBox>
+
+                              <HBox alignment="CENTER" spacing="30.0" styleClass="buttons-container">
                                 <children>
-                                  <Label text="Nombre completo:" />
-                                  <TextField fx:id="nombreTextField" GridPane.columnIndex="1" />
-                                  <Label text="Edad:" GridPane.rowIndex="1" />
-                                  <Spinner fx:id="edadSpinner" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-                                  <Label text="Salario:" GridPane.rowIndex="2" />
-                                  <TextField fx:id="salarioTextField" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-                                  <Label fx:id="especialidadLabel" text="Especialidad:" GridPane.rowIndex="3" />
-                                  <ComboBox fx:id="especialidadComboBox" prefWidth="150.0" GridPane.columnIndex="1" GridPane.rowIndex="3" />
-                                  <Label fx:id="posicionLabel" text="Posición:" GridPane.rowIndex="4" />
-                                  <ComboBox fx:id="posicionComboBox" prefWidth="150.0" GridPane.columnIndex="1" GridPane.rowIndex="4" />
-                                  <Label fx:id="dorsalLabel" text="Dorsal:" GridPane.rowIndex="5" />
-                                  <TextField fx:id="dorsalTextField" GridPane.columnIndex="1" GridPane.rowIndex="5" />
-                                  <Label text="Fecha incorporación:" GridPane.rowIndex="6" />
-                                  <DatePicker fx:id="fechaIncorporacionPicker" GridPane.columnIndex="1" GridPane.rowIndex="6" />
-                                  <Label fx:id="partidosLabel" text="Nº de partidos:" GridPane.rowIndex="7" />
-                                  <TextField fx:id="partidosTextField" GridPane.columnIndex="1" GridPane.rowIndex="7" />
-                                  <Label fx:id="golesLabel" text="Nº de goles:" GridPane.rowIndex="8" />
-                                  <TextField fx:id="golesTextField" GridPane.columnIndex="1" GridPane.rowIndex="8" />
-                                </children>
-                              </GridPane>
-                              <HBox alignment="CENTER" spacing="10.0">
-                                <children>
-                                  <Label fx:id="minutosLabel" text="Minutos jugados:" />
-                                  <TextField fx:id="minutosTextField" prefWidth="100.0" />
-                                </children>
-                              </HBox>
-                              <HBox alignment="CENTER" spacing="20.0">
-                                <children>
-                                  <Button fx:id="saveButton" mnemonicParsing="false" prefHeight="40.0" prefWidth="120.0" style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-background-radius: 5;" text="Guardar">
-                                    <font>
-                                      <Font size="14.0" />
-                                    </font>
+                                  <Button fx:id="saveButton" mnemonicParsing="false" prefHeight="45.0" prefWidth="150.0" styleClass="primary-button,animated-button" text="GUARDAR">
+                                    <graphic>
+                                      <Label text="💾" styleClass="button-icon" />
+                                    </graphic>
                                   </Button>
-                                  <Button fx:id="cancelButton" mnemonicParsing="false" prefHeight="40.0" prefWidth="120.0" style="-fx-background-color: #f44336; -fx-text-fill: white; -fx-background-radius: 5;" text="Cancelar">
-                                    <font>
-                                      <Font size="14.0" />
-                                    </font>
+                                  <Button fx:id="cancelButton" mnemonicParsing="false" prefHeight="45.0" prefWidth="150.0" styleClass="danger-button,animated-button" text="CANCELAR">
+                                    <graphic>
+                                      <Label text="❌" styleClass="button-icon" />
+                                    </graphic>
                                   </Button>
                                 </children>
                                 <VBox.margin>
-                                  <Insets top="20.0" />
+                                  <Insets top="30.0" />
                                 </VBox.margin>
                               </HBox>
                             </children>
@@ -221,49 +251,40 @@
             <content>
               <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                 <children>
-                  <SplitPane dividerPositions="0.65" prefHeight="720.0" prefWidth="1280.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                  <SplitPane dividerPositions="0.65" prefHeight="1080.0" prefWidth="1920.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                     <items>
-                      <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0" style="-fx-background-color: white;">
+                      <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0" styleClass="user-panel">
                         <children>
-                          <VBox layoutX="14.0" layoutY="14.0" prefHeight="668.0" prefWidth="800.0" spacing="10.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
+                          <VBox layoutX="14.0" layoutY="14.0" prefHeight="1000.0" prefWidth="1200.0" spacing="10.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
                             <children>
-                              <Label text="Gestión de Usuarios" textFill="#4caf50">
-                                <font>
-                                  <Font name="System Bold" size="24.0" />
-                                </font>
+                              <Label text="Gestión de Usuarios" styleClass="title-text">
                               </Label>
                               <HBox alignment="CENTER_LEFT" spacing="15.0">
                                 <children>
-                                  <Label text="Buscar usuario:" textFill="#333333">
-                                    <font>
-                                      <Font size="14.0" />
-                                    </font>
+                                  <Label text="Buscar usuario:" styleClass="dark-label">
                                   </Label>
-                                  <TextField fx:id="searchUserField" prefHeight="30.0" prefWidth="250.0" promptText="Ingrese nombre de usuario" style="-fx-background-radius: 5; -fx-border-radius: 5; -fx-border-color: #cccccc; -fx-border-width: 1;" />
+                                  <TextField fx:id="searchUserField" prefHeight="30.0" prefWidth="250.0" promptText="Ingrese nombre de usuario" styleClass="user-text-field" />
                                 </children>
                                 <VBox.margin>
                                   <Insets bottom="10.0" top="10.0" />
                                 </VBox.margin>
                               </HBox>
-                              <TableView fx:id="usersTableView" prefHeight="550.0" prefWidth="780.0" style="-fx-background-radius: 5; -fx-border-radius: 5; -fx-border-color: #cccccc; -fx-border-width: 1;">
+                              <TableView fx:id="usersTableView" prefHeight="550.0" prefWidth="780.0" styleClass="user-table-view">
                                 <columns>
-                                  <TableColumn fx:id="userIdColumn" prefWidth="75.0" text="ID" />
+                                  <TableColumn fx:id="userIdColumn" prefWidth="60.0" text="ID" />
                                   <TableColumn fx:id="usernameColumn" prefWidth="150.0" text="Usuario" />
-                                  <TableColumn fx:id="passwordColumn" prefWidth="250.0" text="Contraseña (Hash)" />
-                                  <TableColumn fx:id="roleColumn" prefWidth="150.0" text="Rol" />
+                                  <TableColumn fx:id="passwordColumn" prefWidth="200.0" text="Contraseña (Hash)" />
+                                  <TableColumn fx:id="roleColumn" prefWidth="100.0" text="Rol" />
                                 </columns>
+                                <columnResizePolicy>
+                                  <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                                </columnResizePolicy>
                               </TableView>
                               <HBox alignment="CENTER_RIGHT" spacing="20.0">
                                 <children>
-                                  <Button fx:id="addUserButton" mnemonicParsing="false" prefHeight="30.0" prefWidth="120.0" style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-background-radius: 5;" text="Añadir Usuario">
-                                    <font>
-                                      <Font size="12.0" />
-                                    </font>
+                                  <Button fx:id="addUserButton" mnemonicParsing="false" prefHeight="30.0" prefWidth="120.0" styleClass="user-button" text="Añadir Usuario">
                                   </Button>
-                                  <Button fx:id="deleteUserButton" mnemonicParsing="false" prefHeight="30.0" prefWidth="120.0" style="-fx-background-color: #f44336; -fx-text-fill: white; -fx-background-radius: 5;" text="Eliminar Usuario">
-                                    <font>
-                                      <Font size="12.0" />
-                                    </font>
+                                  <Button fx:id="deleteUserButton" mnemonicParsing="false" prefHeight="30.0" prefWidth="120.0" styleClass="user-delete-button" text="Eliminar Usuario">
                                   </Button>
                                 </children>
                               </HBox>
@@ -271,14 +292,11 @@
                           </VBox>
                         </children>
                       </AnchorPane>
-                      <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0" style="-fx-background-color: #f5f5f5;">
+                      <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0" styleClass="user-form-panel">
                         <children>
-                          <VBox alignment="TOP_CENTER" layoutX="14.0" layoutY="14.0" prefHeight="718.0" prefWidth="444.0" spacing="20.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                          <VBox alignment="TOP_CENTER" layoutX="14.0" layoutY="14.0" prefHeight="1080.0" prefWidth="670.0" spacing="20.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                             <children>
-                              <Label text="Datos del Usuario" textFill="#4caf50">
-                                <font>
-                                  <Font name="System Bold" size="24.0" />
-                                </font>
+                              <Label text="Datos del Usuario" styleClass="title-text">
                                 <VBox.margin>
                                   <Insets top="10.0" />
                                 </VBox.margin>
@@ -286,8 +304,8 @@
                               <Separator prefWidth="200.0" />
                               <GridPane hgap="10.0" vgap="10.0">
                                 <columnConstraints>
-                                  <ColumnConstraints hgrow="SOMETIMES" maxWidth="150.0" minWidth="10.0" prefWidth="150.0" />
-                                  <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="200.0" />
+                                  <ColumnConstraints hgrow="NEVER" maxWidth="120.0" minWidth="120.0" prefWidth="120.0" />
+                                  <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="180.0" />
                                 </columnConstraints>
                                 <rowConstraints>
                                   <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
@@ -305,15 +323,9 @@
                               </GridPane>
                               <HBox alignment="CENTER" spacing="20.0">
                                 <children>
-                                  <Button fx:id="saveUserButton" mnemonicParsing="false" prefHeight="40.0" prefWidth="120.0" style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-background-radius: 5;" text="Guardar">
-                                    <font>
-                                      <Font size="14.0" />
-                                    </font>
+                                  <Button fx:id="saveUserButton" mnemonicParsing="false" prefHeight="40.0" prefWidth="120.0" styleClass="user-button" text="Guardar">
                                   </Button>
-                                  <Button fx:id="cancelUserButton" mnemonicParsing="false" prefHeight="40.0" prefWidth="120.0" style="-fx-background-color: #f44336; -fx-text-fill: white; -fx-background-radius: 5;" text="Cancelar">
-                                    <font>
-                                      <Font size="14.0" />
-                                    </font>
+                                  <Button fx:id="cancelUserButton" mnemonicParsing="false" prefHeight="40.0" prefWidth="120.0" styleClass="user-delete-button" text="Cancelar">
                                   </Button>
                                 </children>
                                 <VBox.margin>
@@ -337,12 +349,9 @@
             <content>
               <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                 <children>
-                  <VBox alignment="TOP_CENTER" layoutX="14.0" layoutY="14.0" prefHeight="718.0" prefWidth="1280.0" spacing="20.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                  <VBox alignment="TOP_CENTER" layoutX="14.0" layoutY="14.0" prefHeight="1080.0" prefWidth="1920.0" spacing="20.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                     <children>
-                      <Label text="Configuración del Sistema" textFill="#4caf50">
-                        <font>
-                          <Font name="System Bold" size="24.0" />
-                        </font>
+                      <Label text="Configuración del Sistema" styleClass="title-text">
                         <VBox.margin>
                           <Insets top="20.0" />
                         </VBox.margin>
@@ -350,8 +359,8 @@
                       <Separator prefWidth="200.0" />
                       <GridPane alignment="CENTER" hgap="10.0" maxWidth="600.0" vgap="15.0">
                         <columnConstraints>
-                          <ColumnConstraints hgrow="SOMETIMES" maxWidth="250.0" minWidth="10.0" prefWidth="250.0" />
-                          <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="350.0" />
+                          <ColumnConstraints hgrow="NEVER" maxWidth="200.0" minWidth="150.0" prefWidth="180.0" />
+                          <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="300.0" />
                         </columnConstraints>
                         <rowConstraints>
                           <RowConstraints minHeight="10.0" prefHeight="40.0" vgrow="SOMETIMES" />
@@ -361,10 +370,7 @@
                           <RowConstraints minHeight="10.0" prefHeight="40.0" vgrow="SOMETIMES" />
                         </rowConstraints>
                         <children>
-                          <Label text="Directorio de datos:" GridPane.halignment="RIGHT">
-                            <font>
-                              <Font size="14.0" />
-                            </font>
+                          <Label text="Directorio de datos:" styleClass="dark-label" GridPane.halignment="RIGHT">
                           </Label>
                           <HBox alignment="CENTER_LEFT" spacing="10.0" GridPane.columnIndex="1">
                             <children>
@@ -372,10 +378,7 @@
                               <Button fx:id="browseDataDirButton" mnemonicParsing="false" text="Examinar" />
                             </children>
                           </HBox>
-                          <Label text="Directorio de respaldo:" GridPane.halignment="RIGHT" GridPane.rowIndex="1">
-                            <font>
-                              <Font size="14.0" />
-                            </font>
+                          <Label text="Directorio de respaldo:" styleClass="dark-label" GridPane.halignment="RIGHT" GridPane.rowIndex="1">
                           </Label>
                           <HBox alignment="CENTER_LEFT" spacing="10.0" GridPane.columnIndex="1" GridPane.rowIndex="1">
                             <children>
@@ -383,16 +386,10 @@
                               <Button fx:id="browseBackupDirButton" mnemonicParsing="false" text="Examinar" />
                             </children>
                           </HBox>
-                          <Label text="URL de la base de datos:" GridPane.halignment="RIGHT" GridPane.rowIndex="2">
-                            <font>
-                              <Font size="14.0" />
-                            </font>
+                          <Label text="URL de la base de datos:" styleClass="dark-label" GridPane.halignment="RIGHT" GridPane.rowIndex="2">
                           </Label>
                           <TextField fx:id="databaseUrlField" prefHeight="30.0" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-                          <Label text="Inicializar tablas al inicio:" GridPane.halignment="RIGHT" GridPane.rowIndex="3">
-                            <font>
-                              <Font size="14.0" />
-                            </font>
+                          <Label text="Inicializar tablas al inicio:" styleClass="dark-label" GridPane.halignment="RIGHT" GridPane.rowIndex="3">
                           </Label>
                           <HBox alignment="CENTER_LEFT" spacing="20.0" GridPane.columnIndex="1" GridPane.rowIndex="3">
                             <children>
@@ -404,10 +401,7 @@
                               <RadioButton fx:id="initTablesNoRadio" mnemonicParsing="false" text="No" toggleGroup="$initTablesToggleGroup" />
                             </children>
                           </HBox>
-                          <Label text="Inicializar datos al inicio:" GridPane.halignment="RIGHT" GridPane.rowIndex="4">
-                            <font>
-                              <Font size="14.0" />
-                            </font>
+                          <Label text="Inicializar datos al inicio:" styleClass="dark-label" GridPane.halignment="RIGHT" GridPane.rowIndex="4">
                           </Label>
                           <HBox alignment="CENTER_LEFT" spacing="20.0" GridPane.columnIndex="1" GridPane.rowIndex="4">
                             <children>
@@ -423,15 +417,9 @@
                       </GridPane>
                       <HBox alignment="CENTER" spacing="20.0">
                         <children>
-                          <Button fx:id="saveConfigButton" mnemonicParsing="false" prefHeight="40.0" prefWidth="150.0" style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-background-radius: 5;" text="Guardar Configuración">
-                            <font>
-                              <Font size="14.0" />
-                            </font>
+                          <Button fx:id="saveConfigButton" mnemonicParsing="false" prefHeight="40.0" prefWidth="150.0" styleClass="config-button" text="Guardar Configuración">
                           </Button>
-                          <Button fx:id="resetConfigButton" mnemonicParsing="false" prefHeight="40.0" prefWidth="150.0" style="-fx-background-color: #f44336; -fx-text-fill: white; -fx-background-radius: 5;" text="Restablecer">
-                            <font>
-                              <Font size="14.0" />
-                            </font>
+                          <Button fx:id="resetConfigButton" mnemonicParsing="false" prefHeight="40.0" prefWidth="150.0" styleClass="config-reset-button" text="Restablecer">
                           </Button>
                         </children>
                         <VBox.margin>

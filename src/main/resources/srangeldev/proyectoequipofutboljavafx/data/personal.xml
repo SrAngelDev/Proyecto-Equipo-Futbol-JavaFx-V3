@@ -14,6 +14,7 @@
         <peso>75.0</peso>
         <goles>2</goles>
         <partidosJugados>50</partidosJugados>
+        <imagenUrl>https://www.example.com/images/players/diego_martinez.jpg</imagenUrl>
     </personal>
     <personal id="32">
         <tipo>Jugador</tipo>
@@ -30,6 +31,7 @@
         <peso>60.25</peso>
         <goles>15</goles>
         <partidosJugados>30</partidosJugados>
+        <imagenUrl>https://www.example.com/images/players/sofia_gomez.jpg</imagenUrl>
     </personal>
     <personal id="33">
         <tipo>Entrenador</tipo>
@@ -46,5 +48,6 @@
         <peso/>
         <goles/>
         <partidosJugados/>
+        <imagenUrl>https://www.example.com/images/coaches/roberto_sanchez.jpg</imagenUrl>
     </personal>
 </equipo>

@@ -37,6 +37,8 @@ object RoutesManager {
     enum class View(val fxml: String) {
         SPLASH("views/newTeam/splash-screen.fxml"),
         LOGIN("views/newTeam/logging.fxml"),
+        NORMAL("views/newTeam/vista-normal.fxml"),
+        ADMIN("views/newTeam/vista-admin.fxml"),
         ACERCA_DE("views/acerca-de/acerca-de-view.fxml"),
     }
 
@@ -102,7 +104,7 @@ object RoutesManager {
     private fun loggingStage(stage: Stage) {
         val fxmlLoader = FXMLLoader(getResource(View.LOGIN.fxml))
         stage.apply {
-            scene = Scene(fxmlLoader.load(), 600.0, 400.0)
+            scene = Scene(fxmlLoader.load(), 1920.0, 1080.0)
             title = "Login"
             show()
         }
@@ -111,7 +113,7 @@ object RoutesManager {
     }
 
     // O podemos hacer uno genérico, añade las opciones que necesites
-    private fun getResource(resource: String): URL {
+    fun getResource(resource: String): URL {
         return app::class.java.getResource(resource)
             ?: throw RuntimeException("No se ha encontrado el recurso: $resource")
     }

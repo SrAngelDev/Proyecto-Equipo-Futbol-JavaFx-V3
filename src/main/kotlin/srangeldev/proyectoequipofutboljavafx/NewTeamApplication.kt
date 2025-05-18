@@ -11,18 +11,27 @@ import srangeldev.proyectoequipofutboljavafx.routes.RoutesManager
 import java.time.LocalDateTime
 
 
+/**
+ * Clase principal de la aplicación que inicializa el framework de inyección de dependencias Koin
+ * y configura la pantalla inicial.
+ */
 class NewTeamApplication : Application(), KoinComponent {
 
     init {
         println(LocalDateTime.now().toString())
-        // creamos Koin
+        // Inicializamos Koin para la inyección de dependencias
         startKoin {
-            printLogger(Level.INFO) // Logger de Koin
-            modules(appModule) // Módulos de Koin
+            printLogger(Level.INFO) // Configuramos el nivel de log para Koin
+            modules(appModule) // Cargamos los módulos de la aplicación
         }
     }
 
+    /**
+     * Método que se ejecuta al iniciar la aplicación JavaFX
+     * @param stage El escenario principal de la aplicación
+     */
     override fun start(stage: Stage) {
+        // Configuramos y lanzamos la pantalla de inicio
         RoutesManager.apply {
             app = this@NewTeamApplication
         }.run {
@@ -30,6 +39,9 @@ class NewTeamApplication : Application(), KoinComponent {
         }
     }
 }
+/**
+ * Función principal que inicia la aplicación JavaFX
+ */
 fun main() {
     Application.launch(NewTeamApplication::class.java)
 }

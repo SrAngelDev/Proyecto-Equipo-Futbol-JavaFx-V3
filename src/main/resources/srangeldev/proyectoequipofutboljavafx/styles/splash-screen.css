@@ -1,0 +1,238 @@
+/* Styles for splash-screen.fxml */
+
+/* Color Variables - New Team Logo Colors */
+* {
+    -primary-color: #1E8449; /* New Team Green - Darker */
+    -primary-light: #27AE60; /* New Team Green - Lighter */
+    -primary-dark: #196F3D; /* New Team Green - Darkest */
+    -accent-color: #F1C40F; /* New Team Yellow - Primary */
+    -accent-dark: #D4AC0D; /* New Team Yellow - Darker */
+    -accent-light: #F4D03F; /* New Team Yellow - Lighter */
+    -text-primary: #000000; /* New Team Black */
+    -text-secondary: #555555; /* Dark Gray */
+    -text-on-primary: white; /* New Team White */
+    -background-light: #F8F9F9; /* Very light gray with slight green tint */
+    -background-white: white; /* New Team White */
+    -border-color: #D5DBDB; /* Light gray with slight green tint */
+    -error-color: #C0392B; /* Dark red */
+    -shadow-color: rgba(0,0,0,0.25); /* Slightly stronger shadow */
+
+    /* Dark theme colors - Adjusted to complement New Team colors */
+    -dark-background: #0B0B0B; /* Deeper black */
+    -dark-surface: #0F1A14; /* Very dark green-tinted black */
+    -dark-surface-light: #1A2E22; /* Dark green-tinted surface */
+    -dark-text-primary: white; /* New Team White */
+    -dark-text-secondary: #CCCCCC; /* Lighter gray for better contrast */
+    -dark-accent: #F1C40F; /* New Team Yellow as accent */
+    -glow-yellow: rgba(241, 196, 15, 0.6); /* Yellow glow color */
+    -glow-green: rgba(39, 174, 96, 0.6); /* Green glow color */
+}
+
+/* Main container background */
+.main-container {
+    -fx-background-color: linear-gradient(to bottom right, -dark-background, -dark-surface);
+    -fx-font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* Background rectangle with gradient border */
+.background-rect {
+    -fx-fill: linear-gradient(to bottom, rgba(15, 26, 20, 0.8), rgba(10, 15, 12, 0.9));
+    -fx-stroke: linear-gradient(to bottom right, -primary-light, -accent-color);
+    -fx-stroke-width: 2;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.8), 20, 0, 0, 0);
+    -fx-opacity: 0.95;
+}
+
+/* Content container */
+.content-container {
+    -fx-spacing: 20;
+    -fx-alignment: center;
+}
+
+/* Text container with animation */
+.text-container {
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.5), 10, 0, 0, 0);
+    -fx-opacity: 1;
+    -fx-translate-x: 0;
+    -fx-animation: slide-in 1.5s ease-out;
+}
+
+@keyframes slide-in {
+    0% {
+        -fx-translate-x: -50;
+        -fx-opacity: 0;
+    }
+    100% {
+        -fx-translate-x: 0;
+        -fx-opacity: 1;
+    }
+}
+
+/* Text styles */
+.white-text {
+    -fx-fill: -dark-text-primary;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.5), 3, 0, 0, 0);
+}
+
+.green-text {
+    -fx-fill: -primary-light;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.5), 3, 0, 0, 0);
+}
+
+.gray-text {
+    -fx-fill: -dark-text-secondary;
+}
+
+/* Title text */
+.title-text {
+    -fx-font-size: 32px;
+    -fx-font-weight: bold;
+    -fx-fill: -dark-text-primary;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.7), 5, 0, 0, 0);
+    -fx-opacity: 1;
+    -fx-translate-y: 0;
+    -fx-animation: fade-in 2s ease-out;
+}
+
+.app-name-text {
+    -fx-font-size: 48px;
+    -fx-font-weight: bold;
+    -fx-fill: -accent-color; /* Yellow for brand identity */
+    -fx-effect: dropshadow(gaussian, -glow-yellow, 15, 0.5, 0, 0);
+    -fx-opacity: 1;
+    -fx-translate-y: 0;
+    -fx-animation: glow-pulse 3s infinite;
+}
+
+@keyframes glow-pulse {
+    0% {
+        -fx-effect: dropshadow(gaussian, -glow-yellow, 15, 0.5, 0, 0);
+    }
+    50% {
+        -fx-effect: dropshadow(gaussian, -glow-yellow, 25, 0.7, 0, 0);
+    }
+    100% {
+        -fx-effect: dropshadow(gaussian, -glow-yellow, 15, 0.5, 0, 0);
+    }
+}
+
+@keyframes fade-in {
+    0% {
+        -fx-opacity: 0;
+        -fx-translate-y: -20;
+    }
+    100% {
+        -fx-opacity: 1;
+        -fx-translate-y: 0;
+    }
+}
+
+.loading-text {
+    -fx-font-size: 18px;
+    -fx-fill: -dark-text-primary;
+    -fx-font-style: italic;
+    -fx-opacity: 1;
+    -fx-animation: blink 2s infinite;
+}
+
+@keyframes blink {
+    0% {
+        -fx-opacity: 1;
+    }
+    50% {
+        -fx-opacity: 0.7;
+    }
+    100% {
+        -fx-opacity: 1;
+    }
+}
+
+.copyright-text {
+    -fx-font-size: 12px;
+    -fx-fill: -dark-text-secondary;
+    -fx-opacity: 0.8;
+}
+
+/* Progress container */
+.progress-container {
+    -fx-spacing: 10;
+    -fx-padding: 10 0;
+}
+
+/* Progress bar with enhanced styling */
+.progress-bar {
+    -fx-accent: -accent-color;
+    -fx-background-color: rgba(26, 46, 34, 0.7);
+    -fx-background-radius: 15;
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+}
+
+.progress-bar > .bar {
+    -fx-background-radius: 15;
+    -fx-background-insets: 0;
+    -fx-effect: dropshadow(three-pass-box, -glow-yellow, 10, 0.5, 0, 0);
+    -fx-animation: progress-glow 2s infinite;
+}
+
+@keyframes progress-glow {
+    0% {
+        -fx-effect: dropshadow(three-pass-box, -glow-yellow, 10, 0.5, 0, 0);
+    }
+    50% {
+        -fx-effect: dropshadow(three-pass-box, -glow-yellow, 15, 0.7, 0, 0);
+    }
+    100% {
+        -fx-effect: dropshadow(three-pass-box, -glow-yellow, 10, 0.5, 0, 0);
+    }
+}
+
+.progress-bar > .track {
+    -fx-background-radius: 15;
+    -fx-background-insets: 0;
+}
+
+/* Shadow effects */
+.text-shadow {
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.7), 5, 0, 0, 0);
+}
+
+/* Logo image with enhanced animation */
+.logo-image {
+    -fx-effect: dropshadow(gaussian, -glow-green, 20, 0.5, 0, 0);
+    -fx-scale-x: 1;
+    -fx-scale-y: 1;
+    -fx-opacity: 1;
+    -fx-rotate: 0;
+    -fx-animation: logo-entrance 2s ease-out, logo-float 4s infinite ease-in-out;
+}
+
+@keyframes logo-entrance {
+    0% {
+        -fx-scale-x: 0.5;
+        -fx-scale-y: 0.5;
+        -fx-opacity: 0;
+        -fx-rotate: -10;
+    }
+    100% {
+        -fx-scale-x: 1;
+        -fx-scale-y: 1;
+        -fx-opacity: 1;
+        -fx-rotate: 0;
+    }
+}
+
+@keyframes logo-float {
+    0% {
+        -fx-translate-y: 0;
+        -fx-effect: dropshadow(gaussian, -glow-green, 20, 0.5, 0, 0);
+    }
+    50% {
+        -fx-translate-y: -10;
+        -fx-effect: dropshadow(gaussian, -glow-green, 30, 0.7, 0, 0);
+    }
+    100% {
+        -fx-translate-y: 0;
+        -fx-effect: dropshadow(gaussian, -glow-green, 20, 0.5, 0, 0);
+    }
+}

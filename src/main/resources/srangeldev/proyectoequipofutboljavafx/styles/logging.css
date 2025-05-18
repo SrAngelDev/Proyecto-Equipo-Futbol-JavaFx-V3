@@ -1,0 +1,395 @@
+/* Styles for logging.fxml */
+
+/* Color Variables - New Team Logo Colors */
+* {
+    -primary-color: #1E8449; /* New Team Green - Darker */
+    -primary-light: #27AE60; /* New Team Green - Lighter */
+    -primary-dark: #196F3D; /* New Team Green - Darkest */
+    -accent-color: #F1C40F; /* New Team Yellow - Primary */
+    -accent-dark: #D4AC0D; /* New Team Yellow - Darker */
+    -accent-light: #F4D03F; /* New Team Yellow - Lighter */
+    -text-primary: #000000; /* New Team Black */
+    -text-secondary: #555555; /* Dark Gray */
+    -text-on-primary: white; /* New Team White */
+    -background-light: #F8F9F9; /* Very light gray with slight green tint */
+    -background-white: white; /* New Team White */
+    -border-color: #D5DBDB; /* Light gray with slight green tint */
+    -error-color: #C0392B; /* Dark red */
+    -shadow-color: rgba(0,0,0,0.25); /* Slightly stronger shadow */
+
+    /* Dark theme colors - Adjusted to complement New Team colors */
+    -dark-background: #0B0B0B; /* Deeper black */
+    -dark-surface: #0F1A14; /* Very dark green-tinted black */
+    -dark-surface-light: #1A2E22; /* Dark green-tinted surface */
+    -dark-text-primary: white; /* New Team White */
+    -dark-text-secondary: #CCCCCC; /* Lighter gray for better contrast */
+    -dark-accent: #F1C40F; /* New Team Yellow as accent */
+    -dark-border: #2C3C33; /* Dark green-tinted border */
+    -glow-yellow: rgba(241, 196, 15, 0.6); /* Yellow glow color */
+    -glow-green: rgba(39, 174, 96, 0.6); /* Green glow color */
+}
+
+/* Main container background */
+.main-container {
+    -fx-background-color: linear-gradient(to bottom right, -dark-background, -dark-surface);
+    -fx-font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* Background decorative elements */
+.background-circle-1 {
+    -fx-fill: radial-gradient(center 50% 50%, radius 100%, rgba(30, 132, 73, 0.1), rgba(30, 132, 73, 0.3));
+    -fx-stroke: rgba(30, 132, 73, 0.2);
+    -fx-stroke-width: 1;
+    -fx-opacity: 0.6;
+    -fx-effect: dropshadow(gaussian, -glow-green, 30, 0, 0, 0);
+}
+
+.background-circle-2 {
+    -fx-fill: radial-gradient(center 50% 50%, radius 100%, rgba(241, 196, 15, 0.1), rgba(241, 196, 15, 0.3));
+    -fx-stroke: rgba(241, 196, 15, 0.2);
+    -fx-stroke-width: 1;
+    -fx-opacity: 0.6;
+    -fx-effect: dropshadow(gaussian, -glow-yellow, 30, 0, 0, 0);
+}
+
+/* Login form container */
+.login-container {
+    -fx-background-color: linear-gradient(to bottom, rgba(15, 26, 20, 0.8), rgba(10, 15, 12, 0.9));
+    -fx-background-radius: 20;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.8), 20, 0, 0, 0);
+    -fx-border-color: linear-gradient(to bottom right, rgba(39, 174, 96, 0.3), rgba(241, 196, 15, 0.3));
+    -fx-border-width: 1;
+    -fx-border-radius: 20;
+}
+
+/* Form container */
+.form-container {
+    -fx-background-color: rgba(15, 26, 20, 0.5);
+    -fx-background-radius: 15;
+    -fx-border-color: rgba(255,255,255,0.05);
+    -fx-border-width: 1;
+    -fx-border-radius: 15;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 10, 0, 0, 0);
+    -fx-opacity: 1;
+    -fx-translate-x: 0;
+    -fx-animation: slide-in 1s ease-out;
+}
+
+@keyframes slide-in {
+    0% {
+        -fx-translate-x: -50;
+        -fx-opacity: 0;
+    }
+    100% {
+        -fx-translate-x: 0;
+        -fx-opacity: 1;
+    }
+}
+
+/* Header container */
+.header-container {
+    -fx-opacity: 1;
+    -fx-translate-y: 0;
+    -fx-animation: fade-in 1.5s ease-out;
+}
+
+@keyframes fade-in {
+    0% {
+        -fx-opacity: 0;
+        -fx-translate-y: -20;
+    }
+    100% {
+        -fx-opacity: 1;
+        -fx-translate-y: 0;
+    }
+}
+
+/* Title text */
+.login-title {
+    -fx-font-size: 32px;
+    -fx-font-weight: bold;
+    -fx-fill: -dark-text-primary;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.7), 5, 0, 0, 0);
+}
+
+/* Separator */
+.yellow-separator {
+    -fx-background-color: -accent-color;
+    -fx-opacity: 0.9;
+    -fx-effect: dropshadow(three-pass-box, -glow-yellow, 5, 0.5, 0, 0);
+}
+
+/* Field label */
+.field-label {
+    -fx-text-fill: -dark-text-primary;
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+    -fx-opacity: 1;
+    -fx-translate-y: 0;
+    -fx-animation: fade-in 1.8s ease-out;
+}
+
+/* Input container */
+.input-container {
+    -fx-spacing: 0;
+    -fx-background-color: transparent;
+    -fx-opacity: 1;
+    -fx-translate-y: 0;
+    -fx-animation: fade-in 2s ease-out;
+}
+
+/* Icon container */
+.icon-container {
+    -fx-alignment: center;
+}
+
+.icon-background {
+    -fx-fill: -primary-color;
+    -fx-arc-width: 8;
+    -fx-arc-height: 8;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 5, 0, 0, 0);
+}
+
+.field-icon-text {
+    -fx-fill: -text-on-primary;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.5), 2, 0, 0, 0);
+}
+
+/* Text fields */
+.dark-text-field {
+    -fx-background-color: -dark-surface-light;
+    -fx-text-fill: -dark-text-primary;
+    -fx-prompt-text-fill: -dark-text-secondary;
+    -fx-background-radius: 0 8 8 0;
+    -fx-border-color: -dark-border;
+    -fx-border-width: 1 1 1 0;
+    -fx-border-radius: 0 8 8 0;
+    -fx-padding: 10 15;
+    -fx-font-size: 14px;
+    -fx-effect: innershadow(three-pass-box, rgba(0,0,0,0.2), 5, 0, 0, 0);
+}
+
+.dark-text-field:focused {
+    -fx-border-color: -accent-color;
+    -fx-border-width: 1 2 2 0;
+    -fx-effect: dropshadow(three-pass-box, -glow-yellow, 5, 0.3, 0, 0);
+}
+
+/* Error message */
+.error-message {
+    -fx-fill: -error-color;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.5), 2, 0, 0, 0);
+    -fx-opacity: 1;
+    -fx-animation: blink 2s infinite;
+}
+
+@keyframes blink {
+    0% {
+        -fx-opacity: 1;
+    }
+    50% {
+        -fx-opacity: 0.7;
+    }
+    100% {
+        -fx-opacity: 1;
+    }
+}
+
+/* Options container */
+.options-container {
+    -fx-opacity: 1;
+    -fx-translate-y: 0;
+    -fx-animation: fade-in 2.2s ease-out;
+}
+
+/* Checkbox */
+.white-checkbox {
+    -fx-text-fill: -dark-text-primary;
+}
+
+.white-checkbox .box {
+    -fx-background-color: -dark-surface-light;
+    -fx-border-color: -dark-border;
+    -fx-border-radius: 3;
+}
+
+.white-checkbox:selected .mark {
+    -fx-background-color: -accent-color;
+}
+
+.white-checkbox:selected .box {
+    -fx-background-color: -dark-surface;
+    -fx-border-color: -accent-color;
+    -fx-effect: dropshadow(three-pass-box, -glow-yellow, 3, 0.3, 0, 0);
+}
+
+/* Hyperlink */
+.yellow-hyperlink {
+    -fx-text-fill: -accent-color;
+    -fx-underline: false;
+    -fx-font-weight: bold;
+}
+
+.yellow-hyperlink:hover {
+    -fx-text-fill: derive(-accent-color, 20%);
+    -fx-underline: true;
+    -fx-effect: dropshadow(three-pass-box, -glow-yellow, 3, 0.3, 0, 0);
+}
+
+/* Button container */
+.button-container {
+    -fx-opacity: 1;
+    -fx-translate-y: 0;
+    -fx-animation: fade-in 2.5s ease-out;
+}
+
+/* Login button */
+.login-button {
+    -fx-background-color: linear-gradient(to bottom, -primary-light, -primary-color);
+    -fx-text-fill: -text-on-primary;
+    -fx-font-weight: bold;
+    -fx-font-size: 16px;
+    -fx-background-radius: 25;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.5), 10, 0, 0, 0);
+    -fx-padding: 12 25;
+    -fx-cursor: hand;
+    -fx-border-color: rgba(255,255,255,0.2);
+    -fx-border-width: 1;
+    -fx-border-radius: 25;
+}
+
+.login-button:hover {
+    -fx-background-color: linear-gradient(to bottom, #2CC36B, #239955);
+    -fx-scale-x: 1.05;
+    -fx-scale-y: 1.05;
+    -fx-effect: dropshadow(three-pass-box, -glow-green, 15, 0.3, 0, 0);
+    -fx-border-color: -accent-color;
+}
+
+.login-button:pressed {
+    -fx-background-color: linear-gradient(to bottom, #1F9E55, #17733F);
+    -fx-scale-x: 0.95;
+    -fx-scale-y: 0.95;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.5), 5, 0, 0, 0);
+    -fx-border-color: -accent-dark;
+}
+
+/* Brand container */
+.brand-container {
+    -fx-opacity: 1;
+    -fx-translate-x: 0;
+    -fx-animation: slide-in-right 1s ease-out;
+}
+
+@keyframes slide-in-right {
+    0% {
+        -fx-translate-x: 50;
+        -fx-opacity: 0;
+    }
+    100% {
+        -fx-translate-x: 0;
+        -fx-opacity: 1;
+    }
+}
+
+/* Logo container */
+.logo-container {
+    -fx-alignment: center;
+}
+
+.logo-background {
+    -fx-fill: radial-gradient(center 50% 50%, radius 100%, rgba(39, 174, 96, 0.1), rgba(39, 174, 96, 0.05));
+    -fx-stroke: rgba(39, 174, 96, 0.2);
+    -fx-stroke-width: 2;
+    -fx-effect: dropshadow(gaussian, -glow-green, 20, 0.3, 0, 0);
+}
+
+/* Logo image */
+.logo-image {
+    -fx-effect: dropshadow(gaussian, -glow-green, 20, 0.5, 0, 0);
+    -fx-scale-x: 1;
+    -fx-scale-y: 1;
+    -fx-opacity: 1;
+    -fx-rotate: 0;
+    -fx-animation: logo-entrance 1.5s ease-out, logo-float 4s infinite ease-in-out;
+}
+
+@keyframes logo-entrance {
+    0% {
+        -fx-scale-x: 0.5;
+        -fx-scale-y: 0.5;
+        -fx-opacity: 0;
+        -fx-rotate: -10;
+    }
+    100% {
+        -fx-scale-x: 1;
+        -fx-scale-y: 1;
+        -fx-opacity: 1;
+        -fx-rotate: 0;
+    }
+}
+
+@keyframes logo-float {
+    0% {
+        -fx-translate-y: 0;
+        -fx-effect: dropshadow(gaussian, -glow-green, 20, 0.5, 0, 0);
+    }
+    50% {
+        -fx-translate-y: -10;
+        -fx-effect: dropshadow(gaussian, -glow-green, 30, 0.7, 0, 0);
+    }
+    100% {
+        -fx-translate-y: 0;
+        -fx-effect: dropshadow(gaussian, -glow-green, 20, 0.5, 0, 0);
+    }
+}
+
+/* Quote container */
+.quote-container {
+    -fx-opacity: 1;
+    -fx-translate-y: 0;
+    -fx-animation: fade-in 2s ease-out;
+}
+
+/* Quote text */
+.quote-text {
+    -fx-font-style: italic;
+    -fx-fill: -dark-text-primary;
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.7), 5, 0, 0, 0);
+}
+
+/* Subtitle text */
+.subtitle-text {
+    -fx-fill: -accent-color;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-effect: dropshadow(three-pass-box, -glow-yellow, 5, 0.3, 0, 0);
+}
+
+/* Loading indicator styles */
+.loading-indicator-container {
+    -fx-opacity: 1;
+    -fx-animation: fade-in 0.5s ease-out;
+}
+
+.login-progress {
+    -fx-progress-color: -accent-color;
+    -fx-effect: dropshadow(three-pass-box, -glow-yellow, 10, 0.5, 0, 0);
+}
+
+.login-progress .percentage {
+    -fx-fill: null;
+}
+
+.loading-text-label {
+    -fx-text-fill: -dark-text-primary;
+    -fx-font-size: 14px;
+    -fx-font-style: italic;
+    -fx-animation: blink 1.5s infinite;
+}

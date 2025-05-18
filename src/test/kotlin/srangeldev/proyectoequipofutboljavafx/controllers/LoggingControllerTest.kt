@@ -75,92 +75,92 @@ class LoggingControllerTest {
 
     @Test
     fun `test login with empty password shows error`() {
-        // Call login with empty password
+        // Llamar a login con contraseña vacía
         val result = testController.login("username", "")
 
-        // Verify result indicates error for empty fields
+        // Verificar que el resultado indica error por campos vacíos
         assertEquals(LoginResult.EMPTY_FIELDS, result)
 
-        // Verify that verifyCredentials was not called
+        // Verificar que verifyCredentials no fue llamado
         verify(userRepository, never()).verifyCredentials(any(), any())
     }
 
     @Test
     fun `test login with invalid credentials shows error`() {
-        // Mock repository to return null for invalid credentials
+        // Configurar el repositorio simulado para devolver null para credenciales inválidas
         whenever(userRepository.verifyCredentials("invalid", "invalid")).thenReturn(null)
 
-        // Call login with invalid credentials
+        // Llamar a login con credenciales inválidas
         val result = testController.login("invalid", "invalid")
 
-        // Verify result indicates invalid credentials
+        // Verificar que el resultado indica credenciales inválidas
         assertEquals(LoginResult.INVALID_CREDENTIALS, result)
 
-        // Verify that verifyCredentials was called
+        // Verificar que verifyCredentials fue llamado
         verify(userRepository).verifyCredentials("invalid", "invalid")
     }
 
     @Test
     fun `test login with valid admin credentials returns admin result`() {
-        // Mock repository to return admin user for valid credentials
+        // Configurar el repositorio simulado para devolver usuario administrador para credenciales válidas
         whenever(userRepository.verifyCredentials("admin", "admin")).thenReturn(adminUser)
 
-        // Call login with valid admin credentials
+        // Llamar a login con credenciales de administrador válidas
         val result = testController.login("admin", "admin")
 
-        // Verify result indicates admin login
+        // Verificar que el resultado indica inicio de sesión de administrador
         assertEquals(LoginResult.ADMIN_LOGIN, result)
 
-        // Verify that verifyCredentials was called
+        // Verificar que verifyCredentials fue llamado
         verify(userRepository).verifyCredentials("admin", "admin")
 
-        // Verify that user was set in session
+        // Verificar que el usuario fue establecido en la sesión
         assertEquals(adminUser, Session.getCurrentUser())
     }
 
     @Test
     fun `test login with valid user credentials returns user result`() {
-        // Mock repository to return normal user for valid credentials
+        // Configurar el repositorio simulado para devolver usuario normal para credenciales válidas
         whenever(userRepository.verifyCredentials("user", "user")).thenReturn(normalUser)
 
-        // Call login with valid user credentials
+        // Llamar a login con credenciales de usuario válidas
         val result = testController.login("user", "user")
 
-        // Verify result indicates user login
+        // Verificar que el resultado indica inicio de sesión de usuario
         assertEquals(LoginResult.USER_LOGIN, result)
 
-        // Verify that verifyCredentials was called
+        // Verificar que verifyCredentials fue llamado
         verify(userRepository).verifyCredentials("user", "user")
 
-        // Verify that user was set in session
+        // Verificar que el usuario fue establecido en la sesión
         assertEquals(normalUser, Session.getCurrentUser())
     }
 
-    // Test-friendly implementation of LoggingController that doesn't rely on JavaFX components
+    // Implementación amigable para pruebas de LoggingController que no depende de componentes JavaFX
     class TestLoggingController(private val userRepository: UserRepository) {
 
         fun initialize() {
-            // Initialize the repository
+            // Inicializar el repositorio
             userRepository.initDefaultUsers()
         }
 
         fun login(username: String, password: String): LoginResult {
-            // Validate fields
+            // Validar campos
             if (username.isEmpty() || password.isEmpty()) {
                 return LoginResult.EMPTY_FIELDS
             }
 
-            // Verify credentials
+            // Verificar credenciales
             val user = userRepository.verifyCredentials(username, password)
 
             if (user == null) {
                 return LoginResult.INVALID_CREDENTIALS
             }
 
-            // Set user in session
+            // Establecer usuario en la sesión
             Session.setCurrentUser(user)
 
-            // Return result based on user role
+            // Devolver resultado basado en el rol del usuario
             return when (user.role) {
                 User.Role.ADMIN -> LoginResult.ADMIN_LOGIN
                 User.Role.USER -> LoginResult.USER_LOGIN
@@ -168,11 +168,11 @@ class LoggingControllerTest {
         }
     }
 
-    // Enum to represent login results
+    // Enum para representar los resultados del inicio de sesión
     enum class LoginResult {
-        EMPTY_FIELDS,
-        INVALID_CREDENTIALS,
-        ADMIN_LOGIN,
-        USER_LOGIN
+        EMPTY_FIELDS,        // Campos vacíos
+        INVALID_CREDENTIALS, // Credenciales inválidas
+        ADMIN_LOGIN,         // Inicio de sesión de administrador
+        USER_LOGIN           // Inicio de sesión de usuario
     }
 }

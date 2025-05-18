@@ -3,22 +3,25 @@ package srangeldev.proyectoequipofutboljavafx.controllers
 import javafx.fxml.FXML
 import javafx.fxml.FXMLLoader
 import javafx.scene.Scene
-import javafx.scene.control.Alert
-import javafx.scene.control.Button
-import javafx.scene.control.PasswordField
-import javafx.scene.control.TextField
+import javafx.scene.control.*
 import javafx.scene.image.ImageView
+import javafx.scene.layout.HBox
 import javafx.stage.Stage
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import org.lighthousegames.logging.logging
-import srangeldev.proyectoequipofutboljavafx.newteam.models.User
-import srangeldev.proyectoequipofutboljavafx.newteam.repository.UserRepository
-import srangeldev.proyectoequipofutboljavafx.newteam.repository.UserRepositoryImpl
-import srangeldev.proyectoequipofutboljavafx.routes.RoutesManager.app
-import srangeldev.proyectoequipofutboljavafx.newteam.session.Session
+import srangeldev.proyectoequipofutboljavafx.routes.RoutesManager
+import srangeldev.proyectoequipofutboljavafx.viewmodels.PersonalViewModel
 
-class LoggingController {
+/**
+ * Controlador para la pantalla de inicio de sesión.
+ * Implementa el patrón MVVM utilizando PersonalViewModel para la lógica de negocio.
+ */
+class LoggingController : KoinComponent {
     private val logger = logging()
-    private val userRepository: UserRepository = UserRepositoryImpl()
+
+    // Inyectar el ViewModel usando Koin
+    private val viewModel: PersonalViewModel by inject()
 
     @FXML
     private lateinit var usuarioField: TextField
@@ -33,78 +36,110 @@ class LoggingController {
     private lateinit var logoImage: ImageView
 
     @FXML
+    private lateinit var loadingContainer: HBox
+
+    @FXML
+    private lateinit var loginProgress: ProgressIndicator
+
+    /**
+     * Método de inicialización llamado automáticamente por JavaFX.
+     * Configura los bindings con el ViewModel y los eventos de la interfaz.
+     */
+    @FXML
     private fun initialize() {
         logger.debug { "Inicializando LoggingController" }
 
-        // Inicializar el repositorio de usuarios (esto creará la tabla y los usuarios por defecto si no existen)
-        userRepository.initDefaultUsers()
+        // Inicializar el ViewModel
+        viewModel.initialize()
+
+        // Configurar bindings bidireccionales con el ViewModel
+        usuarioField.textProperty().bindBidirectional(viewModel.username)
+        passwordField.textProperty().bindBidirectional(viewModel.password)
+
+        // Observar cambios en el resultado del login
+        viewModel.loginResult.addListener { _, _, newValue ->
+            newValue?.let { handleLoginResult(it) }
+        }
+
+        // Observar errores
+        viewModel.error.addListener { _, _, newValue ->
+            if (newValue.isNotEmpty()) {
+                showAlert(Alert.AlertType.ERROR, "Error", newValue)
+            }
+        }
 
         // Configurar el evento del botón ingresar
-        ingresarButton.setOnAction { handleIngresar() }
+        ingresarButton.setOnAction { 
+            // Mostrar el indicador de carga
+            showLoadingIndicator(true)
+
+            // Deshabilitar el botón mientras se procesa
+            ingresarButton.isDisable = true
+
+            // Intentar iniciar sesión
+            viewModel.login()
+        }
     }
 
-    private fun handleIngresar() {
-        logger.debug { "Procesando intento de login" }
+    /**
+     * Maneja el resultado del inicio de sesión según el valor devuelto por el ViewModel.
+     * 
+     * @param result El resultado del inicio de sesión
+     */
+    private fun handleLoginResult(result: PersonalViewModel.LoginResult) {
+        // Ocultar el indicador de carga y habilitar el botón
+        showLoadingIndicator(false)
+        ingresarButton.isDisable = false
 
-        val username = usuarioField.text.trim()
-        val password = passwordField.text.trim()
-
-        // Validar campos vacíos
-        if (username.isEmpty() || password.isEmpty()) {
-            showAlert(
-                Alert.AlertType.ERROR,
-                "Campos vacíos",
-                "Por favor complete todos los campos"
-            )
-            return
-        }
-
-        // Verificar credenciales usando el repositorio de usuarios
-        val user = userRepository.verifyCredentials(username, password)
-
-        if (user != null) {
-            // Establecer el usuario en la sesión
-            Session.setCurrentUser(user)
-
-            // Manejar login exitoso según el rol del usuario
-            when (user.role) {
-                User.Role.ADMIN -> handleSuccessfulLogin(TipoUsuario.ADMIN)
-                User.Role.USER -> handleSuccessfulLogin(TipoUsuario.USUARIO)
+        when (result) {
+            PersonalViewModel.LoginResult.EMPTY_FIELDS -> {
+                showAlert(
+                    Alert.AlertType.ERROR,
+                    "Campos vacíos",
+                    "Por favor complete todos los campos"
+                )
             }
-        } else {
-            showAlert(
-                Alert.AlertType.ERROR,
-                "Credenciales inválidas",
-                "Usuario o contraseña incorrectos"
-            )
-            passwordField.clear()
+            PersonalViewModel.LoginResult.INVALID_CREDENTIALS -> {
+                showAlert(
+                    Alert.AlertType.ERROR,
+                    "Credenciales inválidas",
+                    "Usuario o contraseña incorrectos"
+                )
+                viewModel.clearPassword()
+            }
+            PersonalViewModel.LoginResult.ADMIN_LOGIN -> {
+                showAlert(
+                    Alert.AlertType.INFORMATION,
+                    "Login exitoso",
+                    "Bienvenido Administrador"
+                )
+                cargarVistaAdmin()
+                viewModel.clearPassword()
+            }
+            PersonalViewModel.LoginResult.USER_LOGIN -> {
+                showAlert(
+                    Alert.AlertType.INFORMATION,
+                    "Login exitoso",
+                    "Bienvenido Usuario normal"
+                )
+                cargarVistaUsuario()
+                viewModel.clearPassword()
+            }
         }
     }
 
-    private fun handleSuccessfulLogin(tipoUsuario: TipoUsuario) {
-        showAlert(
-            Alert.AlertType.INFORMATION,
-            "Login exitoso",
-            "Bienvenido ${tipoUsuario.nombre}"
-        )
-
-        when (tipoUsuario) {
-            TipoUsuario.ADMIN -> cargarVistaAdmin()
-            TipoUsuario.USUARIO -> cargarVistaUsuario()
-        }
-
-        // Limpiar campos sensibles
-        passwordField.clear()
-    }
-
+    /**
+     * Carga la vista de administrador después de un inicio de sesión exitoso como administrador.
+     * Maneja posibles errores durante la carga de la vista.
+     */
     private fun cargarVistaAdmin() {
         try {
             logger.debug { "Intentando cargar vista de administración" }
-            val loader = FXMLLoader(app::class.java.getResource("views/newTeam/vista-admin.fxml"))
+            val loader = FXMLLoader(RoutesManager.getResource(srangeldev.proyectoequipofutboljavafx.routes.RoutesManager.View.ADMIN.fxml))
             val stage = usuarioField.scene.window as Stage
             logger.debug { "Stage obtenido correctamente" }
-            stage.scene = Scene(loader.load(), 1280.0, 720.0)
-            logger.debug { "Scene cargada correctamente con dimensiones 1280x720" }
+            stage.scene = Scene(loader.load(), 1920.0, 1080.0)
+            logger.debug { "Scene cargada correctamente con dimensiones 1920x1080" }
             stage.title = "Panel de Administración"
             logger.debug { "Vista de administración cargada correctamente" }
         } catch (e: Exception) {
@@ -118,14 +153,18 @@ class LoggingController {
         }
     }
 
+    /**
+     * Carga la vista de usuario normal después de un inicio de sesión exitoso como usuario estándar.
+     * Maneja posibles errores durante la carga de la vista.
+     */
     private fun cargarVistaUsuario() {
         try {
             logger.debug { "Intentando cargar vista de usuario normal" }
-            val loader = FXMLLoader(app::class.java.getResource("views/newTeam/vista-normal.fxml"))
+            val loader = FXMLLoader(srangeldev.proyectoequipofutboljavafx.routes.RoutesManager.getResource(srangeldev.proyectoequipofutboljavafx.routes.RoutesManager.View.NORMAL.fxml))
             val stage = usuarioField.scene.window as Stage
             logger.debug { "Stage obtenido correctamente" }
-            stage.scene = Scene(loader.load(), 1280.0, 720.0)
-            logger.debug { "Scene cargada correctamente con dimensiones 1280x720" }
+            stage.scene = Scene(loader.load(), 1920.0, 1080.0)
+            logger.debug { "Scene cargada correctamente con dimensiones 1920x1080" }
             stage.title = "Panel de Usuario Normal"
             logger.debug { "Vista de usuario normal cargada correctamente" }
         } catch (e: Exception) {
@@ -139,16 +178,28 @@ class LoggingController {
         }
     }
 
+    /**
+     * Muestra u oculta el indicador de carga durante el proceso de inicio de sesión.
+     * 
+     * @param show True para mostrar el indicador, False para ocultarlo
+     */
+    private fun showLoadingIndicator(show: Boolean) {
+        loadingContainer.isVisible = show
+        loadingContainer.isManaged = show
+    }
+
+    /**
+     * Muestra una alerta con el tipo, título y mensaje especificados.
+     * 
+     * @param type El tipo de alerta (ERROR, INFORMATION, etc.)
+     * @param title El título de la alerta
+     * @param message El mensaje a mostrar en la alerta
+     */
     private fun showAlert(type: Alert.AlertType, title: String, message: String) {
         Alert(type).apply {
             this.title = title
             headerText = null
             contentText = message
         }.showAndWait()
-    }
-
-    enum class TipoUsuario(val nombre: String) {
-        ADMIN("Administrador"),
-        USUARIO("Usuario normal")
     }
 }

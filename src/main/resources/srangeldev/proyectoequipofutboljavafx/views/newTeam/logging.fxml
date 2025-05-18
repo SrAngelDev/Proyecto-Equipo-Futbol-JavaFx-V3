@@ -4,94 +4,132 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.image.*?>
 <?import javafx.scene.text.*?>
+<?import javafx.scene.shape.*?>
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.effect.DropShadow?>
+<?import javafx.scene.effect.*?>
+<?import java.net.URL?>
 
 <AnchorPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
-            fx:controller="srangeldev.proyectoequipofutboljavafx.controllers.LoggingController"
-            style="-fx-background-color: linear-gradient(to bottom, #121212, #1A1A1A);">
+            prefHeight="700.0" prefWidth="1100.0"
+            fx:controller="srangeldev.proyectoequipofutboljavafx.controllers.LoggingController">
+    <stylesheets>
+        <URL value="@../../styles/logging.css" />
+    </stylesheets>
 
-    <!-- GridPane principal para organizar los elementos -->
-    <StackPane AnchorPane.topAnchor="0.0"
+    <!-- Main container -->
+    <StackPane styleClass="main-container" AnchorPane.topAnchor="0.0"
                AnchorPane.bottomAnchor="0.0"
                AnchorPane.leftAnchor="0.0"
                AnchorPane.rightAnchor="0.0">
 
+        <!-- Background decorative elements -->
+        <Circle radius="300" styleClass="background-circle-1" translateX="-400" translateY="-250" />
+        <Circle radius="200" styleClass="background-circle-2" translateX="400" translateY="300" />
+
+        <!-- Main content container -->
         <GridPane alignment="CENTER" 
-                  maxWidth="900"
-                  maxHeight="600"
-                  hgap="30" vgap="10"
-                  style="-fx-background-color: linear-gradient(to bottom, #1E1E1E, #2A2A2A); -fx-background-radius: 15; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.8), 15, 0, 0, 0);">
+                  maxWidth="1000"
+                  maxHeight="650"
+                  hgap="40" vgap="10"
+                  styleClass="login-container">
 
             <padding>
                 <Insets top="40" right="40" bottom="40" left="40"/>
             </padding>
 
-            <!-- Columna izquierda para el formulario -->
-            <VBox spacing="15" GridPane.columnIndex="0" GridPane.rowIndex="0">
+            <!-- Left column for login form -->
+            <VBox spacing="20" styleClass="form-container" GridPane.columnIndex="0" GridPane.rowIndex="0">
                 <padding>
-                    <Insets top="20" />
+                    <Insets top="30" bottom="30" left="30" right="30" />
                 </padding>
 
-                <Text text="Iniciar Sesión" fill="WHITE" style="-fx-font-size: 24px; -fx-font-weight: bold;">
-                    <effect>
-                        <DropShadow color="#00000080" height="5.0" radius="2.0" width="5.0" />
-                    </effect>
-                </Text>
+                <!-- Header section -->
+                <VBox spacing="15" styleClass="header-container">
+                    <Text text="Iniciar Sesión" styleClass="login-title">
+                    </Text>
+                    <Separator styleClass="yellow-separator" prefWidth="200" />
+                </VBox>
 
-                <Separator style="-fx-background-color: #4CAF50;" prefWidth="200" />
+                <!-- Form fields -->
+                <VBox spacing="20" styleClass="fields-container">
+                    <!-- Username field with icon -->
+                    <VBox spacing="8">
+                        <Label text="Nombre de Usuario:" styleClass="field-label"/>
+                        <HBox styleClass="input-container" alignment="CENTER_LEFT">
+                            <StackPane styleClass="icon-container">
+                                <Rectangle width="36" height="36" styleClass="icon-background" />
+                                <Text styleClass="field-icon-text" text="👤" />
+                            </StackPane>
+                            <TextField fx:id="usuarioField" promptText="Ingrese su usuario" styleClass="dark-text-field" HBox.hgrow="ALWAYS"/>
+                        </HBox>
+                    </VBox>
 
-                <Label text="Nombre de Usuario:" style="-fx-text-fill: white; -fx-font-weight: bold;"/>
-                <TextField fx:id="usuarioField" promptText="Ingrese su usuario"
-                          style="-fx-background-color: #2A2A2A; -fx-text-fill: white; -fx-prompt-text-fill: #AAAAAA; -fx-background-radius: 5; -fx-border-color: #3A3A3A; -fx-border-radius: 5;"/>
+                    <!-- Password field with icon -->
+                    <VBox spacing="8">
+                        <Label text="Contraseña:" styleClass="field-label"/>
+                        <HBox styleClass="input-container" alignment="CENTER_LEFT">
+                            <StackPane styleClass="icon-container">
+                                <Rectangle width="36" height="36" styleClass="icon-background" />
+                                <Text styleClass="field-icon-text" text="🔒" />
+                            </StackPane>
+                            <PasswordField fx:id="passwordField" promptText="Ingrese su contraseña" styleClass="dark-text-field" HBox.hgrow="ALWAYS"/>
+                        </HBox>
+                    </VBox>
+                </VBox>
 
-                <Label text="Contraseña:" style="-fx-text-fill: white; -fx-font-weight: bold;"/>
-                <PasswordField fx:id="passwordField" promptText="Ingrese su contraseña"
-                              style="-fx-background-color: #2A2A2A; -fx-text-fill: white; -fx-prompt-text-fill: #AAAAAA; -fx-background-radius: 5; -fx-border-color: #3A3A3A; -fx-border-radius: 5;"/>
+                <!-- Error message -->
+                <Text fx:id="errorMessage" styleClass="error-message" />
 
-                <!-- Mensaje de error -->
-                <Text fx:id="errorMessage" fill="#FF5252" style="-fx-font-size: 12px;" />
-
-                <HBox spacing="10" alignment="CENTER_LEFT">
-                    <CheckBox fx:id="rememberMeCheckbox" text="Recordarme" style="-fx-text-fill: white;" />
+                <!-- Remember me and forgot password -->
+                <HBox spacing="10" alignment="CENTER_LEFT" styleClass="options-container">
+                    <CheckBox fx:id="rememberMeCheckbox" text="Recordarme" styleClass="white-checkbox" />
                     <Region HBox.hgrow="ALWAYS" />
-                    <Hyperlink fx:id="forgotPasswordLink" text="¿Olvidó su contraseña?" style="-fx-text-fill: #4CAF50;" />
+                    <Hyperlink fx:id="forgotPasswordLink" text="¿Olvidó su contraseña?" styleClass="yellow-hyperlink" />
                 </HBox>
 
-                <Button text="Ingresar" fx:id="ingresarButton"
-                        style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;"
-                        prefWidth="200" prefHeight="40">
-                    <effect>
-                        <DropShadow color="#00000080" height="10.0" radius="4.5" width="10.0" />
-                    </effect>
-                </Button>
+                <!-- Login button -->
+                <VBox alignment="CENTER" styleClass="button-container">
+                    <Button text="INGRESAR" fx:id="ingresarButton" styleClass="login-button"
+                            prefWidth="240" prefHeight="45">
+                    </Button>
+
+                    <!-- Loading indicator -->
+                    <HBox alignment="CENTER" spacing="10" styleClass="loading-indicator-container" fx:id="loadingContainer" visible="false" managed="false">
+                        <padding>
+                            <Insets top="15" />
+                        </padding>
+                        <ProgressIndicator fx:id="loginProgress" prefHeight="30" prefWidth="30" styleClass="login-progress" />
+                        <Label text="Autenticando..." styleClass="loading-text-label" />
+                    </HBox>
+                </VBox>
             </VBox>
 
-            <!-- Columna derecha para el logo y la frase -->
-            <VBox spacing="20" alignment="CENTER" GridPane.columnIndex="1" GridPane.rowIndex="0">
-                <ImageView fx:id="logoImage" fitHeight="220" fitWidth="220" preserveRatio="true">
-                    <image>
-                        <Image url="@../../icons/newTeamLogo.png"/>
-                    </image>
-                    <effect>
-                        <DropShadow color="#00000080" height="20.0" radius="9.5" width="20.0" />
-                    </effect>
-                </ImageView>
+            <!-- Right column for logo and quote -->
+            <VBox spacing="30" alignment="CENTER" styleClass="brand-container" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                <!-- Logo with glow effect -->
+                <StackPane styleClass="logo-container">
+                    <Circle radius="120" styleClass="logo-background" />
+                    <ImageView fx:id="logoImage" fitHeight="220" fitWidth="220" preserveRatio="true" styleClass="logo-image">
+                        <image>
+                            <Image url="@../../icons/newTeamLogo.png"/>
+                        </image>
+                    </ImageView>
+                </StackPane>
 
-                <Text text="El fútbol es más que un juego, ¡es un sueño!"
-                      wrappingWidth="250"
-                      textAlignment="CENTER"
-                      style="-fx-font-style: italic; -fx-fill: white; -fx-font-size: 16px;">
-                    <effect>
-                        <DropShadow color="#00000080" height="5.0" radius="2.0" width="5.0" />
-                    </effect>
-                </Text>
+                <!-- Quote and subtitle -->
+                <VBox spacing="20" alignment="CENTER" styleClass="quote-container">
+                    <Text text="El fútbol es más que un juego, ¡es un sueño!"
+                          wrappingWidth="300"
+                          textAlignment="CENTER"
+                          styleClass="quote-text">
+                    </Text>
 
-                <Text text="Gestiona tu equipo de forma eficiente"
-                      wrappingWidth="250"
-                      textAlignment="CENTER"
-                      style="-fx-fill: #AAAAAA; -fx-font-size: 14px;"/>
+                    <Text text="Gestiona tu equipo de forma eficiente"
+                          wrappingWidth="300"
+                          textAlignment="CENTER"
+                          styleClass="subtitle-text"/>
+                </VBox>
             </VBox>
 
             <columnConstraints>

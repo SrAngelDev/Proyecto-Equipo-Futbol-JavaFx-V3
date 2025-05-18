@@ -26,6 +26,12 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.Period
 
+/**
+ * Controlador para la vista de usuario normal.
+ * Maneja la visualización y edición limitada de datos del personal del equipo.
+ * Los usuarios normales tienen acceso restringido a ciertas funcionalidades
+ * que están disponibles solo para administradores.
+ */
 class VistaNormalController {
     private val logger = logging()
 
@@ -59,7 +65,6 @@ class VistaNormalController {
     @FXML private lateinit var golesTextField: TextField
     @FXML private lateinit var minutosLabel: Label
     @FXML private lateinit var minutosTextField: TextField
-    @FXML private lateinit var saveButton: Button
     @FXML private lateinit var cancelButton: Button
 
     // Menú
@@ -77,6 +82,10 @@ class VistaNormalController {
     private var isAdmin = false
     private var dataLoaded = false
 
+    /**
+     * Método de inicialización llamado automáticamente por JavaFX.
+     * Configura todos los componentes de la interfaz de usuario y carga los datos iniciales.
+     */
     @FXML
     private fun initialize() {
         logger.debug { "Inicializando VistaNormalController" }
@@ -106,6 +115,10 @@ class VistaNormalController {
         updateStatistics()
     }
 
+    /**
+     * Verifica el rol del usuario actual y configura la interfaz de usuario en consecuencia.
+     * Los administradores tienen acceso a funcionalidades adicionales y pueden editar los datos.
+     */
     private fun checkUserRole() {
         logger.debug { "Verificando rol de usuario" }
 
@@ -122,6 +135,10 @@ class VistaNormalController {
         setFieldsEditable(isAdmin)
     }
 
+    /**
+     * Inicializa la tabla de personal configurando las columnas y el sistema de filtrado.
+     * Establece las fábricas de valores para cada columna y conecta la lista filtrada a la tabla.
+     */
     private fun initializePersonalTable() {
         // Configurar las columnas de la tabla
         idColumn.setCellValueFactory { cellData -> SimpleIntegerProperty(cellData.value.id).asObject() }
@@ -167,6 +184,11 @@ class VistaNormalController {
         }
     }
 
+    /**
+     * Configura los botones de filtro para permitir al usuario filtrar el personal por tipo.
+     * Establece los manejadores de eventos para los botones de alternancia que filtran
+     * entre todos los miembros del personal, solo jugadores o solo entrenadores.
+     */
     private fun setupFilters() {
         // Configurar los ToggleButtons para filtrar entre todos, jugadores y entrenadores
         allToggleButton.setOnAction {
@@ -342,11 +364,6 @@ class VistaNormalController {
         // Configurar el DatePicker
         fechaIncorporacionPicker.value = LocalDate.now()
 
-        // Configurar los botones
-        saveButton.setOnAction {
-            savePersonalData()
-        }
-
         cancelButton.setOnAction {
             clearDetailsPanel()
         }
@@ -508,7 +525,6 @@ class VistaNormalController {
         partidosTextField.isEditable = editable
         golesTextField.isEditable = editable
         minutosTextField.isEditable = editable
-        saveButton.isDisable = !editable
     }
 
     private fun updateStatistics() {
