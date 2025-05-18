@@ -1,4 +1,4 @@
-package srangeldev.controller
+package srangeldev.proyectoequipofutboljavafx.newteam.controller
 
 import org.lighthousegames.logging.logging
 import srangeldev.proyectoequipofutboljavafx.newteam.config.Config
@@ -17,7 +17,9 @@ class Controller {
     private val logger = logging()
     private val service = PersonalServiceImpl()
 
-    // En la función cargarDatos
+    init {
+        logger.debug { "Inicializando controlador" }
+    }
 
     fun cargarDatos(formato: String) {
         logger.debug { "Cargando datos" }

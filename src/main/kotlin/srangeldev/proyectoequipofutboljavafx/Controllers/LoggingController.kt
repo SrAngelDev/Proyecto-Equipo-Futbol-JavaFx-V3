@@ -99,30 +99,44 @@ class LoggingController {
 
     private fun cargarVistaAdmin() {
         try {
+            logger.debug { "Intentando cargar vista de administración" }
             val loader = FXMLLoader(app::class.java.getResource("views/newTeam/vista-admin.fxml"))
+            logger.debug { "FXML Loader creado correctamente" }
             val stage = usuarioField.scene.window as Stage
+            logger.debug { "Stage obtenido correctamente" }
             stage.scene = Scene(loader.load())
+            logger.debug { "Scene cargada correctamente" }
             stage.title = "Panel de Administración"
+            logger.debug { "Vista de administración cargada correctamente" }
         } catch (e: Exception) {
+            logger.error { "Error al cargar la vista de administración: ${e.message}" }
+            logger.error { "Stack trace: ${e.stackTraceToString()}" }
             showAlert(
                 Alert.AlertType.ERROR,
                 "Error de navegación",
-                "No se pudo cargar la vista de administración"
+                "No se pudo cargar la vista de administración: ${e.message}"
             )
         }
     }
 
     private fun cargarVistaUsuario() {
         try {
+            logger.debug { "Intentando cargar vista de usuario normal" }
             val loader = FXMLLoader(app::class.java.getResource("views/newTeam/vista-normal.fxml"))
+            logger.debug { "FXML Loader creado correctamente" }
             val stage = usuarioField.scene.window as Stage
+            logger.debug { "Stage obtenido correctamente" }
             stage.scene = Scene(loader.load())
+            logger.debug { "Scene cargada correctamente" }
             stage.title = "Panel de Usuario Normal"
+            logger.debug { "Vista de usuario normal cargada correctamente" }
         } catch (e: Exception) {
+            logger.error { "Error al cargar la vista de usuario normal: ${e.message}" }
+            logger.error { "Stack trace: ${e.stackTraceToString()}" }
             showAlert(
                 Alert.AlertType.ERROR,
                 "Error de navegación",
-                "No se pudo cargar la vista de usuario normal"
+                "No se pudo cargar la vista de usuario normal: ${e.message}"
             )
         }
     }

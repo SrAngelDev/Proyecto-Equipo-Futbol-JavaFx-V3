@@ -9,7 +9,7 @@ import javafx.scene.control.*
 import javafx.scene.image.Image
 import javafx.scene.image.ImageView
 import org.lighthousegames.logging.logging
-import srangeldev.controller.Controller
+import srangeldev.proyectoequipofutboljavafx.newteam.controller.Controller
 import srangeldev.proyectoequipofutboljavafx.newteam.models.Entrenador
 import srangeldev.proyectoequipofutboljavafx.newteam.models.Jugador
 import srangeldev.proyectoequipofutboljavafx.newteam.models.Personal
@@ -18,6 +18,7 @@ import srangeldev.proyectoequipofutboljavafx.newteam.models.User
 import srangeldev.proyectoequipofutboljavafx.newteam.repository.UserRepositoryImpl
 import srangeldev.proyectoequipofutboljavafx.routes.RoutesManager
 import srangeldev.proyectoequipofutboljavafx.newteam.session.Session
+import srangeldev.service.PersonalServiceImpl
 import srangeldev.utils.HtmlReportGenerator
 import java.awt.Desktop
 import java.io.File
@@ -29,115 +30,45 @@ class VistaNormalController {
     private val logger = logging()
 
     // Panel izquierdo - Tabla de jugadores
-    @FXML
-    private lateinit var playersTableView: TableView<Personal>
-
-    @FXML
-    private lateinit var idColumn: TableColumn<Personal, Int>
-
-    @FXML
-    private lateinit var nombreColumn: TableColumn<Personal, String>
-
-    @FXML
-    private lateinit var apellidosColumn: TableColumn<Personal, String>
-
-    @FXML
-    private lateinit var searchField: TextField
-
-    @FXML
-    private lateinit var allToggleButton: ToggleButton
-
-    @FXML
-    private lateinit var playerToggleButton: ToggleButton
-
-    @FXML
-    private lateinit var coachToggleButton: ToggleButton
-
-    @FXML
-    private lateinit var avgMinutosLabel: Label
-
-    @FXML
-    private lateinit var avgGolesLabel: Label
+    @FXML private lateinit var playersTableView: TableView<Personal>
+    @FXML private lateinit var idColumn: TableColumn<Personal, Int>
+    @FXML private lateinit var nombreColumn: TableColumn<Personal, String>
+    @FXML private lateinit var apellidosColumn: TableColumn<Personal, String>
+    @FXML private lateinit var searchField: TextField
+    @FXML private lateinit var allToggleButton: ToggleButton
+    @FXML private lateinit var playerToggleButton: ToggleButton
+    @FXML private lateinit var coachToggleButton: ToggleButton
+    @FXML private lateinit var avgMinutosLabel: Label
+    @FXML private lateinit var avgGolesLabel: Label
 
     // Panel derecho - Detalles del jugador
-    @FXML
-    private lateinit var playerImageView: ImageView
-
-    @FXML
-    private lateinit var nombreTextField: TextField
-
-    @FXML
-    private lateinit var edadSpinner: Spinner<Int>
-
-    @FXML
-    private lateinit var salarioTextField: TextField
-
-    @FXML
-    private lateinit var especialidadLabel: Label
-
-    @FXML
-    private lateinit var especialidadComboBox: ComboBox<String>
-
-    @FXML
-    private lateinit var posicionLabel: Label
-
-    @FXML
-    private lateinit var posicionComboBox: ComboBox<String>
-
-    @FXML
-    private lateinit var dorsalLabel: Label
-
-    @FXML
-    private lateinit var dorsalTextField: TextField
-
-    @FXML
-    private lateinit var fechaIncorporacionPicker: DatePicker
-
-    @FXML
-    private lateinit var partidosLabel: Label
-
-    @FXML
-    private lateinit var partidosTextField: TextField
-
-    @FXML
-    private lateinit var golesLabel: Label
-
-    @FXML
-    private lateinit var golesTextField: TextField
-
-    @FXML
-    private lateinit var minutosLabel: Label
-
-    @FXML
-    private lateinit var minutosTextField: TextField
-
-    @FXML
-    private lateinit var saveButton: Button
-
-    @FXML
-    private lateinit var cancelButton: Button
+    @FXML private lateinit var playerImageView: ImageView
+    @FXML private lateinit var nombreTextField: TextField
+    @FXML private lateinit var edadSpinner: Spinner<Int>
+    @FXML private lateinit var salarioTextField: TextField
+    @FXML private lateinit var especialidadLabel: Label
+    @FXML private lateinit var especialidadComboBox: ComboBox<String>
+    @FXML private lateinit var posicionLabel: Label
+    @FXML private lateinit var posicionComboBox: ComboBox<String>
+    @FXML private lateinit var dorsalLabel: Label
+    @FXML private lateinit var dorsalTextField: TextField
+    @FXML private lateinit var fechaIncorporacionPicker: DatePicker
+    @FXML private lateinit var partidosLabel: Label
+    @FXML private lateinit var partidosTextField: TextField
+    @FXML private lateinit var golesLabel: Label
+    @FXML private lateinit var golesTextField: TextField
+    @FXML private lateinit var minutosLabel: Label
+    @FXML private lateinit var minutosTextField: TextField
+    @FXML private lateinit var saveButton: Button
+    @FXML private lateinit var cancelButton: Button
 
     // Menú
-    @FXML
-    private lateinit var loadDataMenuItem: MenuItem
-
-    @FXML
-    private lateinit var exportDataMenuItem: MenuItem
-
-    @FXML
-    private lateinit var importDataMenuItem: MenuItem
-
-    @FXML
-    private lateinit var printHtmlMenuItem: MenuItem
-
-    @FXML
-    private lateinit var closeMenuItem: MenuItem
-
-    @FXML
-    private lateinit var aboutMenuItem: MenuItem
-
-    @FXML
-    private lateinit var toggleThemeMenuItem: MenuItem
+    @FXML private lateinit var loadDataMenuItem: MenuItem
+    @FXML private lateinit var exportDataMenuItem: MenuItem
+    @FXML private lateinit var importDataMenuItem: MenuItem
+    @FXML private lateinit var printHtmlMenuItem: MenuItem
+    @FXML private lateinit var closeMenuItem: MenuItem
+    @FXML private lateinit var aboutMenuItem: MenuItem
 
     // Datos
     private val personalList = FXCollections.observableArrayList<Personal>()
@@ -200,7 +131,7 @@ class VistaNormalController {
         filteredPersonal = FilteredList(personalList) { true }
 
         // Asignar la lista filtrada a la TableView
-        playersTableView.setItems(filteredPersonal)
+        playersTableView.items = filteredPersonal
     }
 
     /**
@@ -211,7 +142,7 @@ class VistaNormalController {
             logger.debug { "Cargando datos de personal desde la base de datos" }
 
             // Crear una instancia del servicio
-            val service = srangeldev.service.PersonalServiceImpl()
+            val service = PersonalServiceImpl()
 
             // Obtener todos los miembros del personal
             val allPersonal = service.getAll()

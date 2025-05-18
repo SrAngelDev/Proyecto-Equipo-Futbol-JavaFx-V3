@@ -59,11 +59,12 @@
                                       <Insets left="20.0" />
                                     </HBox.margin>
                                   </Label>
-                                  <ToggleButton fx:id="playerToggleButton" selected="true" text="Jugadores">
+                                  <ToggleButton fx:id="allToggleButton" selected="true" text="Todos">
                                     <toggleGroup>
                                       <ToggleGroup fx:id="filterToggleGroup" />
                                     </toggleGroup>
                                   </ToggleButton>
+                                  <ToggleButton fx:id="playerToggleButton" text="Jugadores" toggleGroup="$filterToggleGroup" />
                                   <ToggleButton fx:id="coachToggleButton" text="Entrenadores" toggleGroup="$filterToggleGroup" />
                                 </children>
                                 <VBox.margin>

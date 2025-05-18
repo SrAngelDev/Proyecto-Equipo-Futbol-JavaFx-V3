@@ -11,6 +11,7 @@ import javafx.scene.image.ImageView
 import javafx.stage.DirectoryChooser
 import javafx.stage.Stage
 import org.lighthousegames.logging.logging
+import srangeldev.proyectoequipofutboljavafx.newteam.controller.Controller
 import srangeldev.proyectoequipofutboljavafx.newteam.models.Entrenador
 import srangeldev.proyectoequipofutboljavafx.newteam.models.Jugador
 import srangeldev.proyectoequipofutboljavafx.newteam.models.Personal
@@ -29,7 +30,6 @@ import java.time.LocalDateTime
 import java.time.Period
 
 
-
 /**
  * Controlador para la vista de administración
  */
@@ -38,74 +38,134 @@ class VistaAdminController {
     private val userRepository: UserRepository = UserRepositoryImpl()
 
     // Jugadores Tab
-    @FXML private lateinit var searchField: TextField
-    @FXML private lateinit var playerToggleButton: ToggleButton
-    @FXML private lateinit var coachToggleButton: ToggleButton
-    @FXML private lateinit var filterToggleGroup: ToggleGroup
-    @FXML private lateinit var playersTableView: TableView<Personal>
-    @FXML private lateinit var idColumn: TableColumn<Personal, Int>
-    @FXML private lateinit var nombreColumn: TableColumn<Personal, String>
-    @FXML private lateinit var apellidosColumn: TableColumn<Personal, String>
-    @FXML private lateinit var avgMinutosLabel: Label
-    @FXML private lateinit var avgGolesLabel: Label
-    @FXML private lateinit var playerImageView: ImageView
-    @FXML private lateinit var nombreTextField: TextField
-    @FXML private lateinit var edadSpinner: Spinner<Int>
-    @FXML private lateinit var salarioTextField: TextField
-    @FXML private lateinit var especialidadLabel: Label
-    @FXML private lateinit var especialidadComboBox: ComboBox<String>
-    @FXML private lateinit var posicionLabel: Label
-    @FXML private lateinit var posicionComboBox: ComboBox<String>
-    @FXML private lateinit var dorsalLabel: Label
-    @FXML private lateinit var dorsalTextField: TextField
-    @FXML private lateinit var fechaIncorporacionPicker: DatePicker
-    @FXML private lateinit var partidosLabel: Label
-    @FXML private lateinit var partidosTextField: TextField
-    @FXML private lateinit var golesLabel: Label
-    @FXML private lateinit var golesTextField: TextField
-    @FXML private lateinit var minutosLabel: Label
-    @FXML private lateinit var minutosTextField: TextField
-    @FXML private lateinit var saveButton: Button
-    @FXML private lateinit var cancelButton: Button
-    @FXML private lateinit var addPlayerButton: Button
-    @FXML private lateinit var deletePlayerButton: Button
+    @FXML
+    private lateinit var searchField: TextField
+    @FXML
+    private lateinit var allToggleButton: ToggleButton
+    @FXML
+    private lateinit var playerToggleButton: ToggleButton
+    @FXML
+    private lateinit var coachToggleButton: ToggleButton
+    @FXML
+    private lateinit var playersTableView: TableView<Personal>
+    @FXML
+    private lateinit var idColumn: TableColumn<Personal, Int>
+    @FXML
+    private lateinit var nombreColumn: TableColumn<Personal, String>
+    @FXML
+    private lateinit var apellidosColumn: TableColumn<Personal, String>
+    @FXML
+    private lateinit var avgMinutosLabel: Label
+    @FXML
+    private lateinit var avgGolesLabel: Label
+    @FXML
+    private lateinit var playerImageView: ImageView
+    @FXML
+    private lateinit var nombreTextField: TextField
+    @FXML
+    private lateinit var edadSpinner: Spinner<Int>
+    @FXML
+    private lateinit var salarioTextField: TextField
+    @FXML
+    private lateinit var especialidadLabel: Label
+    @FXML
+    private lateinit var especialidadComboBox: ComboBox<String>
+    @FXML
+    private lateinit var posicionLabel: Label
+    @FXML
+    private lateinit var posicionComboBox: ComboBox<String>
+    @FXML
+    private lateinit var dorsalLabel: Label
+    @FXML
+    private lateinit var dorsalTextField: TextField
+    @FXML
+    private lateinit var fechaIncorporacionPicker: DatePicker
+    @FXML
+    private lateinit var partidosLabel: Label
+    @FXML
+    private lateinit var partidosTextField: TextField
+    @FXML
+    private lateinit var golesLabel: Label
+    @FXML
+    private lateinit var golesTextField: TextField
+    @FXML
+    private lateinit var minutosLabel: Label
+    @FXML
+    private lateinit var minutosTextField: TextField
+    @FXML
+    private lateinit var saveButton: Button
+    @FXML
+    private lateinit var cancelButton: Button
+    @FXML
+    private lateinit var addPlayerButton: Button
+    @FXML
+    private lateinit var deletePlayerButton: Button
 
     // Menu Items
-    @FXML private lateinit var loadDataMenuItem: MenuItem
-    @FXML private lateinit var exportDataMenuItem: MenuItem
-    @FXML private lateinit var importDataMenuItem: MenuItem
-    @FXML private lateinit var printHtmlMenuItem: MenuItem
-    @FXML private lateinit var closeMenuItem: MenuItem
-    @FXML private lateinit var aboutMenuItem: MenuItem
-    @FXML private lateinit var toggleThemeMenuItem: MenuItem
+    @FXML
+    private lateinit var loadDataMenuItem: MenuItem
+    @FXML
+    private lateinit var exportDataMenuItem: MenuItem
+    @FXML
+    private lateinit var importDataMenuItem: MenuItem
+    @FXML
+    private lateinit var printHtmlMenuItem: MenuItem
+    @FXML
+    private lateinit var closeMenuItem: MenuItem
+    @FXML
+    private lateinit var aboutMenuItem: MenuItem
 
     // Usuarios Tab
-    @FXML private lateinit var searchUserField: TextField
-    @FXML private lateinit var usersTableView: TableView<User>
-    @FXML private lateinit var userIdColumn: TableColumn<User, Int>
-    @FXML private lateinit var usernameColumn: TableColumn<User, String>
-    @FXML private lateinit var passwordColumn: TableColumn<User, String>
-    @FXML private lateinit var roleColumn: TableColumn<User, String>
-    @FXML private lateinit var usernameTextField: TextField
-    @FXML private lateinit var passwordTextField: TextField
-    @FXML private lateinit var roleComboBox: ComboBox<String>
-    @FXML private lateinit var saveUserButton: Button
-    @FXML private lateinit var cancelUserButton: Button
-    @FXML private lateinit var addUserButton: Button
-    @FXML private lateinit var deleteUserButton: Button
+    @FXML
+    private lateinit var searchUserField: TextField
+    @FXML
+    private lateinit var usersTableView: TableView<User>
+    @FXML
+    private lateinit var userIdColumn: TableColumn<User, Int>
+    @FXML
+    private lateinit var usernameColumn: TableColumn<User, String>
+    @FXML
+    private lateinit var passwordColumn: TableColumn<User, String>
+    @FXML
+    private lateinit var roleColumn: TableColumn<User, String>
+    @FXML
+    private lateinit var usernameTextField: TextField
+    @FXML
+    private lateinit var passwordTextField: TextField
+    @FXML
+    private lateinit var roleComboBox: ComboBox<String>
+    @FXML
+    private lateinit var saveUserButton: Button
+    @FXML
+    private lateinit var cancelUserButton: Button
+    @FXML
+    private lateinit var addUserButton: Button
+    @FXML
+    private lateinit var deleteUserButton: Button
 
     // Configuración Tab
-    @FXML private lateinit var dataDirectoryField: TextField
-    @FXML private lateinit var backupDirectoryField: TextField
-    @FXML private lateinit var databaseUrlField: TextField
-    @FXML private lateinit var initTablesYesRadio: RadioButton
-    @FXML private lateinit var initTablesNoRadio: RadioButton
-    @FXML private lateinit var initDataYesRadio: RadioButton
-    @FXML private lateinit var initDataNoRadio: RadioButton
-    @FXML private lateinit var browseDataDirButton: Button
-    @FXML private lateinit var browseBackupDirButton: Button
-    @FXML private lateinit var saveConfigButton: Button
-    @FXML private lateinit var resetConfigButton: Button
+    @FXML
+    private lateinit var dataDirectoryField: TextField
+    @FXML
+    private lateinit var backupDirectoryField: TextField
+    @FXML
+    private lateinit var databaseUrlField: TextField
+    @FXML
+    private lateinit var initTablesYesRadio: RadioButton
+    @FXML
+    private lateinit var initTablesNoRadio: RadioButton
+    @FXML
+    private lateinit var initDataYesRadio: RadioButton
+    @FXML
+    private lateinit var initDataNoRadio: RadioButton
+    @FXML
+    private lateinit var browseDataDirButton: Button
+    @FXML
+    private lateinit var browseBackupDirButton: Button
+    @FXML
+    private lateinit var saveConfigButton: Button
+    @FXML
+    private lateinit var resetConfigButton: Button
 
     private val personalList: ObservableList<Personal> = FXCollections.observableArrayList()
     private val filteredPersonalList: FilteredList<Personal> = FilteredList(personalList) { true }
@@ -130,6 +190,9 @@ class VistaAdminController {
 
         // Configurar eventos del menú
         setupMenuItems()
+
+        // Cargar datos de personal desde la base de datos
+        loadPersonalFromDatabase()
     }
 
     private fun initializePersonalTab() {
@@ -166,6 +229,11 @@ class VistaAdminController {
     }
 
     private fun setupFilters() {
+        // Configurar los ToggleButtons para filtrar entre todos, jugadores y entrenadores
+        allToggleButton.setOnAction {
+            applyFilters(searchField.text)
+        }
+
         playerToggleButton.setOnAction {
             applyFilters(searchField.text)
         }
@@ -191,7 +259,7 @@ class VistaAdminController {
             }
 
             // Filtrar por texto de búsqueda
-            val searchMatches = searchText.isEmpty() || 
+            val searchMatches = searchText.isEmpty() ||
                     personal.nombre.contains(searchText, ignoreCase = true) ||
                     personal.apellidos.contains(searchText, ignoreCase = true) ||
                     personal.id.toString() == searchText
@@ -298,6 +366,7 @@ class VistaAdminController {
                 minutosTextField.isVisible = true
                 //minutosTextField.text = personal.minutosJugados.toString()
             }
+
             is Entrenador -> {
                 especialidadLabel.isVisible = true
                 especialidadComboBox.isVisible = true
@@ -396,6 +465,7 @@ class VistaAdminController {
                         partidosJugados = partidosJugados
                     )
                 }
+
                 is Entrenador -> {
                     val especializacionStr = especialidadComboBox.value ?: "ENTRENADOR_PRINCIPAL"
                     val especializacion = try {
@@ -418,6 +488,7 @@ class VistaAdminController {
                         especializacion = especializacion
                     )
                 }
+
                 else -> throw IllegalStateException("Tipo de personal no soportado")
             }
 
@@ -715,9 +786,11 @@ class VistaAdminController {
         try {
             // En lugar de actualizar la configuración (ya que no hay método updateProperties),
             // mostramos un mensaje indicando que la operación no está soportada
-            showInfoDialog("Operación no soportada", 
+            showInfoDialog(
+                "Operación no soportada",
                 "La actualización de la configuración no está implementada en esta versión.\n\n" +
-                "Para cambiar la configuración, edite manualmente el archivo config.properties.")
+                        "Para cambiar la configuración, edite manualmente el archivo config.properties."
+            )
         } catch (e: Exception) {
             showErrorDialog("Error", "No se pudo guardar la configuración: ${e.message}")
         }
@@ -743,26 +816,39 @@ class VistaAdminController {
             logger.debug { "Cargando datos de personal desde la base de datos" }
 
             // Crear una instancia del servicio
+            logger.debug { "Creando instancia de PersonalServiceImpl" }
             val service = srangeldev.service.PersonalServiceImpl()
+            logger.debug { "Instancia de PersonalServiceImpl creada correctamente" }
 
             // Obtener todos los miembros del personal
+            logger.debug { "Obteniendo todos los miembros del personal" }
             val allPersonal = service.getAll()
+            logger.debug { "Miembros del personal obtenidos correctamente: ${allPersonal.size}" }
 
             // Limpiar la lista actual
+            logger.debug { "Limpiando lista actual" }
             personalList.clear()
+            logger.debug { "Lista actual limpiada correctamente" }
 
             // Añadir los nuevos datos
+            logger.debug { "Añadiendo nuevos datos" }
             personalList.addAll(allPersonal)
+            logger.debug { "Nuevos datos añadidos correctamente" }
 
             // Actualizar la tabla
+            logger.debug { "Actualizando tabla" }
             playersTableView.refresh()
+            logger.debug { "Tabla actualizada correctamente" }
 
             // Actualizar estadísticas
+            logger.debug { "Actualizando estadísticas" }
             updateStatistics()
+            logger.debug { "Estadísticas actualizadas correctamente" }
 
             logger.debug { "Datos cargados correctamente: ${personalList.size} miembros" }
         } catch (e: Exception) {
             logger.error { "Error al cargar datos desde la base de datos: ${e.message}" }
+            logger.error { "Stack trace: ${e.stackTraceToString()}" }
             showErrorDialog("Error", "No se pudieron cargar los datos desde la base de datos: ${e.message}")
         }
     }
@@ -771,10 +857,18 @@ class VistaAdminController {
         // Cargar datos
         loadDataMenuItem.setOnAction {
             try {
-                // Cargar datos directamente desde la base de datos
+                // Crear una instancia del controlador
+                val controller = Controller()
+
+                // Cargar datos desde los archivos CSV, JSON y XML
+                controller.cargarDatos("CSV")
+                controller.cargarDatos("JSON")
+                controller.cargarDatos("XML")
+
+                // Actualizar la lista de personal con los datos cargados
                 loadPersonalFromDatabase()
 
-                showInfoDialog("Cargar datos", "Datos cargados correctamente desde la base de datos.")
+                showInfoDialog("Cargar datos", "Datos cargados correctamente desde los archivos CSV, JSON y XML.")
             } catch (e: Exception) {
                 logger.error { "Error al cargar datos: ${e.message}" }
                 showErrorDialog("Error", "No se pudieron cargar los datos: ${e.message}")
@@ -826,11 +920,17 @@ class VistaAdminController {
                         // Eliminar el directorio temporal
                         tempDir.deleteRecursively()
 
-                        showInfoDialog("Exportar datos", "Datos exportados correctamente a ZIP.\n\nRuta: ${selectedFile.absolutePath}")
+                        showInfoDialog(
+                            "Exportar datos",
+                            "Datos exportados correctamente a ZIP.\n\nRuta: ${selectedFile.absolutePath}"
+                        )
                     } else {
                         // Exportar datos a JSON
                         service.exportToFile(selectedFile.absolutePath, srangeldev.storage.FileFormat.JSON)
-                        showInfoDialog("Exportar datos", "Datos exportados correctamente a JSON.\n\nRuta: ${selectedFile.absolutePath}")
+                        showInfoDialog(
+                            "Exportar datos",
+                            "Datos exportados correctamente a JSON.\n\nRuta: ${selectedFile.absolutePath}"
+                        )
                     }
                 }
             } catch (e: Exception) {
@@ -938,9 +1038,15 @@ class VistaAdminController {
                         if (importedAny) {
                             // Actualizar la lista de personal con los datos importados
                             loadPersonalFromDatabase()
-                            showInfoDialog("Importar datos", "Datos importados correctamente desde el archivo ZIP ${selectedFile.name}.")
+                            showInfoDialog(
+                                "Importar datos",
+                                "Datos importados correctamente desde el archivo ZIP ${selectedFile.name}."
+                            )
                         } else {
-                            showErrorDialog("Error", "No se encontraron archivos con estructura válida en el archivo ZIP. Asegúrese de que el ZIP contiene archivos XML, JSON o CSV con el formato correcto.")
+                            showErrorDialog(
+                                "Error",
+                                "No se encontraron archivos con estructura válida en el archivo ZIP. Asegúrese de que el ZIP contiene archivos XML, JSON o CSV con el formato correcto."
+                            )
                         }
                     } else {
                         // Determinar el formato del archivo según su extensión
@@ -987,14 +1093,23 @@ class VistaAdminController {
                 try {
                     if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
                         Desktop.getDesktop().browse(file.toURI())
-                        showInfoDialog("Informe HTML generado", "El informe HTML ha sido generado y abierto en su navegador predeterminado.\n\nRuta: $reportPath")
+                        showInfoDialog(
+                            "Informe HTML generado",
+                            "El informe HTML ha sido generado y abierto en su navegador predeterminado.\n\nRuta: $reportPath"
+                        )
                     } else {
                         logger.error { "No se puede abrir el navegador predeterminado" }
-                        showInfoDialog("Informe HTML generado", "El informe HTML ha sido generado pero no se pudo abrir automáticamente.\n\nRuta: $reportPath")
+                        showInfoDialog(
+                            "Informe HTML generado",
+                            "El informe HTML ha sido generado pero no se pudo abrir automáticamente.\n\nRuta: $reportPath"
+                        )
                     }
                 } catch (e: Exception) {
                     logger.error { "No se puede abrir el navegador predeterminado: ${e.message}" }
-                    showInfoDialog("Informe HTML generado", "El informe HTML ha sido generado pero no se pudo abrir automáticamente.\n\nRuta: $reportPath")
+                    showInfoDialog(
+                        "Informe HTML generado",
+                        "El informe HTML ha sido generado pero no se pudo abrir automáticamente.\n\nRuta: $reportPath"
+                    )
                 }
             } catch (e: Exception) {
                 logger.error { "Error al generar el informe HTML: ${e.message}" }
@@ -1039,8 +1154,8 @@ class VistaAdminController {
             headerText = "Gestor de Jugadores de Fútbol"
             contentText = "Versión 1.0\n" +
                     "Desarrolladores:\n" +
-                    "- Ángel Sánchez Gasanz" +
-                    "- Jorge Morgado Giménez" +
+                    "- Ángel Sánchez Gasanz\n" +
+                    "- Jorge Morgado Giménez\n" +
                     "- Antoine López"
         }.showAndWait()
     }
