@@ -34,5 +34,7 @@ data class PersonalCsvDto(
     @SerialName("goles")
     val goles: String = "",
     @SerialName("partidos_jugados")
-    val partidosJugados: String = ""
+    val partidosJugados: String = "",
+    @SerialName("imagen_url")
+    val imagenUrl: String = ""
 )

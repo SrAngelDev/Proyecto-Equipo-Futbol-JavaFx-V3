@@ -22,6 +22,7 @@ import srangeldev.proyectoequipofutboljavafx.routes.RoutesManager
 import srangeldev.proyectoequipofutboljavafx.newteam.repository.UserRepository
 import srangeldev.proyectoequipofutboljavafx.newteam.repository.UserRepositoryImpl
 import srangeldev.proyectoequipofutboljavafx.newteam.session.Session
+import srangeldev.service.PersonalServiceImpl
 import srangeldev.utils.HtmlReportGenerator
 import java.awt.Desktop
 import java.io.File
@@ -60,6 +61,12 @@ class VistaAdminController {
     private lateinit var avgGolesLabel: Label
     @FXML
     private lateinit var playerImageView: ImageView
+
+    @FXML
+    private lateinit var selectImageButton: Button
+
+    // Variable para almacenar la URL de la imagen seleccionada
+    private var selectedImageUrl: String = ""
     @FXML
     private lateinit var nombreTextField: TextField
     @FXML
@@ -100,6 +107,8 @@ class VistaAdminController {
     private lateinit var addPlayerButton: Button
     @FXML
     private lateinit var deletePlayerButton: Button
+    @FXML
+    private lateinit var deleteAllPlayersButton: Button
 
     // Menu Items
     @FXML
@@ -292,6 +301,35 @@ class VistaAdminController {
         cancelButton.setOnAction {
             clearDetailsPanel()
         }
+
+        // Configurar botón para seleccionar imagen
+        selectImageButton.setOnAction {
+            selectPlayerImage()
+        }
+    }
+
+    private fun selectPlayerImage() {
+        try {
+            val fileChooser = javafx.stage.FileChooser()
+            fileChooser.title = "Seleccionar Imagen"
+            fileChooser.extensionFilters.addAll(
+                javafx.stage.FileChooser.ExtensionFilter("Imágenes", "*.png", "*.jpg", "*.jpeg", "*.gif")
+            )
+
+            val selectedFile = fileChooser.showOpenDialog(playerImageView.scene.window)
+            if (selectedFile != null) {
+                // Guardar la URL de la imagen seleccionada
+                selectedImageUrl = selectedFile.toURI().toString()
+
+                // Mostrar la imagen seleccionada
+                playerImageView.image = Image(selectedImageUrl)
+
+                logger.debug { "Imagen seleccionada: $selectedImageUrl" }
+            }
+        } catch (e: Exception) {
+            logger.error { "Error al seleccionar la imagen: ${e.message}" }
+            showErrorDialog("Error", "No se pudo seleccionar la imagen: ${e.message}")
+        }
     }
 
     private fun setupTableViewEvents() {
@@ -320,14 +358,71 @@ class VistaAdminController {
                 showInfoDialog("Selección requerida", "Por favor, seleccione un jugador o entrenador para eliminar.")
             }
         }
+
+        deleteAllPlayersButton.setOnAction {
+            // Verificar si hay jugadores para eliminar
+            if (personalList.isEmpty()) {
+                showInfoDialog("Sin jugadores", "No hay jugadores para eliminar.")
+                return@setOnAction
+            }
+
+            // Mostrar diálogo de confirmación
+            val alert = Alert(Alert.AlertType.CONFIRMATION)
+            alert.title = "Confirmar eliminación"
+            alert.headerText = "¿Está seguro de que desea eliminar TODOS los jugadores?"
+            alert.contentText = "Esta acción eliminará todos los jugadores y entrenadores. Esta acción no se puede deshacer."
+
+            val result = alert.showAndWait()
+            if (result.isPresent && result.get() == ButtonType.OK) {
+                try {
+                    // Crear una instancia del servicio
+                    val service = PersonalServiceImpl()
+
+                    // Obtener una copia de la lista de personal para iterar
+                    val personalToDelete = ArrayList(personalList)
+                    var success = true
+
+                    // Eliminar cada jugador individualmente
+                    for (personal in personalToDelete) {
+                        try {
+                            service.delete(personal.id)
+                        } catch (e: Exception) {
+                            logger.error { "Error al eliminar jugador con ID ${personal.id}: ${e.message}" }
+                            success = false
+                        }
+                    }
+
+                    if (success) {
+                        // Limpiar la lista de personal
+                        personalList.clear()
+                        clearDetailsPanel()
+                        updateStatistics()
+                        showInfoDialog("Operación exitosa", "Todos los jugadores y entrenadores han sido eliminados correctamente.")
+                    } else {
+                        // Recargar la lista para asegurarnos de que refleja el estado actual
+                        loadPersonalFromDatabase()
+                        showErrorDialog("Error parcial", "Algunos jugadores no pudieron ser eliminados. La lista ha sido actualizada.")
+                    }
+                } catch (e: Exception) {
+                    logger.error { "Error al eliminar todos los jugadores: ${e.message}" }
+                    showErrorDialog("Error", "No se pudieron eliminar todos los jugadores: ${e.message}")
+                }
+            }
+        }
     }
 
     private fun showPersonalDetails(personal: Personal) {
+        // Guardar el personal seleccionado
+        selectedPersonal = personal
+
         // Mostrar datos comunes
         nombreTextField.text = "${personal.nombre} ${personal.apellidos}"
         edadSpinner.valueFactory.value = Period.between(personal.fechaNacimiento, LocalDate.now()).years
         salarioTextField.text = personal.salario.toString()
         fechaIncorporacionPicker.value = personal.fechaIncorporacion
+
+        // Guardar la URL de la imagen actual
+        selectedImageUrl = personal.imagenUrl
 
         // Limpiar y ocultar campos específicos
         especialidadLabel.isVisible = false
@@ -380,18 +475,23 @@ class VistaAdminController {
 
     private fun loadPersonalImage(personal: Personal) {
         try {
-            val imagePath = when (personal) {
-                is Jugador -> "icons/player.png"
-                is Entrenador -> "icons/coach.png"
-                else -> "icons/person.png"
+            // Si el personal tiene una URL de imagen, intentar cargarla
+            if (personal.imagenUrl.isNotEmpty()) {
+                try {
+                    // Intentar cargar la imagen desde la URL
+                    val image = Image(personal.imagenUrl)
+                    if (!image.isError) {
+                        playerImageView.image = image
+                        return
+                    }
+                } catch (e: Exception) {
+                    logger.error { "Error al cargar la imagen desde URL: ${e.message}" }
+                    // Si hay error, continuar con la imagen por defecto
+                }
             }
 
-            val imageStream = NewTeamApplication::class.java.getResourceAsStream(imagePath)
-            if (imageStream != null) {
-                playerImageView.image = Image(imageStream)
-            } else {
-                loadDefaultImage()
-            }
+            // Si no hay URL o hubo error, cargar la imagen por defecto (logo del equipo)
+            loadDefaultImage()
         } catch (e: Exception) {
             logger.error { "Error al cargar la imagen: ${e.message}" }
             loadDefaultImage()
@@ -400,9 +500,20 @@ class VistaAdminController {
 
     private fun loadDefaultImage() {
         try {
-            val imageStream = NewTeamApplication::class.java.getResourceAsStream("icons/person.png")
+            val imageStream = NewTeamApplication::class.java.getResourceAsStream("icons/newTeamLogo.png")
             if (imageStream != null) {
                 playerImageView.image = Image(imageStream)
+            } else {
+                logger.error { "No se pudo encontrar la imagen por defecto: icons/newTeamLogo.png" }
+                // Intentar cargar desde una URL absoluta como último recurso
+                try {
+                    val imageUrl = NewTeamApplication::class.java.getResource("icons/newTeamLogo.png")
+                    if (imageUrl != null) {
+                        playerImageView.image = Image(imageUrl.toString())
+                    }
+                } catch (e: Exception) {
+                    logger.error { "Error al cargar la imagen por defecto desde URL: ${e.message}" }
+                }
             }
         } catch (e: Exception) {
             logger.error { "Error al cargar la imagen por defecto: ${e.message}" }
@@ -462,7 +573,8 @@ class VistaAdminController {
                         altura = (selectedPersonal as Jugador).altura,
                         peso = (selectedPersonal as Jugador).peso,
                         goles = goles,
-                        partidosJugados = partidosJugados
+                        partidosJugados = partidosJugados,
+                        imagenUrl = selectedImageUrl // Usar la URL de la imagen seleccionada
                     )
                 }
 
@@ -485,7 +597,8 @@ class VistaAdminController {
                         paisOrigen = selectedPersonal!!.paisOrigen, // Mantener el país de origen original
                         createdAt = selectedPersonal!!.createdAt,
                         updatedAt = LocalDateTime.now(),
-                        especializacion = especializacion
+                        especializacion = especializacion,
+                        imagenUrl = selectedImageUrl // Usar la URL de la imagen seleccionada
                     )
                 }
 

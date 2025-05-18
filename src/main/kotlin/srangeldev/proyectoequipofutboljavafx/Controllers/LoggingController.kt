@@ -101,11 +101,10 @@ class LoggingController {
         try {
             logger.debug { "Intentando cargar vista de administración" }
             val loader = FXMLLoader(app::class.java.getResource("views/newTeam/vista-admin.fxml"))
-            logger.debug { "FXML Loader creado correctamente" }
             val stage = usuarioField.scene.window as Stage
             logger.debug { "Stage obtenido correctamente" }
-            stage.scene = Scene(loader.load())
-            logger.debug { "Scene cargada correctamente" }
+            stage.scene = Scene(loader.load(), 1280.0, 720.0)
+            logger.debug { "Scene cargada correctamente con dimensiones 1280x720" }
             stage.title = "Panel de Administración"
             logger.debug { "Vista de administración cargada correctamente" }
         } catch (e: Exception) {
@@ -123,11 +122,10 @@ class LoggingController {
         try {
             logger.debug { "Intentando cargar vista de usuario normal" }
             val loader = FXMLLoader(app::class.java.getResource("views/newTeam/vista-normal.fxml"))
-            logger.debug { "FXML Loader creado correctamente" }
             val stage = usuarioField.scene.window as Stage
             logger.debug { "Stage obtenido correctamente" }
-            stage.scene = Scene(loader.load())
-            logger.debug { "Scene cargada correctamente" }
+            stage.scene = Scene(loader.load(), 1280.0, 720.0)
+            logger.debug { "Scene cargada correctamente con dimensiones 1280x720" }
             stage.title = "Panel de Usuario Normal"
             logger.debug { "Vista de usuario normal cargada correctamente" }
         } catch (e: Exception) {

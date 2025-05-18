@@ -16,8 +16,9 @@ class Entrenador(
     paisOrigen: String,
     createdAt: LocalDateTime,
     updatedAt: LocalDateTime,
-    val especializacion: Especializacion
-): Personal(id, nombre, apellidos, fechaNacimiento, fechaIncorporacion, salario, paisOrigen, createdAt, updatedAt) {
+    val especializacion: Especializacion,
+    imagenUrl: String = ""
+): Personal(id, nombre, apellidos, fechaNacimiento, fechaIncorporacion, salario, paisOrigen, createdAt, updatedAt, imagenUrl) {
     enum class Especializacion {
         ENTRENADOR_PRINCIPAL, ENTRENADOR_ASISTENTE, ENTRENADOR_PORTEROS
     }

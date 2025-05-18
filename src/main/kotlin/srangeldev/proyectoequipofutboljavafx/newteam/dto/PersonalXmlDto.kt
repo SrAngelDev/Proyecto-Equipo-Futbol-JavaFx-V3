@@ -51,5 +51,8 @@ data class PersonalXmlDto(
     val goles: String = "",
     @SerialName("partidosJugados")
     @XmlElement(true)
-    val partidosJugados: String = ""
+    val partidosJugados: String = "",
+    @SerialName("imagenUrl")
+    @XmlElement(true)
+    val imagenUrl: String = ""
 )

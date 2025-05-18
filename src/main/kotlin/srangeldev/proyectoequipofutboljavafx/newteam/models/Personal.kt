@@ -15,5 +15,6 @@ abstract class Personal(
     val salario: Double,
     val paisOrigen: String,
     val createdAt: LocalDateTime,
-    val updatedAt: LocalDateTime
+    val updatedAt: LocalDateTime,
+    val imagenUrl: String = ""
 )

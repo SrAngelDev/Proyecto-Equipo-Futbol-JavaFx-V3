@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS Personal (
     salario REAL NOT NULL,
     pais_origen TEXT NOT NULL,
     tipo TEXT NOT NULL CHECK (tipo IN ('ENTRENADOR', 'JUGADOR')),
+    imagen_url TEXT DEFAULT '',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );

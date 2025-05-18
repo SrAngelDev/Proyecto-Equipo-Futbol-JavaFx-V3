@@ -36,4 +36,6 @@ data class PersonalJsonDto(
     val goles: Int? = 0,
     @SerialName("partidos_jugados")
     val partidosJugados: Int? = 0,
+    @SerialName("imagen_url")
+    val imagenUrl: String = "",
 )

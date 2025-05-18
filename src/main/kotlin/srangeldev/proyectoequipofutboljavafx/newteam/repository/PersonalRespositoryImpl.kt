@@ -49,7 +49,8 @@ class PersonalRespositoryImpl : PersonalRepository {
                     paisOrigen = res.getString("pais_origen"),
                     especializacion = Entrenador.Especializacion.valueOf(res.getString("especializacion")),
                     createdAt = res.getTimestamp("created_at")?.toLocalDateTime() ?: LocalDateTime.now(),
-                    updatedAt = res.getTimestamp("updated_at")?.toLocalDateTime() ?: LocalDateTime.now()
+                    updatedAt = res.getTimestamp("updated_at")?.toLocalDateTime() ?: LocalDateTime.now(),
+                    imagenUrl = res.getString("imagen_url") ?: ""
                 )
                 personal[entrenador.id] = entrenador
             }
@@ -135,7 +136,8 @@ class PersonalRespositoryImpl : PersonalRepository {
                     paisOrigen = res.getString("pais_origen"),
                     especializacion = Entrenador.Especializacion.valueOf(res.getString("especializacion")),
                     createdAt = res.getTimestamp("created_at")?.toLocalDateTime() ?: LocalDateTime.now(),
-                    updatedAt = res.getTimestamp("updated_at")?.toLocalDateTime() ?: LocalDateTime.now()
+                    updatedAt = res.getTimestamp("updated_at")?.toLocalDateTime() ?: LocalDateTime.now(),
+                    imagenUrl = res.getString("imagen_url") ?: ""
                 )
             }
         }
@@ -174,7 +176,8 @@ class PersonalRespositoryImpl : PersonalRepository {
                     goles = res.getInt("goles"),
                     partidosJugados = res.getInt("partidos_jugados"),
                     createdAt = res.getTimestamp("created_at")?.toLocalDateTime() ?: LocalDateTime.now(),
-                    updatedAt = res.getTimestamp("updated_at")?.toLocalDateTime() ?: LocalDateTime.now()
+                    updatedAt = res.getTimestamp("updated_at")?.toLocalDateTime() ?: LocalDateTime.now(),
+                    imagenUrl = res.getString("imagen_url") ?: ""
                 )
             }
         }
@@ -198,8 +201,8 @@ class PersonalRespositoryImpl : PersonalRepository {
             // Primero insertamos en la tabla Personal
             val sqlPersonal = """
                                 INSERT INTO Personal (nombre, apellidos, fecha_nacimiento, fecha_incorporacion, 
-                                salario, pais_origen, tipo, created_at, updated_at) 
-                                VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+                                salario, pais_origen, tipo, imagen_url, created_at, updated_at) 
+                                VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
                             """.trimIndent()
 
             val preparedStatementPersonal = connection.prepareStatement(sqlPersonal, Statement.RETURN_GENERATED_KEYS)
@@ -211,6 +214,7 @@ class PersonalRespositoryImpl : PersonalRepository {
                 setDouble(5, entidad.salario)
                 setString(6, entidad.paisOrigen)
                 setString(7, if (entidad is Jugador) "JUGADOR" else "ENTRENADOR")
+                setString(8, entidad.imagenUrl)
             }
             preparedStatementPersonal.executeUpdate()
 
@@ -253,7 +257,8 @@ class PersonalRespositoryImpl : PersonalRepository {
                         goles = entidad.goles,
                         partidosJugados = entidad.partidosJugados,
                         createdAt = timeStamp,
-                        updatedAt = timeStamp
+                        updatedAt = timeStamp,
+                        imagenUrl = entidad.imagenUrl
                     )
                 }
 
@@ -276,7 +281,8 @@ class PersonalRespositoryImpl : PersonalRepository {
                         paisOrigen = entidad.paisOrigen,
                         especializacion = entidad.especializacion,
                         createdAt = timeStamp,
-                        updatedAt = timeStamp
+                        updatedAt = timeStamp,
+                        imagenUrl = entidad.imagenUrl
                     )
                 }
 
@@ -305,7 +311,7 @@ class PersonalRespositoryImpl : PersonalRepository {
             val sqlPersonal = """
                 UPDATE Personal 
                 SET nombre = ?, apellidos = ?, fecha_nacimiento = ?, fecha_incorporacion = ?, 
-                    salario = ?, pais_origen = ?, updated_at = CURRENT_TIMESTAMP
+                    salario = ?, pais_origen = ?, imagen_url = ?, updated_at = CURRENT_TIMESTAMP
                 WHERE id = ?
             """.trimIndent()
 
@@ -317,7 +323,8 @@ class PersonalRespositoryImpl : PersonalRepository {
                 preparedStatement.setDate(4, java.sql.Date.valueOf(entidad.fechaIncorporacion))
                 preparedStatement.setDouble(5, entidad.salario)
                 preparedStatement.setString(6, entidad.paisOrigen)
-                preparedStatement.setInt(7, id)
+                preparedStatement.setString(7, entidad.imagenUrl)
+                preparedStatement.setInt(8, id)
                 preparedStatement.executeUpdate()
             }
 

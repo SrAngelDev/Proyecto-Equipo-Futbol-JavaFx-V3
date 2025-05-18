@@ -21,8 +21,9 @@ class Jugador(
     val altura: Double,
     val peso: Double,
     val goles: Int,
-    val partidosJugados: Int
-): Personal(id, nombre, apellidos, fechaNacimiento, fechaIncorporacion, salario, paisOrigen, createdAt, updatedAt) {
+    val partidosJugados: Int,
+    imagenUrl: String = ""
+): Personal(id, nombre, apellidos, fechaNacimiento, fechaIncorporacion, salario, paisOrigen, createdAt, updatedAt, imagenUrl) {
     enum class Posicion {
         PORTERO,
         DEFENSA,

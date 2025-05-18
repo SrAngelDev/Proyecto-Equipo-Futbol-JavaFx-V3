@@ -428,11 +428,31 @@ class VistaNormalController {
 
     private fun loadPersonalImage(personal: Personal) {
         try {
-            // En una implementación real, cargaríamos la imagen desde un archivo o base de datos
-            // Por ahora, usamos una imagen de ejemplo
-            val imageUrl = NewTeamApplication::class.java.getResource("icons/newTeamLogo.png")
-            if (imageUrl != null) {
-                playerImageView.image = Image(imageUrl.toString())
+            // Si el personal tiene una URL de imagen, intentar cargarla
+            if (personal.imagenUrl.isNotEmpty()) {
+                try {
+                    // Intentar cargar la imagen desde la URL
+                    val image = Image(personal.imagenUrl)
+                    if (!image.isError) {
+                        playerImageView.image = image
+                        return
+                    }
+                } catch (e: Exception) {
+                    logger.error { "Error al cargar la imagen desde URL: ${e.message}" }
+                    // Si hay error, continuar con la imagen por defecto
+                }
+            }
+
+            // Si no hay URL o hubo error, cargar imagen por defecto según el tipo
+            val imagePath = when (personal) {
+                is Jugador -> "icons/player.png"
+                is Entrenador -> "icons/coach.png"
+                else -> "icons/person.png"
+            }
+
+            val imageStream = NewTeamApplication::class.java.getResourceAsStream(imagePath)
+            if (imageStream != null) {
+                playerImageView.image = Image(imageStream)
             } else {
                 loadDefaultImage()
             }

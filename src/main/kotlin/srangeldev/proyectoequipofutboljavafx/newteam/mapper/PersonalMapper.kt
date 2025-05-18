@@ -18,15 +18,15 @@ private val dashDateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 // Function to safely parse dates with multiple formatters
 private fun parseDate(dateString: String): LocalDate {
     return try {
-        // First try ISO format
+        // Primero se intenta el formato ISO
         LocalDate.parse(dateString, isoDateFormatter)
     } catch (e: DateTimeParseException) {
         try {
-            // Then try dash format
+            // Si falla, se intenta el formato con guiones
             LocalDate.parse(dateString, dashDateFormatter)
         } catch (e: DateTimeParseException) {
             logger.error { "Error parsing date: $dateString. Using current date instead." }
-            // Return current date as fallback
+            // Si no, de ultima opción, se devuelve la fecha actual
             LocalDate.now()
         }
     }
@@ -42,7 +42,8 @@ fun Entrenador.toCsvDto(): PersonalCsvDto {
         salario = this.salario,
         paisOrigen = this.paisOrigen,
         rol = "Entrenador",
-        especializacion = this.especializacion.toString()
+        especializacion = this.especializacion.toString(),
+        imagenUrl = this.imagenUrl
     )
 }
 
@@ -61,7 +62,8 @@ fun Jugador.toCsvDto(): PersonalCsvDto {
         altura = this.altura.toString(),
         peso = this.peso.toString(),
         goles = this.goles.toString(),
-        partidosJugados = this.partidosJugados.toString()
+        partidosJugados = this.partidosJugados.toString(),
+        imagenUrl = this.imagenUrl
     )
 }
 
@@ -76,6 +78,7 @@ fun Entrenador.toJsonDto(): PersonalJsonDto {
         pais = this.paisOrigen,
         rol = "Entrenador",
         especializacion = this.especializacion.toString(),
+        imagenUrl = this.imagenUrl
     )
 }
 
@@ -95,6 +98,7 @@ fun Jugador.toJsonDto(): PersonalJsonDto {
         peso = this.peso,
         goles = this.goles,
         partidosJugados = this.partidosJugados,
+        imagenUrl = this.imagenUrl
     )
 }
 
@@ -108,7 +112,8 @@ fun Entrenador.toXmlDto(): PersonalXmlDto {
         fechaIncorporacion = this.fechaIncorporacion.toString(),
         salario = this.salario,
         pais = this.paisOrigen,
-        especialidad = this.especializacion.toString()
+        especialidad = this.especializacion.toString(),
+        imagenUrl = this.imagenUrl
     )
 }
 
@@ -127,7 +132,8 @@ fun Jugador.toXmlDto(): PersonalXmlDto {
         altura = this.altura.toString(),
         peso = this.peso.toString(),
         goles = this.goles.toString(),
-        partidosJugados = this.partidosJugados.toString()
+        partidosJugados = this.partidosJugados.toString(),
+        imagenUrl = this.imagenUrl
     )
 }
 
@@ -152,7 +158,8 @@ fun PersonalCsvDto.toEntrenador(): Entrenador {
         paisOrigen = this.paisOrigen,
         createdAt = LocalDateTime.now(),
         updatedAt = LocalDateTime.now(),
-        especializacion = especializacion
+        especializacion = especializacion,
+        imagenUrl = this.imagenUrl
     )
 }
 
@@ -172,7 +179,8 @@ fun PersonalCsvDto.toJugador(): Jugador {
         altura = this.altura.toDouble(),
         peso = this.peso.toDouble(),
         goles = this.goles.toInt(),
-        partidosJugados = this.partidosJugados.toInt()
+        partidosJugados = this.partidosJugados.toInt(),
+        imagenUrl = this.imagenUrl
     )
 }
 
@@ -197,7 +205,8 @@ fun PersonalJsonDto.toEntrenador(): Entrenador {
         paisOrigen = this.pais,
         createdAt = LocalDateTime.now(),
         updatedAt = LocalDateTime.now(),
-        especializacion = especializacion
+        especializacion = especializacion,
+        imagenUrl = this.imagenUrl
     )
 }
 
@@ -217,7 +226,8 @@ fun PersonalJsonDto.toJugador(): Jugador {
         altura = this.altura?.toDouble() ?: 0.0,
         peso = this.peso?.toDouble() ?: 0.0,
         goles = this.goles?.toInt() ?: 0,
-        partidosJugados = this.partidosJugados?.toInt() ?: 0
+        partidosJugados = this.partidosJugados?.toInt() ?: 0,
+        imagenUrl = this.imagenUrl
     )
 }
 
@@ -242,7 +252,8 @@ fun PersonalXmlDto.toEntrenador(): Entrenador {
         paisOrigen = this.pais,
         createdAt = LocalDateTime.now(),
         updatedAt = LocalDateTime.now(),
-        especializacion = especializacion
+        especializacion = especializacion,
+        imagenUrl = this.imagenUrl
     )
 }
 
@@ -262,84 +273,7 @@ fun PersonalXmlDto.toJugador(): Jugador {
         altura = this.altura.toDouble(),
         peso = this.peso.toDouble(),
         goles = this.goles.toInt(),
-        partidosJugados = this.partidosJugados.toInt()
-    )
-}
-
-fun Entrenador.toBinDto(): PersonalBinDto {
-    return PersonalBinDto(
-        id = this.id,
-        nombre = this.nombre,
-        apellidos = this.apellidos,
-        fechaNacimiento = this.fechaNacimiento.toString(),
-        fechaIncorporacion = this.fechaIncorporacion.toString(),
-        salario = this.salario,
-        pais = this.paisOrigen,
-        rol = "Entrenador",
-        especialidad = this.especializacion.toString()
-    )
-}
-
-fun Jugador.toBinDto(): PersonalBinDto {
-    return PersonalBinDto(
-        id = this.id,
-        nombre = this.nombre,
-        apellidos = this.apellidos,
-        fechaNacimiento = this.fechaNacimiento.toString(),
-        fechaIncorporacion = this.fechaIncorporacion.toString(),
-        salario = this.salario,
-        pais = this.paisOrigen,
-        rol = "Jugador",
-        posicion = this.posicion.toString(),
-        dorsal = this.dorsal,
-        altura = this.altura,
-        peso = this.peso,
-        goles = this.goles,
-        partidosJugados = this.partidosJugados
-    )
-}
-
-fun PersonalBinDto.toEntrenador(): Entrenador {
-    val especializacion = if (this.especialidad.isNullOrEmpty()) {
-        Entrenador.Especializacion.ENTRENADOR_PRINCIPAL
-    } else {
-        try {
-            Entrenador.Especializacion.valueOf(this.especialidad.uppercase())
-        } catch (e: IllegalArgumentException) {
-            throw IllegalArgumentException("Especialización no válida: ${this.especialidad}")
-        }
-    }
-
-    return Entrenador(
-        id = this.id,
-        nombre = this.nombre,
-        apellidos = this.apellidos,
-        fechaNacimiento = parseDate(this.fechaNacimiento),
-        fechaIncorporacion = parseDate(this.fechaIncorporacion),
-        salario = this.salario,
-        paisOrigen = this.pais,
-        createdAt = LocalDateTime.now(),
-        updatedAt = LocalDateTime.now(),
-        especializacion = especializacion
-    )
-}
-
-fun PersonalBinDto.toJugador(): Jugador {
-    return Jugador(
-        id = this.id,
-        nombre = this.nombre,
-        apellidos = this.apellidos,
-        fechaNacimiento = parseDate(this.fechaNacimiento),
-        fechaIncorporacion = parseDate(this.fechaIncorporacion),
-        salario = this.salario,
-        paisOrigen = this.pais,
-        createdAt = LocalDateTime.now(),
-        updatedAt = LocalDateTime.now(),
-        posicion = Jugador.Posicion.valueOf(this.posicion ?: "DESCONOCIDO"),
-        dorsal = this.dorsal ?: 0,
-        altura = this.altura ?: 0.0,
-        peso = this.peso ?: 0.0,
-        goles = this.goles ?: 0,
-        partidosJugados = this.partidosJugados ?: 0
+        partidosJugados = this.partidosJugados.toInt(),
+        imagenUrl = this.imagenUrl
     )
 }
