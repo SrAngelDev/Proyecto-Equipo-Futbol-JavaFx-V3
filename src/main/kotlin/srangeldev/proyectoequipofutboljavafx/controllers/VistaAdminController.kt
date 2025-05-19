@@ -290,10 +290,19 @@ class VistaAdminController {
         edadSpinner.valueFactory = valueFactory
 
         // Configurar ComboBox de especialidad para entrenadores
-        especialidadComboBox.items.addAll("Físico", "Táctico", "Porteros", "Principal")
+        especialidadComboBox.items.addAll(
+            "ENTRENADOR_PRINCIPAL",
+            "ENTRENADOR_ASISTENTE",
+            "ENTRENADOR_PORTEROS"
+        )
 
         // Configurar ComboBox de posición para jugadores
-        posicionComboBox.items.addAll("Portero", "Defensa", "Centrocampista", "Delantero")
+        posicionComboBox.items.addAll(
+            "PORTERO",
+            "DEFENSA",
+            "CENTROCAMPISTA",
+            "DELANTERO"
+        )
 
         // Configurar DatePicker
         fechaIncorporacionPicker.value = LocalDate.now()
@@ -448,7 +457,9 @@ class VistaAdminController {
             is Jugador -> {
                 posicionLabel.isVisible = true
                 posicionComboBox.isVisible = true
-                posicionComboBox.value = personal.posicion.toString()
+                logger.debug { "Posición del jugador: ${personal.posicion.toString()}" }
+                logger.debug { "Posición del jugador (name): ${personal.posicion.name}" }
+                posicionComboBox.value = personal.posicion.name
 
                 dorsalLabel.isVisible = true
                 dorsalTextField.isVisible = true
@@ -470,7 +481,9 @@ class VistaAdminController {
             is Entrenador -> {
                 especialidadLabel.isVisible = true
                 especialidadComboBox.isVisible = true
-                especialidadComboBox.value = personal.especializacion.toString()
+                logger.debug { "Especialización del entrenador: ${personal.especializacion.toString()}" }
+                logger.debug { "Especialización del entrenador (name): ${personal.especializacion.name}" }
+                especialidadComboBox.value = personal.especializacion.name
             }
         }
 

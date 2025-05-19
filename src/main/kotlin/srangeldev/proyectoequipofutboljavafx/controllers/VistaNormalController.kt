@@ -415,7 +415,9 @@ class VistaNormalController {
                 minutosTextField.isVisible = true
 
                 // Cargar datos específicos de jugador
-                posicionComboBox.value = personal.posicion.toString()
+                logger.debug { "Posición del jugador: ${personal.posicion.toString()}" }
+                logger.debug { "Posición del jugador (name): ${personal.posicion.name}" }
+                posicionComboBox.value = personal.posicion.name
                 dorsalTextField.text = personal.dorsal.toString()
                 partidosTextField.text = personal.partidosJugados.toString()
                 golesTextField.text = personal.goles.toString()
@@ -425,6 +427,8 @@ class VistaNormalController {
                 // Mostrar campos de entrenador
                 especialidadLabel.isVisible = true
                 especialidadComboBox.isVisible = true
+                logger.debug { "especialidadLabel.isVisible: ${especialidadLabel.isVisible}" }
+                logger.debug { "especialidadComboBox.isVisible: ${especialidadComboBox.isVisible}" }
 
                 posicionLabel.isVisible = false
                 posicionComboBox.isVisible = false
@@ -438,7 +442,25 @@ class VistaNormalController {
                 minutosTextField.isVisible = false
 
                 // Cargar datos específicos de entrenador
-                especialidadComboBox.value = personal.especializacion.toString()
+                logger.debug { "Especialización del entrenador: ${personal.especializacion.toString()}" }
+                logger.debug { "Especialización del entrenador (name): ${personal.especializacion.name}" }
+                logger.debug { "especialidadComboBox items: ${especialidadComboBox.items}" }
+
+                // Intentar establecer el valor del ComboBox
+                try {
+                    especialidadComboBox.value = personal.especializacion.name
+                    logger.debug { "especialidadComboBox.value después de asignar: ${especialidadComboBox.value}" }
+                } catch (e: Exception) {
+                    logger.error { "Error al establecer especialidadComboBox.value: ${e.message}" }
+                    e.printStackTrace()
+                }
+
+                // Verificar si el valor se estableció correctamente
+                if (especialidadComboBox.value != personal.especializacion.name) {
+                    logger.error { "El valor no se estableció correctamente. Intentando con setValue..." }
+                    especialidadComboBox.setValue(personal.especializacion.name)
+                    logger.debug { "especialidadComboBox.value después de setValue: ${especialidadComboBox.value}" }
+                }
             }
         }
     }
