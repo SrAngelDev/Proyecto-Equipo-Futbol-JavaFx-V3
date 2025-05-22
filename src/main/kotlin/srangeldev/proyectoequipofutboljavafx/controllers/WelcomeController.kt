@@ -54,7 +54,7 @@ class WelcomeController {
             logger.debug { "Navegando a la pantalla de inicio de sesión" }
             val loader = FXMLLoader(RoutesManager.getResource(RoutesManager.View.LOGIN.fxml))
             val stage = loginButton.scene.window as Stage
-            stage.scene = Scene(loader.load(), 1920.0, 1080.0)
+            stage.scene = Scene(loader.load())
             stage.title = "Iniciar Sesión"
             logger.debug { "Navegación a la pantalla de inicio de sesión exitosa" }
         } catch (e: Exception) {
@@ -71,7 +71,7 @@ class WelcomeController {
             logger.debug { "Navegando a la pantalla de registro" }
             val loader = FXMLLoader(RoutesManager.getResource(RoutesManager.View.REGISTER.fxml))
             val stage = registerButton.scene.window as Stage
-            stage.scene = Scene(loader.load(), 1920.0, 1080.0)
+            stage.scene = Scene(loader.load())
             stage.title = "Crear Cuenta"
             logger.debug { "Navegación a la pantalla de registro exitosa" }
         } catch (e: Exception) {

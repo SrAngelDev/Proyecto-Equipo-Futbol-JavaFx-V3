@@ -115,7 +115,7 @@ class SplashScreenController {
 
             // Configurar el stage con la nueva escena
             stage.apply {
-                scene = Scene(fxmlLoader.load(), 1920.0, 1080.0)
+                scene = Scene(fxmlLoader.load(), 900.0, 600.0)
                 title = "Login"
                 show()
             }
