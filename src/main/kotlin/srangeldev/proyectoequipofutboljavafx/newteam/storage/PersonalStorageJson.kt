@@ -21,19 +21,94 @@ class PersonalStorageJson: PersonalStorageFile {
         logger.debug { "Inicializando almacenamiento de productos en JSON" }
     }
 
+    private fun validateFileForReading(file: File) {
+        // Basic file validation
+        if (!file.exists()) {
+            // Try with different case extensions
+            val parentDir = file.parentFile
+            val baseName = file.nameWithoutExtension
+            val alternativeFile = File(parentDir, "$baseName.json")
+
+            if (alternativeFile.exists() && alternativeFile.isFile && alternativeFile.canRead()) {
+                return validateFileForReading(alternativeFile)
+            }
+
+            throw PersonalException.PersonalStorageException("El fichero no existe: $file")
+        }
+
+        if (!file.isFile()) {
+            throw PersonalException.PersonalStorageException("No es un fichero: $file")
+        }
+
+        if (!file.canRead()) {
+            throw PersonalException.PersonalStorageException("No se puede leer el fichero: $file")
+        }
+
+        if (file.length() == 0L) {
+            throw PersonalException.PersonalStorageException("El fichero está vacío: $file")
+        }
+
+        // Check if content looks like JSON for non-JSON extensions
+        if (!file.name.endsWith(".json", ignoreCase = true)) {
+            try {
+                val firstChars = file.readText(Charsets.UTF_8).take(10).trim()
+                if (!firstChars.startsWith("[") && !firstChars.startsWith("{")) {
+                    throw PersonalException.PersonalStorageException("El contenido del archivo no parece ser JSON válido")
+                }
+            } catch (e: Exception) {
+                throw PersonalException.PersonalStorageException("Error al leer el archivo: ${e.message}")
+            }
+        }
+    }
+
     override fun readFromFile(file: File): List<Personal> {
         logger.debug { "Leyendo personal de fichero JSON: $file" }
-        if (!file.exists() || !file.isFile || !file.canRead() || file.length() == 0L || !file.name.endsWith(".json")) {
-            logger.error { "El fichero no existe, o no es un fichero o no se puede leer: $file" }
-            throw PersonalException.PersonalStorageException("El fichero no existe, o no es un fichero o no se puede leer: $file")
-        }
-        val json = Json { ignoreUnknownKeys = true }
-        return json.decodeFromString(kotlinx.serialization.builtins.ListSerializer(PersonalJsonDto.serializer()), file.readText()).map {
-            when (it.rol) {
-                "Entrenador" -> it.toEntrenador()
-                "Jugador" -> it.toJugador()
-                else -> throw IllegalArgumentException("Tipo de personal desconocido: ${it.rol}")
+
+        // Check if the file exists before proceeding
+        if (!file.exists()) {
+            // Try with lowercase extension
+            val alternativeFile = File(file.parentFile, "${file.nameWithoutExtension}.json")
+            if (alternativeFile.exists()) {
+                return readFromFile(alternativeFile)
             }
+
+            // Create a new file with default content if it doesn't exist
+            try {
+                file.parentFile?.mkdirs()
+                file.writeText("[]")
+                return emptyList()
+            } catch (e: Exception) {
+                throw PersonalException.PersonalStorageException("El fichero no existe y no se pudo crear uno nuevo: $file")
+            }
+        }
+
+        try {
+            // Validate the file before reading
+            validateFileForReading(file)
+
+            // Read and parse the file content
+            val fileContent = file.readText(Charsets.UTF_8)
+
+            // Create a JSON parser with essential options
+            val json = Json { 
+                ignoreUnknownKeys = true 
+                isLenient = true
+            }
+
+            // Parse the JSON content
+            val personalList = json.decodeFromString(ListSerializer(PersonalJsonDto.serializer()), fileContent).map {
+                when (it.rol) {
+                    "Entrenador" -> it.toEntrenador()
+                    "Jugador" -> it.toJugador()
+                    else -> throw PersonalException.PersonalStorageException("Tipo de personal desconocido: ${it.rol}")
+                }
+            }
+
+            return personalList
+        } catch (e: PersonalException.PersonalStorageException) {
+            throw e
+        } catch (e: Exception) {
+            throw PersonalException.PersonalStorageException("Error en el almacenamiento: ${e.message}")
         }
     }
 
@@ -44,6 +119,7 @@ class PersonalStorageJson: PersonalStorageFile {
             file.parentFile.mkdirs()
         }
 
+        // Check file extension case-insensitively
         if (!file.name.endsWith(".json", ignoreCase = true)) {
             logger.error { "El fichero no tiene extensión JSON: $file" }
             throw PersonalException.PersonalStorageException("El fichero no tiene extensión JSON: $file")

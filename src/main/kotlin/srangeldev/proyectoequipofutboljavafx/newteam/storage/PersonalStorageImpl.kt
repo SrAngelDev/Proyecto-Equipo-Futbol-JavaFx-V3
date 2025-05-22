@@ -30,11 +30,24 @@ class PersonalStorageImpl(
      */
     override fun readFromFile(file: File, fileFormat: FileFormat): List<Personal> {
         logger.debug { "Leyendo personal de fichero: $file" }
-        return when (fileFormat) {
+
+        // Determine the format from the file extension if DEFAULT
+        val effectiveFormat = if (fileFormat == FileFormat.DEFAULT) {
+            when (file.extension.lowercase()) {
+                "json" -> FileFormat.JSON
+                "csv" -> FileFormat.CSV
+                "xml" -> FileFormat.XML
+                else -> FileFormat.JSON
+            }
+        } else {
+            fileFormat
+        }
+
+        return when (effectiveFormat) {
             FileFormat.JSON -> storageJson.readFromFile(file)
             FileFormat.CSV -> storageCsv.readFromFile(file)
             FileFormat.XML -> storageXml.readFromFile(file)
-            FileFormat.DEFAULT -> storageJson.readFromFile(file) // Por defecto se asume JSON
+            FileFormat.DEFAULT -> storageJson.readFromFile(file)
         }
     }
 

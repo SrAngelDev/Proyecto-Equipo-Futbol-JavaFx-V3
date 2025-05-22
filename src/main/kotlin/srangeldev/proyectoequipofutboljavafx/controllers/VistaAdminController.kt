@@ -1206,15 +1206,16 @@ class VistaAdminController {
         // Imprimir HTML
         printHtmlMenuItem.setOnAction {
             try {
-                // Crear directorio de informes si no existe
-                val reportsDir = File("reports")
-                if (!reportsDir.exists()) {
-                    reportsDir.mkdirs()
+                // Obtener el directorio de informes desde la configuración
+                val reportsDir = Config.configProperties.reportsDir
+                val reportsDirFile = File(reportsDir)
+                if (!reportsDirFile.exists()) {
+                    reportsDirFile.mkdirs()
                 }
 
                 // Generar nombre de archivo con timestamp
                 val timestamp = LocalDateTime.now().toString().replace(":", "-").replace(".", "-")
-                val outputPath = "reports/plantilla_${timestamp}.html"
+                val outputPath = "$reportsDir/plantilla_${timestamp}.html"
 
                 // Generar el informe HTML
                 val reportPath = HtmlReportGenerator.generateReport(personalList, outputPath)
