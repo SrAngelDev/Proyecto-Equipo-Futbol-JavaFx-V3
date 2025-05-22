@@ -36,7 +36,9 @@ object RoutesManager {
     // Definimos las rutas de las vistas que tengamos
     enum class View(val fxml: String) {
         SPLASH("views/newTeam/splash-screen.fxml"),
+        WELCOME("views/newTeam/welcome.fxml"),
         LOGIN("views/newTeam/logging.fxml"),
+        REGISTER("views/newTeam/register.fxml"),
         NORMAL("views/newTeam/vista-normal.fxml"),
         ADMIN("views/newTeam/vista-admin.fxml"),
         ACERCA_DE("views/acerca-de/acerca-de-view.fxml"),
@@ -93,7 +95,7 @@ object RoutesManager {
             fadeOut.fromValue = 1.0
             fadeOut.toValue = 0.0
             fadeOut.setOnFinished {
-                loggingStage(stage)
+                welcomeStage(stage)
             }
             fadeOut.play()
         }
@@ -101,18 +103,16 @@ object RoutesManager {
         timeline.play()
     }
 
-    private fun loggingStage(stage: Stage) {
-        val fxmlLoader = FXMLLoader(getResource(View.LOGIN.fxml))
+    private fun welcomeStage(stage: Stage) {
+        val fxmlLoader = FXMLLoader(getResource(View.WELCOME.fxml))
         stage.apply {
             scene = Scene(fxmlLoader.load(), 1920.0, 1080.0)
-            title = "Login"
+            title = "Bienvenido"
             show()
         }
-        // Update the active stage
         _activeStage = stage
     }
 
-    // O podemos hacer uno genérico, añade las opciones que necesites
     fun getResource(resource: String): URL {
         return app::class.java.getResource(resource)
             ?: throw RuntimeException("No se ha encontrado el recurso: $resource")
@@ -132,7 +132,6 @@ object RoutesManager {
             this.contentText = contentText
         }.showAndWait().ifPresent { opcion ->
             if (opcion == ButtonType.OK) {
-                //exitProcess(0)
                 Platform.exit()
             } else {
                 event?.consume()
@@ -162,8 +161,8 @@ object RoutesManager {
             if (opcion == ButtonType.OK) {
                 // Cerrar sesión
                 Session.logout()
-                // Volver a la pantalla de login
-                loggingStage(mainStage)
+                // Volver a la pantalla de bienvenida
+                welcomeStage(mainStage)
             }
         }
     }

@@ -20,6 +20,7 @@ import srangeldev.proyectoequipofutboljavafx.routes.RoutesManager
 import srangeldev.proyectoequipofutboljavafx.newteam.session.Session
 import srangeldev.proyectoequipofutboljavafx.newteam.service.PersonalServiceImpl
 import srangeldev.proyectoequipofutboljavafx.newteam.utils.HtmlReportGenerator
+import srangeldev.proyectoequipofutboljavafx.newteam.config.Config
 import java.awt.Desktop
 import java.io.File
 import java.time.LocalDate
@@ -254,9 +255,14 @@ class VistaNormalController {
                 val controller = Controller()
 
                 // Cargar datos desde los archivos CSV, JSON y XML
-                controller.cargarDatos("CSV")
-                controller.cargarDatos("JSON")
-                controller.cargarDatos("XML")
+                try {
+                    controller.cargarDatos("CSV")
+                    controller.cargarDatos("JSON")
+                    controller.cargarDatos("XML")
+                    logger.debug { "Datos cargados correctamente" }
+                } catch (e: Exception) {
+                    logger.error { "Error al cargar datos: ${e.message}" }
+                }
 
                 // Actualizar la lista de personal con los datos cargados
                 loadPersonalFromDatabase()
@@ -293,15 +299,16 @@ class VistaNormalController {
         // Configurar el evento del menú Imprimir HTML
         printHtmlMenuItem.setOnAction {
             try {
-                // Crear directorio de informes si no existe
-                val reportsDir = File("reports")
-                if (!reportsDir.exists()) {
-                    reportsDir.mkdirs()
+                // Obtener el directorio de informes desde la configuración
+                val reportsDir = Config.configProperties.reportsDir
+                val reportsDirFile = File(reportsDir)
+                if (!reportsDirFile.exists()) {
+                    reportsDirFile.mkdirs()
                 }
 
                 // Generar nombre de archivo con timestamp
                 val timestamp = LocalDateTime.now().toString().replace(":", "-").replace(".", "-")
-                val outputPath = "reports/plantilla_${timestamp}.html"
+                val outputPath = "$reportsDir/plantilla_${timestamp}.html"
 
                 // Generar el informe HTML
                 val reportPath = HtmlReportGenerator.generateReport(personalList, outputPath)
@@ -512,15 +519,6 @@ class VistaNormalController {
         }
     }
 
-    private fun savePersonalData() {
-        // En una implementación real, guardaríamos los datos en la base de datos
-        // Por ahora, solo mostramos un mensaje
-        showInfoDialog("Guardar datos", "Esta funcionalidad guardaría los datos en la base de datos.")
-
-        // Limpiar el panel de detalles
-        clearDetailsPanel()
-    }
-
     private fun clearDetailsPanel() {
         currentPersonal = null
         nombreTextField.clear()
@@ -623,8 +621,7 @@ class VistaNormalController {
             contentText = "Versión 1.0\n" +
                     "Desarrolladores:\n" +
                     "- Ángel Sánchez Gasanz\n" +
-                    "- Jorge Morgado Giménez\n" +
-                    "- Antoine López"
+                    "- Jorge Morgado Jimenez"
         }.showAndWait()
     }
 }

@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.text.*?>
+<?import javafx.scene.shape.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.effect.*?>
+<?import java.net.URL?>
+
+<AnchorPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            prefHeight="700.0" prefWidth="1100.0"
+            fx:controller="srangeldev.proyectoequipofutboljavafx.controllers.WelcomeController">
+    <stylesheets>
+        <URL value="@../../styles/logging.css" />
+    </stylesheets>
+
+    <!-- Main container -->
+    <StackPane styleClass="main-container" AnchorPane.topAnchor="0.0"
+               AnchorPane.bottomAnchor="0.0"
+               AnchorPane.leftAnchor="0.0"
+               AnchorPane.rightAnchor="0.0">
+
+        <!-- Background decorative elements -->
+        <Circle radius="300" styleClass="background-circle-1" translateX="-400" translateY="-250" />
+        <Circle radius="200" styleClass="background-circle-2" translateX="400" translateY="300" />
+
+        <!-- Main content container -->
+        <GridPane alignment="CENTER" 
+                  maxWidth="1000"
+                  maxHeight="650"
+                  hgap="40" vgap="10"
+                  styleClass="login-container">
+
+            <padding>
+                <Insets top="40" right="40" bottom="40" left="40"/>
+            </padding>
+
+            <!-- Left column for welcome message and buttons -->
+            <VBox spacing="20" styleClass="form-container" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                <padding>
+                    <Insets top="30" bottom="30" left="30" right="30" />
+                </padding>
+
+                <!-- Header section -->
+                <VBox spacing="15" styleClass="header-container">
+                    <Text text="¡Bienvenido!" styleClass="login-title">
+                    </Text>
+                    <Separator styleClass="yellow-separator" prefWidth="200" />
+                </VBox>
+
+                <!-- Welcome message -->
+                <VBox spacing="20" styleClass="fields-container">
+                    <Text text="Seleccione una opción para continuar:" styleClass="subtitle-text" />
+                </VBox>
+
+                <!-- Buttons container -->
+                <VBox spacing="20" alignment="CENTER" styleClass="button-container">
+                    <!-- Login button -->
+                    <Button text="INICIAR SESIÓN" fx:id="loginButton" styleClass="login-button"
+                            prefWidth="240" prefHeight="45">
+                    </Button>
+                    
+                    <!-- Register button -->
+                    <Button text="CREAR CUENTA" fx:id="registerButton" styleClass="login-button"
+                            prefWidth="240" prefHeight="45">
+                    </Button>
+                </VBox>
+            </VBox>
+
+            <!-- Right column for logo and quote -->
+            <VBox spacing="30" alignment="CENTER" styleClass="brand-container" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                <!-- Logo with glow effect -->
+                <StackPane styleClass="logo-container">
+                    <Circle radius="120" styleClass="logo-background" />
+                    <ImageView fx:id="logoImage" fitHeight="220" fitWidth="220" preserveRatio="true" styleClass="logo-image">
+                        <image>
+                            <Image url="@../../icons/newTeamLogo.png"/>
+                        </image>
+                    </ImageView>
+                </StackPane>
+
+                <!-- Quote and subtitle -->
+                <VBox spacing="20" alignment="CENTER" styleClass="quote-container">
+                    <Text text="El fútbol es más que un juego, ¡es un sueño!"
+                          wrappingWidth="300"
+                          textAlignment="CENTER"
+                          styleClass="quote-text">
+                    </Text>
+
+                    <Text text="Gestiona tu equipo de forma eficiente"
+                          wrappingWidth="300"
+                          textAlignment="CENTER"
+                          styleClass="subtitle-text"/>
+                </VBox>
+            </VBox>
+
+            <columnConstraints>
+                <ColumnConstraints percentWidth="50"/>
+                <ColumnConstraints percentWidth="50"/>
+            </columnConstraints>
+
+        </GridPane>
+    </StackPane>
+</AnchorPane>
