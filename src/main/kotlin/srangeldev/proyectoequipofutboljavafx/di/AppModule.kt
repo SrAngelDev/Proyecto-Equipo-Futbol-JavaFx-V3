@@ -8,6 +8,10 @@ import srangeldev.proyectoequipofutboljavafx.newteam.repository.PersonalReposito
 import srangeldev.proyectoequipofutboljavafx.newteam.repository.PersonalRespositoryImpl
 import srangeldev.proyectoequipofutboljavafx.newteam.repository.UserRepository
 import srangeldev.proyectoequipofutboljavafx.newteam.repository.UserRepositoryImpl
+import srangeldev.proyectoequipofutboljavafx.newteam.repository.EquipoRepository
+import srangeldev.proyectoequipofutboljavafx.newteam.repository.EquipoRepositoryImpl
+import srangeldev.proyectoequipofutboljavafx.newteam.repository.ConvocatoriaRepository
+import srangeldev.proyectoequipofutboljavafx.newteam.repository.ConvocatoriaRepositoryImpl
 import srangeldev.proyectoequipofutboljavafx.newteam.service.PersonalService
 import srangeldev.proyectoequipofutboljavafx.newteam.service.PersonalServiceImpl
 import srangeldev.proyectoequipofutboljavafx.newteam.storage.PersonalStorage
@@ -24,6 +28,8 @@ val appModule = module {
     // Repositories
     single<UserRepository> { UserRepositoryImpl() }
     single<PersonalRepository> { PersonalRespositoryImpl() }
+    single<EquipoRepository> { EquipoRepositoryImpl() }
+    single<ConvocatoriaRepository> { ConvocatoriaRepositoryImpl(get()) }
 
     // Storage
     single<PersonalStorage> { PersonalStorageImpl() }

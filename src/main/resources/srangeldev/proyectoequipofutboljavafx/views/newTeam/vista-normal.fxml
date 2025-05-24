@@ -46,6 +46,7 @@
                           <MenuItem fx:id="exportDataMenuItem" mnemonicParsing="false" text="Exportar datos" />
                           <MenuItem fx:id="importDataMenuItem" mnemonicParsing="false" text="Importar datos" />
                           <MenuItem fx:id="printHtmlMenuItem" mnemonicParsing="false" text="Imprimir plantilla en HTML" />
+                          <MenuItem fx:id="convocatoriasMenuItem" mnemonicParsing="false" text="Ver convocatorias" />
                           <MenuItem fx:id="closeMenuItem" mnemonicParsing="false" text="Cerrar sesión" />
                         </items>
                       </Menu>
