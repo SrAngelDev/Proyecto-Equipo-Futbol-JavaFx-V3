@@ -23,48 +23,12 @@ class ConvocatoriaRepositoryImpl(
     }
 
     /**
-     * Inicializa las tablas de convocatorias.
+     * Inicializa las convocatorias.
+     * Las tablas ya se crean a través del archivo tablas.sql
      */
     private fun initDefaultConvocatoria() {
-        logger.debug { "Inicializando tablas de convocatorias" }
-
-        // Comprobamos si la tabla existe
-        DataBaseManager.use { db ->
-            val connection = db.connection ?: throw IllegalStateException("Conexión a la base de datos no disponible")
-
-            // Creamos la tabla de convocatorias si no existe
-            val createConvocatoriasTableSql = """
-                CREATE TABLE IF NOT EXISTS Convocatorias (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    fecha DATE NOT NULL,
-                    descripcion TEXT NOT NULL,
-                    equipo_id INTEGER NOT NULL,
-                    entrenador_id INTEGER NOT NULL,
-                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                    FOREIGN KEY (equipo_id) REFERENCES Equipos(id) ON DELETE CASCADE,
-                    FOREIGN KEY (entrenador_id) REFERENCES Personal(id) ON DELETE CASCADE
-                )
-            """.trimIndent()
-
-            connection.createStatement().execute(createConvocatoriasTableSql)
-
-            // Creamos la tabla de jugadores convocados si no existe
-            val createJugadoresConvocadosTableSql = """
-                CREATE TABLE IF NOT EXISTS JugadoresConvocados (
-                    convocatoria_id INTEGER NOT NULL,
-                    jugador_id INTEGER NOT NULL,
-                    es_titular INTEGER NOT NULL DEFAULT 0,
-                    PRIMARY KEY (convocatoria_id, jugador_id),
-                    FOREIGN KEY (convocatoria_id) REFERENCES Convocatorias(id) ON DELETE CASCADE,
-                    FOREIGN KEY (jugador_id) REFERENCES Personal(id) ON DELETE CASCADE
-                )
-            """.trimIndent()
-
-            connection.createStatement().execute(createJugadoresConvocadosTableSql)
-
-            logger.debug { "Tablas de convocatorias creadas" }
-        }
+        logger.debug { "Inicializando convocatorias" }
+        // Las tablas ya se crean a través del archivo tablas.sql
     }
 
     override fun getAll(): List<Convocatoria> {
@@ -74,31 +38,79 @@ class ConvocatoriaRepositoryImpl(
         convocatorias.clear()
 
         val convocatoriasList = mutableListOf<Convocatoria>()
-
-        val sql = "SELECT * FROM Convocatorias"
+        val convocatoriaIds = mutableListOf<Int>()
+        val jugadoresPorConvocatoria = mutableMapOf<Int, MutableList<Int>>()
+        val titularesPorConvocatoria = mutableMapOf<Int, MutableList<Int>>()
 
         DataBaseManager.use { db ->
-            val statement = db.connection?.createStatement()
-            val resultSet = statement?.executeQuery(sql)
+            // Primero obtenemos todas las convocatorias
+            val sqlConvocatorias = "SELECT * FROM Convocatorias"
+            val statementConvocatorias = db.connection?.createStatement()
+            val resultSetConvocatorias = statementConvocatorias?.executeQuery(sqlConvocatorias)
 
-            while (resultSet?.next() == true) {
-                val convocatoriaId = resultSet.getInt("id")
+            // Guardamos los IDs de las convocatorias para luego obtener sus jugadores
+            while (resultSetConvocatorias?.next() == true) {
+                val convocatoriaId = resultSetConvocatorias.getInt("id")
+                convocatoriaIds.add(convocatoriaId)
+
+                // Inicializamos las listas para esta convocatoria
+                jugadoresPorConvocatoria[convocatoriaId] = mutableListOf()
+                titularesPorConvocatoria[convocatoriaId] = mutableListOf()
+            }
+
+            // Cerramos el resultSet de convocatorias
+            resultSetConvocatorias?.close()
+
+            // Ahora obtenemos todos los jugadores convocados de una sola vez
+            if (convocatoriaIds.isNotEmpty()) {
+                val sqlJugadores = "SELECT convocatoria_id, jugador_id, es_titular FROM JugadoresConvocados WHERE convocatoria_id IN (${convocatoriaIds.joinToString(",")})"
+                val statementJugadores = db.connection?.createStatement()
+                val resultSetJugadores = statementJugadores?.executeQuery(sqlJugadores)
+
+                while (resultSetJugadores?.next() == true) {
+                    val convocatoriaId = resultSetJugadores.getInt("convocatoria_id")
+                    val jugadorId = resultSetJugadores.getInt("jugador_id")
+                    val esTitular = resultSetJugadores.getInt("es_titular") == 1
+
+                    // Añadimos el jugador a la lista de jugadores de esta convocatoria
+                    jugadoresPorConvocatoria[convocatoriaId]?.add(jugadorId)
+
+                    // Si es titular, lo añadimos también a la lista de titulares
+                    if (esTitular) {
+                        titularesPorConvocatoria[convocatoriaId]?.add(jugadorId)
+                    }
+                }
+
+                // Cerramos el resultSet de jugadores
+                resultSetJugadores?.close()
+            }
+
+            // Finalmente, volvemos a obtener las convocatorias para crear los objetos completos
+            val sqlConvocatoriasAgain = "SELECT * FROM Convocatorias"
+            val statementConvocatoriasAgain = db.connection?.createStatement()
+            val resultSetConvocatoriasAgain = statementConvocatoriasAgain?.executeQuery(sqlConvocatoriasAgain)
+
+            while (resultSetConvocatoriasAgain?.next() == true) {
+                val convocatoriaId = resultSetConvocatoriasAgain.getInt("id")
                 val convocatoria = Convocatoria(
                     id = convocatoriaId,
-                    fecha = resultSet.getDate("fecha").toLocalDate(),
-                    descripcion = resultSet.getString("descripcion"),
-                    equipoId = resultSet.getInt("equipo_id"),
-                    entrenadorId = resultSet.getInt("entrenador_id"),
-                    jugadores = getJugadoresIds(convocatoriaId),
-                    titulares = getTitularesIds(convocatoriaId),
-                    createdAt = resultSet.getTimestamp("created_at")?.toLocalDateTime() ?: LocalDateTime.now(),
-                    updatedAt = resultSet.getTimestamp("updated_at")?.toLocalDateTime() ?: LocalDateTime.now()
+                    fecha = resultSetConvocatoriasAgain.getDate("fecha").toLocalDate(),
+                    descripcion = resultSetConvocatoriasAgain.getString("descripcion"),
+                    equipoId = resultSetConvocatoriasAgain.getInt("equipo_id"),
+                    entrenadorId = resultSetConvocatoriasAgain.getInt("entrenador_id"),
+                    jugadores = jugadoresPorConvocatoria[convocatoriaId] ?: emptyList(),
+                    titulares = titularesPorConvocatoria[convocatoriaId] ?: emptyList(),
+                    createdAt = resultSetConvocatoriasAgain.getTimestamp("created_at")?.toLocalDateTime() ?: LocalDateTime.now(),
+                    updatedAt = resultSetConvocatoriasAgain.getTimestamp("updated_at")?.toLocalDateTime() ?: LocalDateTime.now()
                 )
 
                 // Añadir a la lista y a la caché
                 convocatoriasList.add(convocatoria)
                 convocatorias[convocatoria.id] = convocatoria
             }
+
+            // Cerramos el resultSet de convocatorias
+            resultSetConvocatoriasAgain?.close()
         }
 
         return convocatoriasList
@@ -114,194 +126,187 @@ class ConvocatoriaRepositoryImpl(
 
         // Si no está en la caché, buscamos en la base de datos
         var convocatoria: Convocatoria? = null
-
-        val sql = "SELECT * FROM Convocatorias WHERE id = ?"
+        val jugadoresIds = mutableListOf<Int>()
+        val titularesIds = mutableListOf<Int>()
 
         DataBaseManager.use { db ->
-            val preparedStatement = db.connection?.prepareStatement(sql)
-            preparedStatement?.setInt(1, id)
-            val resultSet = preparedStatement?.executeQuery()
+            // Primero obtenemos la convocatoria
+            val sqlConvocatoria = "SELECT * FROM Convocatorias WHERE id = ?"
+            val preparedStatementConvocatoria = db.connection?.prepareStatement(sqlConvocatoria)
+            preparedStatementConvocatoria?.setInt(1, id)
+            val resultSetConvocatoria = preparedStatementConvocatoria?.executeQuery()
 
-            if (resultSet?.next() == true) {
+            if (resultSetConvocatoria?.next() == true) {
+                // Ahora obtenemos los jugadores convocados
+                val sqlJugadores = "SELECT jugador_id, es_titular FROM JugadoresConvocados WHERE convocatoria_id = ?"
+                val preparedStatementJugadores = db.connection?.prepareStatement(sqlJugadores)
+                preparedStatementJugadores?.setInt(1, id)
+                val resultSetJugadores = preparedStatementJugadores?.executeQuery()
+
+                while (resultSetJugadores?.next() == true) {
+                    val jugadorId = resultSetJugadores.getInt("jugador_id")
+                    val esTitular = resultSetJugadores.getInt("es_titular") == 1
+
+                    jugadoresIds.add(jugadorId)
+                    if (esTitular) {
+                        titularesIds.add(jugadorId)
+                    }
+                }
+
+                // Creamos el objeto convocatoria
                 convocatoria = Convocatoria(
-                    id = resultSet.getInt("id"),
-                    fecha = resultSet.getDate("fecha").toLocalDate(),
-                    descripcion = resultSet.getString("descripcion"),
-                    equipoId = resultSet.getInt("equipo_id"),
-                    entrenadorId = resultSet.getInt("entrenador_id"),
-                    jugadores = getJugadoresIds(id),
-                    titulares = getTitularesIds(id),
-                    createdAt = resultSet.getTimestamp("created_at")?.toLocalDateTime() ?: LocalDateTime.now(),
-                    updatedAt = resultSet.getTimestamp("updated_at")?.toLocalDateTime() ?: LocalDateTime.now()
+                    id = resultSetConvocatoria.getInt("id"),
+                    fecha = resultSetConvocatoria.getDate("fecha").toLocalDate(),
+                    descripcion = resultSetConvocatoria.getString("descripcion"),
+                    equipoId = resultSetConvocatoria.getInt("equipo_id"),
+                    entrenadorId = resultSetConvocatoria.getInt("entrenador_id"),
+                    jugadores = jugadoresIds,
+                    titulares = titularesIds,
+                    createdAt = resultSetConvocatoria.getTimestamp("created_at")?.toLocalDateTime() ?: LocalDateTime.now(),
+                    updatedAt = resultSetConvocatoria.getTimestamp("updated_at")?.toLocalDateTime() ?: LocalDateTime.now()
                 )
 
                 // Añadimos la convocatoria a la caché
-                convocatorias[id] = convocatoria!!
+                convocatorias[convocatoria!!.id] = convocatoria!!
             }
+
+            // Cerramos los resultSets
+            resultSetConvocatoria?.close()
         }
 
         return convocatoria
     }
 
-    override fun save(entidad: Convocatoria): Convocatoria {
-        logger.debug { "Guardando convocatoria: ${entidad.descripcion}" }
+    override fun save(convocatoria: Convocatoria): Convocatoria {
+        logger.debug { "Guardando convocatoria: $convocatoria" }
 
-        // Validar la convocatoria antes de guardarla
-        if (!validarConvocatoria(entidad)) {
-            throw IllegalArgumentException("La convocatoria no cumple con las reglas establecidas")
-        }
+        val isUpdate = convocatoria.id > 0
 
-        val timeStamp = LocalDateTime.now()
-        var generatedId = 0
-
-        DataBaseManager.use { db ->
-            val connection = db.connection ?: throw IllegalStateException("Conexión a la base de datos no disponible")
-
-            // Primero insertamos la convocatoria
-            val sql = """
-                INSERT INTO Convocatorias (fecha, descripcion, equipo_id, entrenador_id, created_at, updated_at) 
-                VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-            """.trimIndent()
-
-            val preparedStatement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)
-            preparedStatement.apply {
-                setDate(1, java.sql.Date.valueOf(entidad.fecha))
-                setString(2, entidad.descripcion)
-                setInt(3, entidad.equipoId)
-                setInt(4, entidad.entrenadorId)
+        if (isUpdate) {
+            // Actualizar convocatoria existente
+            val updated = update(convocatoria.id, convocatoria)
+            if (updated != null) {
+                return updated
+            } else {
+                throw IllegalStateException("No se pudo actualizar la convocatoria")
             }
+        } else {
+            // Crear nueva convocatoria
+            var newConvocatoria: Convocatoria? = null
 
-            preparedStatement.executeUpdate()
+            DataBaseManager.use { db ->
+                val connection = db.connection ?: throw IllegalStateException("Conexión a la base de datos no disponible")
 
-            generatedId = preparedStatement.generatedKeys.let {
-                it.next()
-                it.getInt(1)
-            }
+                // Insertar la convocatoria
+                val insertSql = """
+                    INSERT INTO Convocatorias (fecha, descripcion, equipo_id, entrenador_id, created_at, updated_at) 
+                    VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+                """.trimIndent()
 
-            // Luego insertamos los jugadores convocados
-            val sqlJugadores = """
-                INSERT INTO JugadoresConvocados (convocatoria_id, jugador_id, es_titular) 
-                VALUES (?, ?, ?)
-            """.trimIndent()
+                val preparedStatement = connection.prepareStatement(insertSql, Statement.RETURN_GENERATED_KEYS)
+                preparedStatement.setDate(1, java.sql.Date.valueOf(convocatoria.fecha))
+                preparedStatement.setString(2, convocatoria.descripcion)
+                preparedStatement.setInt(3, convocatoria.equipoId)
+                preparedStatement.setInt(4, convocatoria.entrenadorId)
 
-            val preparedStatementJugadores = connection.prepareStatement(sqlJugadores)
-            
-            entidad.jugadores.forEach { jugadorId ->
-                preparedStatementJugadores.apply {
-                    setInt(1, generatedId)
-                    setInt(2, jugadorId)
-                    setInt(3, if (entidad.titulares.contains(jugadorId)) 1 else 0)
+                preparedStatement.executeUpdate()
+
+                // Obtener el ID generado
+                val generatedKeys = preparedStatement.generatedKeys
+                if (generatedKeys.next()) {
+                    val convocatoriaId = generatedKeys.getInt(1)
+
+                    // Insertar los jugadores convocados
+                    if (convocatoria.jugadores.isNotEmpty()) {
+                        val insertJugadoresSql = "INSERT INTO JugadoresConvocados (convocatoria_id, jugador_id, es_titular) VALUES (?, ?, ?)"
+                        val preparedStatementJugadores = connection.prepareStatement(insertJugadoresSql)
+
+                        for (jugadorId in convocatoria.jugadores) {
+                            preparedStatementJugadores.setInt(1, convocatoriaId)
+                            preparedStatementJugadores.setInt(2, jugadorId)
+                            preparedStatementJugadores.setInt(3, if (jugadorId in convocatoria.titulares) 1 else 0)
+                            preparedStatementJugadores.addBatch()
+                        }
+
+                        preparedStatementJugadores.executeBatch()
+                    }
+
+                    // Obtener la convocatoria creada
+                    newConvocatoria = getById(convocatoriaId)
+                    if (newConvocatoria != null) {
+                        // Actualizar la caché
+                        convocatorias[newConvocatoria!!.id] = newConvocatoria!!
+                    } else {
+                        throw IllegalStateException("No se pudo obtener la convocatoria creada")
+                    }
+                } else {
+                    throw IllegalStateException("No se pudo obtener el ID de la convocatoria creada")
                 }
-                preparedStatementJugadores.addBatch()
             }
-            
-            preparedStatementJugadores.executeBatch()
+
+            if (newConvocatoria != null) {
+                return newConvocatoria!!
+            } else {
+                throw IllegalStateException("No se pudo crear la convocatoria")
+            }
         }
-
-        val savedConvocatoria = Convocatoria(
-            id = generatedId,
-            fecha = entidad.fecha,
-            descripcion = entidad.descripcion,
-            equipoId = entidad.equipoId,
-            entrenadorId = entidad.entrenadorId,
-            jugadores = entidad.jugadores,
-            titulares = entidad.titulares,
-            createdAt = timeStamp,
-            updatedAt = timeStamp
-        )
-
-        // Añadimos la convocatoria a la caché
-        convocatorias[generatedId] = savedConvocatoria
-
-        return savedConvocatoria
     }
 
     override fun update(id: Int, entidad: Convocatoria): Convocatoria? {
         logger.debug { "Actualizando convocatoria con ID: $id" }
 
-        // Validar la convocatoria antes de actualizarla
-        if (!validarConvocatoria(entidad)) {
-            throw IllegalArgumentException("La convocatoria no cumple con las reglas establecidas")
-        }
-
         // Verificar si la convocatoria existe
         val existingConvocatoria = getById(id)
         if (existingConvocatoria == null) {
-            logger.debug { "No se encontró la convocatoria con ID: $id" }
+            logger.debug { "No se encontró ninguna convocatoria con ID: $id" }
             return null
         }
-
-        val timeStamp = LocalDateTime.now()
-        var rowsAffected = 0
 
         DataBaseManager.use { db ->
             val connection = db.connection ?: throw IllegalStateException("Conexión a la base de datos no disponible")
 
-            // Primero actualizamos la convocatoria
-            val sql = """
+            // Actualizar la convocatoria
+            val updateSql = """
                 UPDATE Convocatorias 
                 SET fecha = ?, descripcion = ?, equipo_id = ?, entrenador_id = ?, updated_at = CURRENT_TIMESTAMP 
                 WHERE id = ?
             """.trimIndent()
 
-            val preparedStatement = connection.prepareStatement(sql)
-            preparedStatement.apply {
-                setDate(1, java.sql.Date.valueOf(entidad.fecha))
-                setString(2, entidad.descripcion)
-                setInt(3, entidad.equipoId)
-                setInt(4, entidad.entrenadorId)
-                setInt(5, id)
+            val preparedStatement = connection.prepareStatement(updateSql)
+            preparedStatement.setDate(1, java.sql.Date.valueOf(entidad.fecha))
+            preparedStatement.setString(2, entidad.descripcion)
+            preparedStatement.setInt(3, entidad.equipoId)
+            preparedStatement.setInt(4, entidad.entrenadorId)
+            preparedStatement.setInt(5, id)
+
+            preparedStatement.executeUpdate()
+
+            // Eliminar todos los jugadores convocados para esta convocatoria
+            val deleteJugadoresSql = "DELETE FROM JugadoresConvocados WHERE convocatoria_id = ?"
+            val preparedStatementDelete = connection.prepareStatement(deleteJugadoresSql)
+            preparedStatementDelete.setInt(1, id)
+            preparedStatementDelete.executeUpdate()
+
+            // Insertar los nuevos jugadores convocados
+            val insertJugadoresSql = "INSERT INTO JugadoresConvocados (convocatoria_id, jugador_id, es_titular) VALUES (?, ?, ?)"
+            val preparedStatementInsert = connection.prepareStatement(insertJugadoresSql)
+
+            for (jugadorId in entidad.jugadores) {
+                preparedStatementInsert.setInt(1, id)
+                preparedStatementInsert.setInt(2, jugadorId)
+                preparedStatementInsert.setInt(3, if (jugadorId in entidad.titulares) 1 else 0)
+                preparedStatementInsert.addBatch()
             }
 
-            rowsAffected = preparedStatement.executeUpdate()
-
-            if (rowsAffected > 0) {
-                // Eliminamos los jugadores convocados actuales
-                val sqlDeleteJugadores = "DELETE FROM JugadoresConvocados WHERE convocatoria_id = ?"
-                val preparedStatementDelete = connection.prepareStatement(sqlDeleteJugadores)
-                preparedStatementDelete.setInt(1, id)
-                preparedStatementDelete.executeUpdate()
-
-                // Insertamos los nuevos jugadores convocados
-                val sqlJugadores = """
-                    INSERT INTO JugadoresConvocados (convocatoria_id, jugador_id, es_titular) 
-                    VALUES (?, ?, ?)
-                """.trimIndent()
-
-                val preparedStatementJugadores = connection.prepareStatement(sqlJugadores)
-                
-                entidad.jugadores.forEach { jugadorId ->
-                    preparedStatementJugadores.apply {
-                        setInt(1, id)
-                        setInt(2, jugadorId)
-                        setInt(3, if (entidad.titulares.contains(jugadorId)) 1 else 0)
-                    }
-                    preparedStatementJugadores.addBatch()
-                }
-                
-                preparedStatementJugadores.executeBatch()
-            }
+            preparedStatementInsert.executeBatch()
         }
 
-        if (rowsAffected == 0) {
-            logger.debug { "No se actualizó ninguna convocatoria con ID: $id" }
-            return null
+        // Obtener la convocatoria actualizada
+        val updatedConvocatoria = getById(id)
+        if (updatedConvocatoria != null) {
+            // Actualizar la caché
+            convocatorias[updatedConvocatoria.id] = updatedConvocatoria
         }
-
-        val updatedConvocatoria = Convocatoria(
-            id = id,
-            fecha = entidad.fecha,
-            descripcion = entidad.descripcion,
-            equipoId = entidad.equipoId,
-            entrenadorId = entidad.entrenadorId,
-            jugadores = entidad.jugadores,
-            titulares = entidad.titulares,
-            createdAt = existingConvocatoria.createdAt,
-            updatedAt = timeStamp
-        )
-
-        // Actualizar la caché
-        convocatorias[id] = updatedConvocatoria
 
         return updatedConvocatoria
     }
@@ -312,7 +317,7 @@ class ConvocatoriaRepositoryImpl(
         // Verificar si la convocatoria existe
         val existingConvocatoria = getById(id)
         if (existingConvocatoria == null) {
-            logger.debug { "No se encontró la convocatoria con ID: $id" }
+            logger.debug { "No se encontró ninguna convocatoria con ID: $id" }
             return null
         }
 
@@ -321,7 +326,7 @@ class ConvocatoriaRepositoryImpl(
         DataBaseManager.use { db ->
             val connection = db.connection ?: throw IllegalStateException("Conexión a la base de datos no disponible")
 
-            // Eliminamos la convocatoria (los jugadores convocados se eliminarán en cascada)
+            // Eliminar la convocatoria (las restricciones de clave foránea eliminarán automáticamente los jugadores convocados)
             val sql = "DELETE FROM Convocatorias WHERE id = ?"
 
             val preparedStatement = connection.prepareStatement(sql)
@@ -333,7 +338,7 @@ class ConvocatoriaRepositoryImpl(
             if (success) {
                 // Eliminar de la caché
                 convocatorias.remove(id)
-                logger.debug { "Convocatoria eliminada correctamente: ${existingConvocatoria.descripcion}" }
+                logger.debug { "Convocatoria eliminada correctamente: $id" }
             } else {
                 logger.debug { "No se eliminó ninguna convocatoria con ID: $id" }
             }
@@ -342,86 +347,14 @@ class ConvocatoriaRepositoryImpl(
         return if (success) existingConvocatoria else null
     }
 
-    override fun getByEquipoId(equipoId: Int): List<Convocatoria> {
-        logger.debug { "Obteniendo convocatorias por equipo ID: $equipoId" }
-
-        val convocatoriasList = mutableListOf<Convocatoria>()
-
-        val sql = "SELECT * FROM Convocatorias WHERE equipo_id = ?"
-
-        DataBaseManager.use { db ->
-            val preparedStatement = db.connection?.prepareStatement(sql)
-            preparedStatement?.setInt(1, equipoId)
-            val resultSet = preparedStatement?.executeQuery()
-
-            while (resultSet?.next() == true) {
-                val convocatoriaId = resultSet.getInt("id")
-                val convocatoria = Convocatoria(
-                    id = convocatoriaId,
-                    fecha = resultSet.getDate("fecha").toLocalDate(),
-                    descripcion = resultSet.getString("descripcion"),
-                    equipoId = resultSet.getInt("equipo_id"),
-                    entrenadorId = resultSet.getInt("entrenador_id"),
-                    jugadores = getJugadoresIds(convocatoriaId),
-                    titulares = getTitularesIds(convocatoriaId),
-                    createdAt = resultSet.getTimestamp("created_at")?.toLocalDateTime() ?: LocalDateTime.now(),
-                    updatedAt = resultSet.getTimestamp("updated_at")?.toLocalDateTime() ?: LocalDateTime.now()
-                )
-
-                // Añadir a la lista y a la caché
-                convocatoriasList.add(convocatoria)
-                convocatorias[convocatoria.id] = convocatoria
-            }
-        }
-
-        return convocatoriasList
-    }
-
-    override fun validarConvocatoria(convocatoria: Convocatoria): Boolean {
-        logger.debug { "Validando convocatoria: ${convocatoria.descripcion}" }
-
-        // Obtener todos los jugadores
-        val jugadores = personalRepository.getAll()
-            .filterIsInstance<Jugador>()
-            .associateBy { it.id }
-
-        return convocatoria.esValida(jugadores)
-    }
-
     override fun getJugadoresConvocados(convocatoriaId: Int): List<Jugador> {
-        logger.debug { "Obteniendo jugadores convocados para la convocatoria ID: $convocatoriaId" }
+        logger.debug { "Obteniendo jugadores convocados para la convocatoria con ID: $convocatoriaId" }
 
-        val jugadoresIds = getJugadoresIds(convocatoriaId)
-        
-        return jugadoresIds.mapNotNull { jugadorId ->
-            val personal = personalRepository.getById(jugadorId)
-            if (personal is Jugador) personal else null
-        }
-    }
-
-    override fun getJugadoresTitulares(convocatoriaId: Int): List<Jugador> {
-        logger.debug { "Obteniendo jugadores titulares para la convocatoria ID: $convocatoriaId" }
-
-        val titularesIds = getTitularesIds(convocatoriaId)
-        
-        return titularesIds.mapNotNull { jugadorId ->
-            val personal = personalRepository.getById(jugadorId)
-            if (personal is Jugador) personal else null
-        }
-    }
-
-    /**
-     * Obtiene los IDs de los jugadores convocados para una convocatoria.
-     *
-     * @param convocatoriaId El ID de la convocatoria.
-     * @return Una lista de IDs de jugadores convocados.
-     */
-    private fun getJugadoresIds(convocatoriaId: Int): List<Int> {
         val jugadoresIds = mutableListOf<Int>()
 
-        val sql = "SELECT jugador_id FROM JugadoresConvocados WHERE convocatoria_id = ?"
-
         DataBaseManager.use { db ->
+            val sql = "SELECT jugador_id FROM JugadoresConvocados WHERE convocatoria_id = ?"
+
             val preparedStatement = db.connection?.prepareStatement(sql)
             preparedStatement?.setInt(1, convocatoriaId)
             val resultSet = preparedStatement?.executeQuery()
@@ -429,32 +362,146 @@ class ConvocatoriaRepositoryImpl(
             while (resultSet?.next() == true) {
                 jugadoresIds.add(resultSet.getInt("jugador_id"))
             }
+
+            resultSet?.close()
         }
 
-        return jugadoresIds
+        return jugadoresIds.mapNotNull { jugadorId ->
+            personalRepository.getById(jugadorId) as? Jugador
+        }
     }
 
-    /**
-     * Obtiene los IDs de los jugadores titulares para una convocatoria.
-     *
-     * @param convocatoriaId El ID de la convocatoria.
-     * @return Una lista de IDs de jugadores titulares.
-     */
-    private fun getTitularesIds(convocatoriaId: Int): List<Int> {
-        val titularesIds = mutableListOf<Int>()
+    override fun getJugadoresTitulares(convocatoriaId: Int): List<Jugador> {
+        logger.debug { "Obteniendo jugadores titulares para la convocatoria con ID: $convocatoriaId" }
 
-        val sql = "SELECT jugador_id FROM JugadoresConvocados WHERE convocatoria_id = ? AND es_titular = 1"
+        val jugadoresIds = mutableListOf<Int>()
 
         DataBaseManager.use { db ->
+            val sql = "SELECT jugador_id FROM JugadoresConvocados WHERE convocatoria_id = ? AND es_titular = 1"
+
             val preparedStatement = db.connection?.prepareStatement(sql)
             preparedStatement?.setInt(1, convocatoriaId)
             val resultSet = preparedStatement?.executeQuery()
 
             while (resultSet?.next() == true) {
-                titularesIds.add(resultSet.getInt("jugador_id"))
+                jugadoresIds.add(resultSet.getInt("jugador_id"))
+            }
+
+            resultSet?.close()
+        }
+
+        return jugadoresIds.mapNotNull { jugadorId ->
+            personalRepository.getById(jugadorId) as? Jugador
+        }
+    }
+
+    fun getJugadoresSuplentes(convocatoriaId: Int): List<Jugador> {
+        logger.debug { "Obteniendo jugadores suplentes para la convocatoria con ID: $convocatoriaId" }
+
+        val jugadoresIds = mutableListOf<Int>()
+
+        DataBaseManager.use { db ->
+            val sql = "SELECT jugador_id FROM JugadoresConvocados WHERE convocatoria_id = ? AND es_titular = 0"
+
+            val preparedStatement = db.connection?.prepareStatement(sql)
+            preparedStatement?.setInt(1, convocatoriaId)
+            val resultSet = preparedStatement?.executeQuery()
+
+            while (resultSet?.next() == true) {
+                jugadoresIds.add(resultSet.getInt("jugador_id"))
+            }
+
+            resultSet?.close()
+        }
+
+        return jugadoresIds.mapNotNull { jugadorId ->
+            personalRepository.getById(jugadorId) as? Jugador
+        }
+    }
+
+    fun getJugadoresNoConvocados(convocatoriaId: Int): List<Jugador> {
+        logger.debug { "Obteniendo jugadores no convocados para la convocatoria con ID: $convocatoriaId" }
+
+        val jugadoresConvocadosIds = mutableListOf<Int>()
+
+        DataBaseManager.use { db ->
+            val sql = "SELECT jugador_id FROM JugadoresConvocados WHERE convocatoria_id = ?"
+
+            val preparedStatement = db.connection?.prepareStatement(sql)
+            preparedStatement?.setInt(1, convocatoriaId)
+            val resultSet = preparedStatement?.executeQuery()
+
+            while (resultSet?.next() == true) {
+                jugadoresConvocadosIds.add(resultSet.getInt("jugador_id"))
+            }
+
+            resultSet?.close()
+        }
+
+        // Obtener todos los jugadores y filtrar los que no están convocados
+        val todosLosJugadores = personalRepository.getAll().filterIsInstance<Jugador>()
+        return todosLosJugadores.filter { jugador -> jugador.id !in jugadoresConvocadosIds }
+    }
+
+    override fun getByEquipoId(equipoId: Int): List<Convocatoria> {
+        logger.debug { "Obteniendo convocatorias por equipo ID: $equipoId" }
+
+        val convocatoriasList = mutableListOf<Convocatoria>()
+
+        DataBaseManager.use { db ->
+            val sql = "SELECT id FROM Convocatorias WHERE equipo_id = ?"
+
+            val preparedStatement = db.connection?.prepareStatement(sql)
+            preparedStatement?.setInt(1, equipoId)
+            val resultSet = preparedStatement?.executeQuery()
+
+            while (resultSet?.next() == true) {
+                val convocatoriaId = resultSet.getInt("id")
+                val convocatoria = getById(convocatoriaId)
+                if (convocatoria != null) {
+                    convocatoriasList.add(convocatoria)
+                }
+            }
+
+            resultSet?.close()
+        }
+
+        return convocatoriasList
+    }
+
+    override fun validarConvocatoria(convocatoria: Convocatoria): Boolean {
+        logger.debug { "Validando convocatoria: $convocatoria" }
+
+        // Validar que la fecha no sea anterior a la fecha actual
+        if (convocatoria.fecha.isBefore(LocalDate.now())) {
+            logger.debug { "La fecha de la convocatoria no puede ser anterior a la fecha actual" }
+            return false
+        }
+
+        // Validar que haya al menos un jugador convocado
+        if (convocatoria.jugadores.isEmpty()) {
+            logger.debug { "La convocatoria debe tener al menos un jugador" }
+            return false
+        }
+
+        // Validar que haya al menos un jugador titular
+        if (convocatoria.titulares.isEmpty()) {
+            logger.debug { "La convocatoria debe tener al menos un jugador titular" }
+            return false
+        }
+
+        // Validar que todos los titulares estén en la lista de jugadores
+        for (titularId in convocatoria.titulares) {
+            if (titularId !in convocatoria.jugadores) {
+                logger.debug { "El jugador titular con ID $titularId no está en la lista de jugadores convocados" }
+                return false
             }
         }
 
-        return titularesIds
+        return true
     }
+
+    // Los métodos getJugadoresIds y getTitularesIds han sido eliminados porque causaban problemas
+    // con las conexiones a la base de datos. Ahora cada método público implementa su propia
+    // lógica para obtener los datos que necesita en una sola conexión.
 }

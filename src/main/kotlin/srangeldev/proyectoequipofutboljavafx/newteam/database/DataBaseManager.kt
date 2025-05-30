@@ -21,20 +21,49 @@ object DataBaseManager: AutoCloseable {
     }
 
     private fun initDatabase() {
-        // Delete the database file if it exists
-        deleteDatabase()
+        // Check if database file exists
+        val dbUrl = Config.configProperties.databaseUrl
+        var dbExists = false
+
+        if (dbUrl.startsWith("jdbc:sqlite:")) {
+            val dbFilePath = dbUrl.substring("jdbc:sqlite:".length)
+            val dbFile = File(dbFilePath)
+            dbExists = dbFile.exists()
+            logger.debug { "Database file exists: $dbExists at path: $dbFilePath" }
+        }
 
         initConexion()
-        if (Config.configProperties.databaseInitTables) {
-            initTablas()
+
+        // Always initialize tables to ensure database structure is correct
+        if (!dbExists) {
+            logger.debug { "Database does not exist, initializing tables..." }
+            if (Config.configProperties.databaseInitTables) {
+                initTablas()
+            }
+
+            // Only initialize data if explicitly configured and this is the first run
+            // This ensures data is not automatically loaded when the app is restarted
+            if (Config.configProperties.databaseInitData) {
+                logger.debug { "First run detected, initializing data..." }
+                initData()
+            } else {
+                logger.debug { "Skipping data initialization as per configuration" }
+            }
+        } else {
+            logger.debug { "Database already exists, skipping initialization" }
         }
-        if (Config.configProperties.databaseInitData) {
-            initData()
-        }
+
         close()
     }
 
-    private fun deleteDatabase() {
+    /**
+     * Deletes the database file.
+     * This method should be called when the application is shutting down.
+     */
+    fun deleteDatabase() {
+        // Close the connection before deleting the file
+        close()
+
         // Extract the database file path from the URL
         val dbUrl = Config.configProperties.databaseUrl
         if (dbUrl.startsWith("jdbc:sqlite:")) {
@@ -130,6 +159,7 @@ object DataBaseManager: AutoCloseable {
         this.connection.use { block(this) }
         close()
     }
+
 
     /**
      * Función para ejecutar un script SQL en la base de datos

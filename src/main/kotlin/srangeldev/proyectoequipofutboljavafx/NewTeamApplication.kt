@@ -7,6 +7,7 @@ import org.koin.core.context.startKoin
 import org.koin.core.logger.Level
 import org.koin.dsl.module
 import srangeldev.proyectoequipofutboljavafx.di.appModule
+import srangeldev.proyectoequipofutboljavafx.newteam.database.DataBaseManager
 import srangeldev.proyectoequipofutboljavafx.routes.RoutesManager
 import java.time.LocalDateTime
 
@@ -37,6 +38,23 @@ class NewTeamApplication : Application(), KoinComponent {
         }.run {
             initSplashScreenStage(stage)
         }
+    }
+
+    /**
+     * Método que se ejecuta al cerrar la aplicación JavaFX
+     * Cierra la conexión con la base de datos y elimina el archivo de la base de datos
+     */
+    override fun stop() {
+        println("Cerrando la aplicación y eliminando la base de datos")
+        try {
+            // Eliminar la base de datos (esto también cierra la conexión)
+            DataBaseManager.deleteDatabase()
+            println("Base de datos eliminada correctamente")
+        } catch (e: Exception) {
+            println("Error al eliminar la base de datos: ${e.message}")
+            e.printStackTrace()
+        }
+        super.stop()
     }
 }
 /**

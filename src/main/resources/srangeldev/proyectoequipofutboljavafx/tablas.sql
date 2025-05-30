@@ -35,3 +35,49 @@ CREATE TABLE IF NOT EXISTS Jugadores (
     partidos_jugados INTEGER NOT NULL DEFAULT 0,
     FOREIGN KEY (id) REFERENCES Personal(id) ON DELETE CASCADE
 );
+
+-- Tabla para Equipos
+CREATE TABLE IF NOT EXISTS Equipos (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    nombre TEXT NOT NULL,
+    fecha_fundacion DATE NOT NULL,
+    escudo_url TEXT DEFAULT '',
+    ciudad TEXT NOT NULL,
+    estadio TEXT NOT NULL,
+    pais TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Tabla para Convocatorias
+CREATE TABLE IF NOT EXISTS Convocatorias (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    fecha DATE NOT NULL,
+    descripcion TEXT NOT NULL,
+    equipo_id INTEGER NOT NULL,
+    entrenador_id INTEGER NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (equipo_id) REFERENCES Equipos(id) ON DELETE CASCADE,
+    FOREIGN KEY (entrenador_id) REFERENCES Personal(id) ON DELETE CASCADE
+);
+
+-- Tabla para JugadoresConvocados (similar a una tabla de líneas de venta)
+CREATE TABLE IF NOT EXISTS JugadoresConvocados (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    convocatoria_id INTEGER NOT NULL,
+    jugador_id INTEGER NOT NULL,
+    es_titular INTEGER NOT NULL DEFAULT 0,
+    FOREIGN KEY (convocatoria_id) REFERENCES Convocatorias(id) ON DELETE CASCADE,
+    FOREIGN KEY (jugador_id) REFERENCES Personal(id) ON DELETE CASCADE
+);
+
+-- Tabla para Usuarios
+CREATE TABLE IF NOT EXISTS Usuarios (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT NOT NULL UNIQUE,
+    password TEXT NOT NULL,
+    role TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);

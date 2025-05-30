@@ -29,6 +29,12 @@ class PersonalRespositoryImpl : PersonalRepository {
      * @return Una lista de objetos Entrenador.
      */
     private fun getEntrenadores(): List<Entrenador> {
+        logger.debug { "Obteniendo entrenadores de la base de datos" }
+
+        // Eliminar entrenadores existentes del mapa personal
+        val entrenadoresToRemove = personal.values.filterIsInstance<Entrenador>().map { it.id }
+        entrenadoresToRemove.forEach { personal.remove(it) }
+
         val sql = """
             SELECT p.*, e.especializacion 
             FROM Personal p
@@ -36,26 +42,41 @@ class PersonalRespositoryImpl : PersonalRepository {
             WHERE p.tipo = 'ENTRENADOR'
         """.trimIndent()
 
+        val entrenadores = mutableListOf<Entrenador>()
+
         DataBaseManager.use { db ->
+            logger.debug { "Ejecutando consulta SQL para obtener entrenadores" }
             val res = db.connection?.prepareStatement(sql)!!.executeQuery()
+            var count = 0
             while (res.next()) {
+                count++
+                val id = res.getInt("id")
+                val nombre = res.getString("nombre")
+                val apellidos = res.getString("apellidos")
+                val especializacion = res.getString("especializacion")
+
+                logger.debug { "Entrenador encontrado: ID=$id, Nombre=$nombre, Apellidos=$apellidos, Especialización=$especializacion" }
+
                 val entrenador = Entrenador(
-                    id = res.getInt("id"),
-                    nombre = res.getString("nombre"),
-                    apellidos = res.getString("apellidos"),
+                    id = id,
+                    nombre = nombre,
+                    apellidos = apellidos,
                     fechaNacimiento = res.getDate("fecha_nacimiento").toLocalDate(),
                     fechaIncorporacion = res.getDate("fecha_incorporacion").toLocalDate(),
                     salario = res.getDouble("salario"),
                     paisOrigen = res.getString("pais_origen"),
-                    especializacion = Entrenador.Especializacion.valueOf(res.getString("especializacion")),
+                    especializacion = Entrenador.Especializacion.valueOf(especializacion),
                     createdAt = res.getTimestamp("created_at")?.toLocalDateTime() ?: LocalDateTime.now(),
                     updatedAt = res.getTimestamp("updated_at")?.toLocalDateTime() ?: LocalDateTime.now(),
                     imagenUrl = res.getString("imagen_url") ?: ""
                 )
                 personal[entrenador.id] = entrenador
+                entrenadores.add(entrenador)
             }
+            logger.debug { "Total de entrenadores encontrados: $count" }
         }
-        return personal.values.filterIsInstance<Entrenador>()
+
+        return entrenadores
     }
 
     private fun getJugadores(): List<Jugador> {
@@ -394,5 +415,25 @@ class PersonalRespositoryImpl : PersonalRepository {
             logger.debug { "No se encontró el personal con ID: $id" }
             return null
         }
+    }
+
+    /**
+     * Limpia la caché de personal para forzar una recarga desde la base de datos.
+     */
+    override fun clearCache() {
+        logger.debug { "Limpiando caché de personal" }
+        personal.clear()
+    }
+
+    /**
+     * Obtiene todos los entrenadores del repositorio.
+     * 
+     * @return Lista de entrenadores.
+     */
+    override fun getAllEntrenadores(): List<Entrenador> {
+        logger.debug { "Obteniendo todos los entrenadores" }
+        // Limpiar la caché para asegurar datos frescos
+        clearCache()
+        return getEntrenadores()
     }
 }
