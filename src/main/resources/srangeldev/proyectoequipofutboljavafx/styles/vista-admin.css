@@ -353,17 +353,79 @@
 }
 
 .combo-box .list-cell {
-    -fx-text-fill: -dark-text-primary;
+    -fx-text-fill: white;
     -fx-padding: 5 10;
     -fx-font-size: 12px;
     -fx-font-weight: normal;
+    -fx-background-color: #1A2E22;
 }
 
 .combo-box .list-view {
-    -fx-background-color: -dark-surface;
-    -fx-border-color: -dark-border;
-    -fx-border-width: 1;
-    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.5), 5, 0, 0, 0);
+    -fx-background-color: #1A2E22;
+    -fx-border-color: #F1C40F;
+    -fx-border-width: 2;
+    -fx-effect: dropshadow(three-pass-box, rgba(241, 196, 15, 0.5), 10, 0.5, 0, 0);
+    -fx-max-height: 500px;
+    -fx-pref-height: 500px;
+    -fx-opacity: 1.0;
+    -fx-background-opacity: 1.0;
+    -fx-z-index: 1000;
+    -fx-view-order: -1000;
+}
+
+/* Specific style for the ComboBox popup */
+.combo-box-popup {
+    -fx-background-color: #1A2E22;
+    -fx-border-color: #F1C40F;
+    -fx-border-width: 2;
+    -fx-effect: dropshadow(three-pass-box, rgba(241, 196, 15, 0.5), 10, 0.5, 0, 0);
+    -fx-opacity: 1.0;
+    -fx-background-opacity: 1.0;
+    -fx-z-index: 1000;
+    -fx-view-order: -1000;
+}
+
+.combo-box .list-view .list-cell {
+    -fx-text-fill: white;
+    -fx-background-color: #1A2E22;
+    -fx-padding: 10 15;
+    -fx-font-size: 14px;
+    -fx-opacity: 1.0;
+    -fx-border-color: #2C3C33;
+    -fx-border-width: 0 0 1 0;
+    -fx-font-weight: normal;
+}
+
+.combo-box .list-cell:hover {
+    -fx-background-color: #27AE60;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-opacity: 1.0;
+    -fx-effect: dropshadow(three-pass-box, rgba(39, 174, 96, 0.5), 5, 0.3, 0, 0);
+    -fx-border-color: white;
+    -fx-border-width: 0 0 1 0;
+}
+
+.combo-box .list-cell:selected {
+    -fx-background-color: #196F3D;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-opacity: 1.0;
+    -fx-border-color: #F1C40F;
+    -fx-border-width: 0 0 1 0;
+    -fx-effect: dropshadow(three-pass-box, rgba(241, 196, 15, 0.5), 5, 0.3, 0, 0);
+}
+
+.combo-box .arrow-button {
+    -fx-background-color: #27AE60;
+    -fx-opacity: 1.0;
+}
+
+.combo-box .arrow {
+    -fx-background-color: white;
+    -fx-opacity: 1.0;
+    -fx-scale-x: 1.2;
+    -fx-scale-y: 1.2;
 }
 
 /* Date picker styles */

@@ -5,7 +5,10 @@ import javafx.beans.property.SimpleStringProperty
 import javafx.collections.FXCollections
 import javafx.collections.transformation.FilteredList
 import javafx.fxml.FXML
+import javafx.fxml.FXMLLoader
+import javafx.scene.Scene
 import javafx.scene.control.*
+import javafx.stage.Stage
 import javafx.scene.image.Image
 import javafx.scene.image.ImageView
 import org.lighthousegames.logging.logging
@@ -73,6 +76,7 @@ class VistaNormalController {
     @FXML private lateinit var exportDataMenuItem: MenuItem
     @FXML private lateinit var importDataMenuItem: MenuItem
     @FXML private lateinit var printHtmlMenuItem: MenuItem
+    @FXML private lateinit var convocatoriasMenuItem: MenuItem
     @FXML private lateinit var closeMenuItem: MenuItem
     @FXML private lateinit var aboutMenuItem: MenuItem
 
@@ -330,6 +334,22 @@ class VistaNormalController {
             } catch (e: Exception) {
                 logger.error { "Error al generar el informe HTML: ${e.message}" }
                 showErrorDialog("Error", "No se pudo generar el informe HTML: ${e.message}")
+            }
+        }
+
+        // Configurar el evento del menú Ver convocatorias
+        convocatoriasMenuItem.setOnAction {
+            try {
+                logger.debug { "Abriendo vista de convocatorias" }
+                val fxmlLoader = FXMLLoader(RoutesManager.getResource("views/newTeam/convocatoria-normal.fxml"))
+                val stage = Stage()
+                stage.title = "Convocatorias"
+                stage.scene = Scene(fxmlLoader.load(), 1280.0, 720.0)
+                stage.show()
+            } catch (e: Exception) {
+                logger.error { "Error al abrir la vista de convocatorias: ${e.message}" }
+                logger.error { "Stack trace: ${e.stackTraceToString()}" }
+                showErrorDialog("Error", "No se pudo abrir la vista de convocatorias: ${e.message}")
             }
         }
 

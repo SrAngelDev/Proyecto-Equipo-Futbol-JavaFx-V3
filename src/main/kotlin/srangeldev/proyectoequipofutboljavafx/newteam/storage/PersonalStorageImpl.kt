@@ -11,7 +11,6 @@ import java.io.File
  * @property storageJson Implementación de PersonalStorageFile para archivos JSON.
  * @property storageCsv Implementación de PersonalStorageFile para archivos CSV.
  * @property storageXml Implementación de PersonalStorageFile para archivos XML.
- * @property storageBin Implementación de PersonalStorageFile para archivos BIN.
  */
 class PersonalStorageImpl(
     private val storageJson: PersonalStorageFile = PersonalStorageJson(),
@@ -31,7 +30,7 @@ class PersonalStorageImpl(
     override fun readFromFile(file: File, fileFormat: FileFormat): List<Personal> {
         logger.debug { "Leyendo personal de fichero: $file" }
 
-        // Determine the format from the file extension if DEFAULT
+        // Determinar el formato a partir de la extensión del archivo si es DEFAULT
         val effectiveFormat = if (fileFormat == FileFormat.DEFAULT) {
             when (file.extension.lowercase()) {
                 "json" -> FileFormat.JSON
