@@ -5,7 +5,7 @@ import srangeldev.proyectoequipofutboljavafx.newteam.cache.Cache
 import srangeldev.proyectoequipofutboljavafx.newteam.cache.CacheImpl
 import srangeldev.proyectoequipofutboljavafx.newteam.models.Personal
 import srangeldev.proyectoequipofutboljavafx.newteam.repository.PersonalRepository
-import srangeldev.proyectoequipofutboljavafx.newteam.repository.PersonalRespositoryImpl
+import srangeldev.proyectoequipofutboljavafx.newteam.repository.PersonalRepositoryImpl
 import srangeldev.proyectoequipofutboljavafx.newteam.repository.UserRepository
 import srangeldev.proyectoequipofutboljavafx.newteam.repository.UserRepositoryImpl
 import srangeldev.proyectoequipofutboljavafx.newteam.repository.EquipoRepository
@@ -27,7 +27,7 @@ private const val CACHE_SIZE = 5
 val appModule = module {
     // Repositories
     single<UserRepository> { UserRepositoryImpl() }
-    single<PersonalRepository> { PersonalRespositoryImpl() }
+    single<PersonalRepository> { PersonalRepositoryImpl() }
     single<EquipoRepository> { EquipoRepositoryImpl() }
     single<ConvocatoriaRepository> { ConvocatoriaRepositoryImpl(get()) }
 

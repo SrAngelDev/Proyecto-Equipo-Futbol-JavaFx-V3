@@ -17,6 +17,9 @@ data class Convocatoria(
     val createdAt: LocalDateTime = LocalDateTime.now(),
     val updatedAt: LocalDateTime = LocalDateTime.now()
 ) {
+    override fun toString(): String {
+        return "Convocatoria(id=$id, fecha=$fecha, descripcion='$descripcion', equipoId=$equipoId, entrenadorId=$entrenadorId, jugadores=$jugadores, titulares=$titulares, createdAt=$createdAt, updatedAt=$updatedAt)"
+    }
     /**
      * Valida que la convocatoria cumpla con las reglas:
      * - Máximo 18 jugadores

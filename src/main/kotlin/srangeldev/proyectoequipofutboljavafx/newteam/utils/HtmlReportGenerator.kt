@@ -187,18 +187,6 @@ object HtmlReportGenerator {
     }
 
     /**
-     * Versión anterior del método para mantener compatibilidad.
-     */
-    fun generateConvocatoriaReport(
-        convocatoria: Convocatoria,
-        jugadores: List<Jugador>,
-        entrenador: Entrenador,
-        outputPath: String
-    ): String {
-        return generateConvocatoriaReport(convocatoria, jugadores, listOf(entrenador), outputPath)
-    }
-
-    /**
      * Construye el contenido HTML del informe de convocatoria.
      * 
      * @param convocatoria La convocatoria a mostrar en el informe.
@@ -211,7 +199,7 @@ object HtmlReportGenerator {
         jugadores: List<Jugador>,
         entrenadores: List<Entrenador>
     ): String {
-        val dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+        val dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
         val titulares = jugadores.filter { convocatoria.titulares.contains(it.id) }
         val suplentes = jugadores.filter { !convocatoria.titulares.contains(it.id) }
 

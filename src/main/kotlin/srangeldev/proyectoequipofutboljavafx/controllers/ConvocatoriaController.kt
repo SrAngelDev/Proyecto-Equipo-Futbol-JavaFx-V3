@@ -20,7 +20,7 @@ import srangeldev.proyectoequipofutboljavafx.newteam.models.Entrenador
 import srangeldev.proyectoequipofutboljavafx.newteam.models.Jugador
 import srangeldev.proyectoequipofutboljavafx.newteam.repository.ConvocatoriaRepository
 import srangeldev.proyectoequipofutboljavafx.newteam.repository.PersonalRepository
-import srangeldev.proyectoequipofutboljavafx.newteam.repository.PersonalRespositoryImpl
+import srangeldev.proyectoequipofutboljavafx.newteam.repository.PersonalRepositoryImpl
 import srangeldev.proyectoequipofutboljavafx.newteam.utils.HtmlReportGenerator
 import java.awt.Desktop
 import java.io.File

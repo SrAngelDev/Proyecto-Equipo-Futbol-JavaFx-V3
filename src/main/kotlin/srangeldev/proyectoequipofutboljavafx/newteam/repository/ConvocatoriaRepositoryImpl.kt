@@ -19,16 +19,6 @@ class ConvocatoriaRepositoryImpl(
 
     init {
         logger.debug { "Inicializando repositorio de convocatorias" }
-        initDefaultConvocatoria()
-    }
-
-    /**
-     * Inicializa las convocatorias.
-     * Las tablas ya se crean a través del archivo tablas.sql
-     */
-    private fun initDefaultConvocatoria() {
-        logger.debug { "Inicializando convocatorias" }
-        // Las tablas ya se crean a través del archivo tablas.sql
     }
 
     override fun getAll(): List<Convocatoria> {

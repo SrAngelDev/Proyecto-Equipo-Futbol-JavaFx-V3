@@ -12,7 +12,7 @@ import java.time.LocalDateTime
 /**
  * Implementación del repositorio de personal.
  */
-class PersonalRespositoryImpl : PersonalRepository {
+class PersonalRepositoryImpl : PersonalRepository {
     private val logger = logging()
     private val personal = mutableMapOf<Int, Personal>()
     // SQLite stores timestamps in the format "YYYY-MM-DD HH:MM:SS"

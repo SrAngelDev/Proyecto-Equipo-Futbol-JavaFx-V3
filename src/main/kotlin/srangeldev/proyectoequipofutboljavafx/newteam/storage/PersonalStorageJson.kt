@@ -22,9 +22,9 @@ class PersonalStorageJson: PersonalStorageFile {
     }
 
     private fun validateFileForReading(file: File) {
-        // Basic file validation
+        // Validación básica del archivo
         if (!file.exists()) {
-            // Try with different case extensions
+            // Intentar con extensiones de diferentes casos
             val parentDir = file.parentFile
             val baseName = file.nameWithoutExtension
             val alternativeFile = File(parentDir, "$baseName.json")
@@ -48,7 +48,7 @@ class PersonalStorageJson: PersonalStorageFile {
             throw PersonalException.PersonalStorageException("El fichero está vacío: $file")
         }
 
-        // Check if content looks like JSON for non-JSON extensions
+        // Verificar si el contenido parece JSON para extensiones que no son JSON
         if (!file.name.endsWith(".json", ignoreCase = true)) {
             try {
                 val firstChars = file.readText(Charsets.UTF_8).take(10).trim()
@@ -64,15 +64,12 @@ class PersonalStorageJson: PersonalStorageFile {
     override fun readFromFile(file: File): List<Personal> {
         logger.debug { "Leyendo personal de fichero JSON: $file" }
 
-        // Check if the file exists before proceeding
         if (!file.exists()) {
-            // Try with lowercase extension
             val alternativeFile = File(file.parentFile, "${file.nameWithoutExtension}.json")
             if (alternativeFile.exists()) {
                 return readFromFile(alternativeFile)
             }
 
-            // Create a new file with default content if it doesn't exist
             try {
                 file.parentFile?.mkdirs()
                 file.writeText("[]")
@@ -83,19 +80,15 @@ class PersonalStorageJson: PersonalStorageFile {
         }
 
         try {
-            // Validate the file before reading
             validateFileForReading(file)
 
-            // Read and parse the file content
             val fileContent = file.readText(Charsets.UTF_8)
 
-            // Create a JSON parser with essential options
             val json = Json { 
                 ignoreUnknownKeys = true 
                 isLenient = true
             }
 
-            // Parse the JSON content
             val personalList = json.decodeFromString(ListSerializer(PersonalJsonDto.serializer()), fileContent).map {
                 when (it.rol) {
                     "Entrenador" -> it.toEntrenador()

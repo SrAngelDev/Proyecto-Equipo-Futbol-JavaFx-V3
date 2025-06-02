@@ -32,40 +32,77 @@ class PersonalStorageCsv : PersonalStorageFile {
             logger.error { "El fichero no existe, o no es un fichero o no se puede leer: $file" }
             throw PersonalException.PersonalStorageException("El fichero no existe, o no es un fichero o no se puede leer: $file")
         }
+
+        // Check if the file has a valid CSV format (at least has a header line)
+        try {
+            val lines = file.readLines()
+            if (lines.isEmpty()) {
+                throw PersonalException.PersonalStorageException("El archivo CSV está vacío")
+            }
+
+            // Check if the header line has the expected format
+            val header = lines[0].split(",")
+            if (header.size < 8) { // At least id, nombre, apellidos, etc.
+                throw PersonalException.PersonalStorageException("El formato del archivo CSV no es válido: faltan columnas en el encabezado")
+            }
+        } catch (e: Exception) {
+            if (e is PersonalException.PersonalStorageException) {
+                throw e
+            }
+            throw PersonalException.PersonalStorageException("Error al validar el archivo CSV: ${e.message}")
+        }
     }
 
     override fun readFromFile(file: File): List<Personal> {
         logger.debug { "Leyendo personal de fichero CSV: $file" }
         validateFileForReading(file)
 
-        return file.readLines()
-            .drop(1)
-            .map { it.split(",") }
-            .map { it.map { it.trim() } }
-            .map {
-                val dto = PersonalCsvDto(
-                    id = it[0].toInt(),
-                    nombre = it[1],
-                    apellidos = it[2],
-                    fechaNacimiento = it[3],
-                    fechaIncorporacion = it[4],
-                    salario = it[5].toDouble(),
-                    paisOrigen = it[6],
-                    rol = it[7],
-                    especializacion = it[8],
-                    posicion = it[9],
-                    dorsal = it[10],
-                    altura = it[11],
-                    peso = it[12],
-                    goles = it[13],
-                    partidosJugados = it[14]
-                )
-                when (dto.rol) {
-                    "Entrenador" -> dto.toEntrenador()
-                    "Jugador" -> dto.toJugador()
-                    else -> throw PersonalException.PersonalStorageException("Tipo de personal desconocido: ${dto.rol}")
+        try {
+            return file.readLines()
+                .drop(1) // Skip header
+                .filter { it.isNotBlank() } // Skip empty lines
+                .map { it.split(",") }
+                .map { values ->
+                    // Ensure we have at least the required fields, pad with empty strings if needed
+                    val paddedValues = values.map { it.trim() }.toMutableList()
+                    while (paddedValues.size < 15) {
+                        paddedValues.add("")
+                    }
+
+                    try {
+                        val dto = PersonalCsvDto(
+                            id = paddedValues[0].toIntOrNull() ?: 0,
+                            nombre = paddedValues[1],
+                            apellidos = paddedValues[2],
+                            fechaNacimiento = paddedValues[3],
+                            fechaIncorporacion = paddedValues[4],
+                            salario = paddedValues[5].toDoubleOrNull() ?: 0.0,
+                            paisOrigen = paddedValues[6],
+                            rol = paddedValues[7],
+                            especializacion = paddedValues[8],
+                            posicion = paddedValues[9],
+                            dorsal = paddedValues[10],
+                            altura = paddedValues[11],
+                            peso = paddedValues[12],
+                            goles = paddedValues[13],
+                            partidosJugados = paddedValues[14]
+                        )
+                        when (dto.rol) {
+                            "Entrenador" -> dto.toEntrenador()
+                            "Jugador" -> dto.toJugador()
+                            else -> throw PersonalException.PersonalStorageException("Tipo de personal desconocido: ${dto.rol}")
+                        }
+                    } catch (e: NumberFormatException) {
+                        throw PersonalException.PersonalStorageException("Formato CSV inválido: error al convertir valores numéricos")
+                    } catch (e: Exception) {
+                        throw PersonalException.PersonalStorageException("Error al procesar el archivo CSV: ${e.message}")
+                    }
                 }
-            }
+        } catch (e: PersonalException.PersonalStorageException) {
+            throw e
+        } catch (e: Exception) {
+            throw PersonalException.PersonalStorageException("Error al leer el archivo CSV: ${e.message}")
+        }
     }
 
     override fun writeToFile(file: File, personalList: List<Personal>) {
@@ -89,8 +126,8 @@ class PersonalStorageCsv : PersonalStorageFile {
                 else -> throw PersonalException.PersonalStorageException("Tipo de personal desconocido")
             }
 
+            // Ensure the order matches the CSV_HEADER
             val data = listOf(
-                dto.rol,
                 dto.id,
                 dto.nombre,
                 dto.apellidos,
@@ -98,6 +135,7 @@ class PersonalStorageCsv : PersonalStorageFile {
                 dto.fechaIncorporacion,
                 dto.salario,
                 dto.paisOrigen,
+                dto.rol,
                 dto.especializacion ?: "",
                 dto.posicion ?: "",
                 dto.dorsal?.toString() ?: "",

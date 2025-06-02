@@ -16,4 +16,8 @@ data class Equipo(
     val pais: String,
     val createdAt: LocalDateTime = LocalDateTime.now(),
     val updatedAt: LocalDateTime = LocalDateTime.now()
-)
+) {
+    override fun toString(): String {
+        return "Equipo(id=$id, nombre='$nombre', fechaFundacion=$fechaFundacion, escudoUrl='$escudoUrl', ciudad='$ciudad', estadio='$estadio', pais='$pais', createdAt=$createdAt, updatedAt=$updatedAt)"
+    }
+}

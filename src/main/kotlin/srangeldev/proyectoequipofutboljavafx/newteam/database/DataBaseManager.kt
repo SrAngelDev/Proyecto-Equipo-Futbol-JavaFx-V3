@@ -35,22 +35,17 @@ object DataBaseManager: AutoCloseable {
         initConexion()
 
         // Always initialize tables to ensure database structure is correct
-        if (!dbExists) {
-            logger.debug { "Database does not exist, initializing tables..." }
-            if (Config.configProperties.databaseInitTables) {
-                initTablas()
-            }
+        logger.debug { "Initializing tables to ensure database structure is correct..." }
+        if (Config.configProperties.databaseInitTables) {
+            initTablas()
+        }
 
-            // Only initialize data if explicitly configured and this is the first run
-            // This ensures data is not automatically loaded when the app is restarted
-            if (Config.configProperties.databaseInitData) {
-                logger.debug { "First run detected, initializing data..." }
-                initData()
-            } else {
-                logger.debug { "Skipping data initialization as per configuration" }
-            }
+        // Only initialize data if explicitly configured and this is a new database
+        if (!dbExists && Config.configProperties.databaseInitData) {
+            logger.debug { "First run detected, initializing data..." }
+            initData()
         } else {
-            logger.debug { "Database already exists, skipping initialization" }
+            logger.debug { "Skipping data initialization as per configuration or database already exists" }
         }
 
         close()
