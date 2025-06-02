@@ -34,31 +34,103 @@ class PersonalStorageXml : PersonalStorageFile {
      * @throws PersonalException.PersonalStorageException Si el archivo no existe, no es legible, o no es un archivo XML válido.
      */
     override fun readFromFile(file: File): List<Personal> {
-        if (!file.exists() || !file.isFile || !file.canRead() || file.length() == 0L || !file.name.endsWith(
-                ".xml",
-                true
-            )
-        ) {
-            logger.error { "El fichero no existe o es un fichero que no se puede leer: $file" }
-            throw PersonalException.PersonalStorageException("El fichero no existe o es un fichero que no se puede leer: $file")
+        if (!file.exists()) {
+            throw PersonalException.PersonalStorageException("El fichero no existe: $file")
+        }
+
+        if (!file.isFile) {
+            throw PersonalException.PersonalStorageException("No es un fichero válido: $file")
+        }
+
+        if (!file.canRead()) {
+            throw PersonalException.PersonalStorageException("El fichero no se puede leer: $file")
+        }
+
+        if (file.length() == 0L) {
+            throw PersonalException.PersonalStorageException("El fichero está vacío: $file")
+        }
+
+        if (!file.name.endsWith(".xml", true)) {
+            throw PersonalException.PersonalStorageException("El fichero no tiene extensión XML: $file")
         }
 
         try {
             // Use a custom XML parser to handle the specific XML structure in the test
             val xmlString = file.readText()
-
-            // Simple XML parsing for the specific structure
             val personalList = mutableListOf<Personal>()
 
-            // Extract personal elements
-            val personalRegex = "<personal>\\s*([\\s\\S]*?)\\s*</personal>".toRegex()
+            // Extract personal elements with id attribute
+            val personalRegex = "<personal\\s+id=\"(\\d+)\">\\s*([\\s\\S]*?)\\s*</personal>".toRegex()
             val personalMatches = personalRegex.findAll(xmlString)
+            val matchesList = personalMatches.toList()
 
-            for (match in personalMatches) {
-                val personalXml = match.groupValues[1]
+            if (matchesList.isEmpty()) {
+                // Intentar con regex alternativo sin atributo id
+                val alternativeRegex = "<personal>\\s*([\\s\\S]*?)\\s*</personal>".toRegex()
+                val alternativeMatches = alternativeRegex.findAll(xmlString).toList()
+
+                if (alternativeMatches.isNotEmpty()) {
+                    // Procesar elementos personal sin atributo id
+                    for (match in alternativeMatches) {
+                        val personalXml = match.groupValues[1]
+
+                        // Extraer id del elemento id
+                        val id = extractField(personalXml, "id")?.toIntOrNull() ?: 0
+
+                        // Extract fields
+                        val tipo = extractField(personalXml, "tipo") ?: ""
+                        val nombre = extractField(personalXml, "nombre") ?: ""
+                        val apellidos = extractField(personalXml, "apellidos") ?: ""
+                        val fechaNacimiento = extractField(personalXml, "fechaNacimiento") ?: ""
+                        val fechaIncorporacion = extractField(personalXml, "fechaIncorporacion") ?: ""
+                        val salario = extractField(personalXml, "salario")?.toDoubleOrNull() ?: 0.0
+                        val pais = extractField(personalXml, "pais") ?: ""
+                        val especialidad = extractField(personalXml, "especialidad") ?: ""
+                        val posicion = extractField(personalXml, "posicion") ?: ""
+                        val dorsal = extractField(personalXml, "dorsal") ?: ""
+                        val altura = extractField(personalXml, "altura") ?: ""
+                        val peso = extractField(personalXml, "peso") ?: ""
+                        val goles = extractField(personalXml, "goles") ?: ""
+                        val partidosJugados = extractField(personalXml, "partidosJugados") ?: ""
+
+                        // Create DTO
+                        val dto = PersonalXmlDto(
+                            id = id,
+                            tipo = tipo,
+                            nombre = nombre,
+                            apellidos = apellidos,
+                            fechaNacimiento = fechaNacimiento,
+                            fechaIncorporacion = fechaIncorporacion,
+                            salario = salario,
+                            pais = pais,
+                            especialidad = especialidad,
+                            posicion = posicion,
+                            dorsal = dorsal,
+                            altura = altura,
+                            peso = peso,
+                            goles = goles,
+                            partidosJugados = partidosJugados
+                        )
+
+                        // Convert to model
+                        val personal = when (tipo) {
+                            "Entrenador" -> dto.toEntrenador()
+                            "Jugador" -> dto.toJugador()
+                            else -> throw PersonalException.PersonalStorageException("Tipo de Personal desconocido: $tipo")
+                        }
+
+                        personalList.add(personal)
+                    }
+
+                    return personalList
+                }
+            }
+
+            for (match in matchesList) {
+                val id = match.groupValues[1].toIntOrNull() ?: 0
+                val personalXml = match.groupValues[2]
 
                 // Extract fields
-                val id = extractField(personalXml, "id")?.toIntOrNull() ?: 0
                 val tipo = extractField(personalXml, "tipo") ?: ""
                 val nombre = extractField(personalXml, "nombre") ?: ""
                 val apellidos = extractField(personalXml, "apellidos") ?: ""
