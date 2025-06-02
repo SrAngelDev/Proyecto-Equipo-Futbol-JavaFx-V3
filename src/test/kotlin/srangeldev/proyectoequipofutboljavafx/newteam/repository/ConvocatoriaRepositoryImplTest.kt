@@ -1,502 +1,268 @@
 package srangeldev.proyectoequipofutboljavafx.newteam.repository
 
 import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.extension.ExtendWith
-import org.mockito.Mock
 import org.mockito.Mockito.*
-import org.mockito.junit.jupiter.MockitoExtension
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.times
+import srangeldev.proyectoequipofutboljavafx.newteam.database.DataBaseManager
 import srangeldev.proyectoequipofutboljavafx.newteam.models.Convocatoria
-import srangeldev.proyectoequipofutboljavafx.newteam.models.Entrenador
 import srangeldev.proyectoequipofutboljavafx.newteam.models.Jugador
+import java.sql.*
 import java.time.LocalDate
 import java.time.LocalDateTime
 
-@ExtendWith(MockitoExtension::class)
 class ConvocatoriaRepositoryImplTest {
 
-    @Mock
-    private lateinit var personalRepository: PersonalRepository
+    private val personalRepository = mock<PersonalRepository>()
 
-    // We'll use a test-specific implementation of ConvocatoriaRepository
-    private lateinit var convocatoriaRepository: TestConvocatoriaRepository
+    private fun configureMockDatabase(resultSetConfig: ResultSet.() -> Unit): Connection {
+        val resultSet = mock<ResultSet>()
+        resultSetConfig(resultSet)
 
-    // Test data
-    private val jugador1 = Jugador(
-        id = 1,
-        nombre = "Carlos",
-        apellidos = "Rodríguez",
-        fechaNacimiento = LocalDate.of(1990, 3, 3),
-        fechaIncorporacion = LocalDate.of(2022, 3, 3),
-        salario = 30000.0,
-        paisOrigen = "Argentina",
-        posicion = Jugador.Posicion.DELANTERO,
-        dorsal = 9,
-        altura = 1.80,
-        peso = 75.0,
-        goles = 10,
-        partidosJugados = 20,
-        createdAt = LocalDateTime.now(),
-        updatedAt = LocalDateTime.now()
-    )
+        val statement = mock<Statement>()
+        `when`(statement.executeQuery(any())).thenReturn(resultSet)
 
-    private val jugador2 = Jugador(
-        id = 2,
-        nombre = "Luis",
-        apellidos = "Martínez",
-        fechaNacimiento = LocalDate.of(1995, 4, 4),
-        fechaIncorporacion = LocalDate.of(2023, 4, 4),
-        salario = 25000.0,
-        paisOrigen = "España",
-        posicion = Jugador.Posicion.PORTERO,
-        dorsal = 1,
-        altura = 1.90,
-        peso = 85.0,
-        goles = 0,
-        partidosJugados = 15,
-        createdAt = LocalDateTime.now(),
-        updatedAt = LocalDateTime.now()
-    )
+        val connection = mock<Connection>()
+        `when`(connection.createStatement()).thenReturn(statement)
 
-    private val entrenador = Entrenador(
-        id = 1,
-        nombre = "Juan",
-        apellidos = "Pérez",
-        fechaNacimiento = LocalDate.of(1980, 1, 1),
-        fechaIncorporacion = LocalDate.of(2020, 1, 1),
-        salario = 50000.0,
-        paisOrigen = "España",
-        especializacion = Entrenador.Especializacion.ENTRENADOR_PRINCIPAL,
-        createdAt = LocalDateTime.now(),
-        updatedAt = LocalDateTime.now()
-    )
+        val dbManager = mock<DataBaseManager>()
+        `when`(dbManager.connection).thenReturn(connection)
+        DataBaseManager.instance = dbManager
 
-    @BeforeEach
-    fun setUp() {
-        // Initialize the test repository
-        convocatoriaRepository = TestConvocatoriaRepository(personalRepository)
+        return connection
+    }
 
-        // Set up the mock personalRepository with lenient stubbing
-        // Only set up mocks for the tests that need them (getJugadoresConvocados and getJugadoresTitulares)
+    @Test
+    fun `getAll returns empty list when there are no convocatorias in the database`() {
+        configureMockDatabase {
+            `when`(next()).thenReturn(false)
+        }
 
-        // Add some test data
-        convocatoriaRepository.save(
-            Convocatoria(
-                id = 0,
-                fecha = LocalDate.of(2023, 5, 15),
-                descripcion = "Partido amistoso",
-                equipoId = 1,
-                entrenadorId = entrenador.id,
-                jugadores = listOf(jugador1.id, jugador2.id),
-                titulares = listOf(jugador1.id),
-                createdAt = LocalDateTime.now(),
-                updatedAt = LocalDateTime.now()
-            )
+        val repository = ConvocatoriaRepositoryImpl(personalRepository)
+        val convocatorias = repository.getAll()
+
+        assertTrue(convocatorias.isEmpty())
+    }
+
+    @Test
+    fun `getById returns null when convocatoria does not exist`() {
+        // Configure mock for the main query
+        val connection = configureMockDatabase {
+            `when`(next()).thenReturn(false)
+        }
+
+        // Configure mock for prepared statements
+        val preparedStatement = mock<PreparedStatement>()
+        `when`(connection.prepareStatement(any())).thenReturn(preparedStatement)
+        `when`(preparedStatement.executeQuery()).thenReturn(mock())
+
+        val repository = ConvocatoriaRepositoryImpl(personalRepository)
+        val convocatoria = repository.getById(999)
+
+        assertNull(convocatoria)
+    }
+
+    @Test
+    fun `update returns null when convocatoria does not exist`() {
+        // Create a convocatoria
+        val convocatoria = Convocatoria(
+            id = 999,
+            fecha = LocalDate.now().plusDays(1),
+            descripcion = "Non-existent Convocatoria",
+            equipoId = 101,
+            entrenadorId = 201,
+            jugadores = listOf(301, 302),
+            titulares = listOf(301)
         )
+
+        // Configure mocks
+        val connection = mock<Connection>()
+        val getByIdPreparedStatement = mock<PreparedStatement>()
+        val getByIdResultSet = mock<ResultSet>()
+
+        // Mock database manager
+        val dbManager = mock<DataBaseManager>()
+        `when`(dbManager.connection).thenReturn(connection)
+        DataBaseManager.instance = dbManager
+
+        // Mock getById call to verify existence (returns false = not found)
+        `when`(connection.prepareStatement(contains("SELECT * FROM Convocatorias WHERE id = ?")))
+            .thenReturn(getByIdPreparedStatement)
+        `when`(getByIdPreparedStatement.executeQuery()).thenReturn(getByIdResultSet)
+        `when`(getByIdResultSet.next()).thenReturn(false)
+
+        // Execute the test
+        val repository = ConvocatoriaRepositoryImpl(personalRepository)
+        val result = repository.update(999, convocatoria)
+
+        // Verify
+        assertNull(result)
     }
 
     @Test
-    fun `test getAll returns all convocatorias`() {
-        // Act
-        val convocatorias = convocatoriaRepository.getAll()
+    fun `delete returns null when convocatoria does not exist`() {
+        // Configure mocks
+        val connection = mock<Connection>()
+        val getByIdPreparedStatement = mock<PreparedStatement>()
+        val getByIdResultSet = mock<ResultSet>()
 
-        // Assert
-        assertEquals(1, convocatorias.size)
-        assertEquals("Partido amistoso", convocatorias[0].descripcion)
-        assertEquals(2, convocatorias[0].jugadores.size)
-        assertEquals(1, convocatorias[0].titulares.size)
+        // Mock database manager
+        val dbManager = mock<DataBaseManager>()
+        `when`(dbManager.connection).thenReturn(connection)
+        DataBaseManager.instance = dbManager
+
+        // Mock getById call to verify existence (returns false = not found)
+        `when`(connection.prepareStatement(contains("SELECT * FROM Convocatorias WHERE id = ?")))
+            .thenReturn(getByIdPreparedStatement)
+        `when`(getByIdPreparedStatement.executeQuery()).thenReturn(getByIdResultSet)
+        `when`(getByIdResultSet.next()).thenReturn(false)
+
+        // Execute the test
+        val repository = ConvocatoriaRepositoryImpl(personalRepository)
+        val result = repository.delete(999)
+
+        // Verify
+        assertNull(result)
     }
 
     @Test
-    fun `test getById returns correct convocatoria`() {
-        // Arrange
-        val allConvocatorias = convocatoriaRepository.getAll()
-        val convocatoriaId = allConvocatorias[0].id
+    fun `delete returns null when no rows are affected`() {
+        // Configure mocks for getById
+        val connection = mock<Connection>()
+        val getByIdPreparedStatement = mock<PreparedStatement>()
+        val getByIdResultSet = mock<ResultSet>()
+        val deletePreparedStatement = mock<PreparedStatement>()
+        val jugadoresResultSet = mock<ResultSet>()
 
-        // Act
-        val convocatoria = convocatoriaRepository.getById(convocatoriaId)
-        val nonExistentConvocatoria = convocatoriaRepository.getById(999)
+        // Mock database manager
+        val dbManager = mock<DataBaseManager>()
+        `when`(dbManager.connection).thenReturn(connection)
+        DataBaseManager.instance = dbManager
 
-        // Assert
-        assertNotNull(convocatoria)
-        assertEquals(convocatoriaId, convocatoria?.id)
-        assertEquals("Partido amistoso", convocatoria?.descripcion)
-        assertEquals(2, convocatoria?.jugadores?.size)
-        assertEquals(1, convocatoria?.titulares?.size)
+        // Mock getById call to verify existence
+        `when`(connection.prepareStatement(contains("SELECT * FROM Convocatorias WHERE id = ?")))
+            .thenReturn(getByIdPreparedStatement)
+        `when`(getByIdPreparedStatement.executeQuery()).thenReturn(getByIdResultSet)
+        `when`(getByIdResultSet.next()).thenReturn(true, false)
+        `when`(getByIdResultSet.getInt("id")).thenReturn(1)
+        `when`(getByIdResultSet.getDate("fecha")).thenReturn(java.sql.Date.valueOf(LocalDate.now()))
+        `when`(getByIdResultSet.getString("descripcion")).thenReturn("Test Convocatoria")
+        `when`(getByIdResultSet.getInt("equipo_id")).thenReturn(101)
+        `when`(getByIdResultSet.getInt("entrenador_id")).thenReturn(201)
+        `when`(getByIdResultSet.getTimestamp("created_at")).thenReturn(Timestamp.valueOf(LocalDateTime.now()))
+        `when`(getByIdResultSet.getTimestamp("updated_at")).thenReturn(Timestamp.valueOf(LocalDateTime.now()))
 
-        assertNull(nonExistentConvocatoria)
+        // Mock jugadores query for getById
+        val jugadoresByIdPreparedStatement = mock<PreparedStatement>()
+        `when`(connection.prepareStatement(contains("SELECT jugador_id, es_titular FROM JugadoresConvocados")))
+            .thenReturn(jugadoresByIdPreparedStatement)
+        `when`(jugadoresByIdPreparedStatement.executeQuery()).thenReturn(jugadoresResultSet)
+        `when`(jugadoresResultSet.next()).thenReturn(true, true, false)
+        `when`(jugadoresResultSet.getInt("jugador_id")).thenReturn(301, 302)
+        `when`(jugadoresResultSet.getInt("es_titular")).thenReturn(1, 0)
+
+        // Mock delete statement (returns 0 = no rows affected)
+        `when`(connection.prepareStatement(contains("DELETE FROM Convocatorias WHERE id = ?")))
+            .thenReturn(deletePreparedStatement)
+        `when`(deletePreparedStatement.executeUpdate()).thenReturn(0)
+
+        // Execute the test
+        val repository = ConvocatoriaRepositoryImpl(personalRepository)
+        val result = repository.delete(1)
+
+        // Verify
+        assertNull(result)
     }
 
     @Test
-    fun `test save creates new convocatoria`() {
-        // Arrange
-        val newConvocatoria = Convocatoria(
-            id = 0,
-            fecha = LocalDate.of(2023, 6, 20),
-            descripcion = "Partido de liga",
+    fun `validarConvocatoria returns false for convocatorias with a past date`() {
+        val convocatoria = Convocatoria(
+            id = 1,
+            fecha = LocalDate.now().minusDays(1),
+            descripcion = "Test Convocatoria",
             equipoId = 1,
-            entrenadorId = entrenador.id,
-            jugadores = listOf(jugador1.id),
-            titulares = listOf(jugador1.id),
-            createdAt = LocalDateTime.now(),
-            updatedAt = LocalDateTime.now()
+            entrenadorId = 1,
+            jugadores = listOf(1, 2),
+            titulares = listOf(1)
         )
 
-        // Act
-        val savedConvocatoria = convocatoriaRepository.save(newConvocatoria)
+        val repository = ConvocatoriaRepositoryImpl(personalRepository)
+        val isValid = repository.validarConvocatoria(convocatoria)
 
-        // Assert
-        assertNotNull(savedConvocatoria)
-        assertTrue(savedConvocatoria.id > 0)
-        assertEquals("Partido de liga", savedConvocatoria.descripcion)
-        assertEquals(1, savedConvocatoria.jugadores.size)
-        assertEquals(1, savedConvocatoria.titulares.size)
-
-        // Verify the convocatoria was added to the repository
-        val retrievedConvocatoria = convocatoriaRepository.getById(savedConvocatoria.id)
-        assertNotNull(retrievedConvocatoria)
-        assertEquals(savedConvocatoria.id, retrievedConvocatoria?.id)
+        assertFalse(isValid)
     }
 
     @Test
-    fun `test update modifies existing convocatoria`() {
-        // Arrange
-        val allConvocatorias = convocatoriaRepository.getAll()
-        val convocatoria = allConvocatorias[0]
-
-        val updatedConvocatoria = convocatoria.copy(
-            descripcion = "Partido amistoso actualizado",
-            jugadores = listOf(jugador1.id),
-            titulares = listOf(jugador1.id)
-        )
-
-        // Act
-        val result = convocatoriaRepository.update(convocatoria.id, updatedConvocatoria)
-
-        // Assert
-        assertNotNull(result)
-        assertEquals(convocatoria.id, result?.id)
-        assertEquals("Partido amistoso actualizado", result?.descripcion)
-        assertEquals(1, result?.jugadores?.size)
-        assertEquals(1, result?.titulares?.size)
-
-        // Verify the convocatoria was updated in the repository
-        val retrievedConvocatoria = convocatoriaRepository.getById(convocatoria.id)
-        assertNotNull(retrievedConvocatoria)
-        assertEquals(convocatoria.id, retrievedConvocatoria?.id)
-        assertEquals("Partido amistoso actualizado", retrievedConvocatoria?.descripcion)
-    }
-
-    @Test
-    fun `test delete removes convocatoria`() {
-        // Arrange
-        val allConvocatorias = convocatoriaRepository.getAll()
-        val convocatoria = allConvocatorias[0]
-
-        // Act
-        val result = convocatoriaRepository.delete(convocatoria.id)
-
-        // Assert
-        assertNotNull(result)
-        assertEquals(convocatoria.id, result?.id)
-
-        // Verify the convocatoria was removed from the repository
-        val retrievedConvocatoria = convocatoriaRepository.getById(convocatoria.id)
-        assertNull(retrievedConvocatoria)
-    }
-
-    @Test
-    fun `test getByEquipoId returns convocatorias for a team`() {
-        // Arrange
-        val equipoId = 1
-        val otherEquipoId = 2
-
-        // Add a convocatoria for another team
-        convocatoriaRepository.save(
-            Convocatoria(
-                id = 0,
-                fecha = LocalDate.of(2023, 7, 10),
-                descripcion = "Partido de otro equipo",
-                equipoId = otherEquipoId,
-                entrenadorId = entrenador.id,
-                jugadores = listOf(jugador1.id),
-                titulares = listOf(jugador1.id),
-                createdAt = LocalDateTime.now(),
-                updatedAt = LocalDateTime.now()
-            )
-        )
-
-        // Act
-        val convocatoriasEquipo1 = convocatoriaRepository.getByEquipoId(equipoId)
-        val convocatoriasEquipo2 = convocatoriaRepository.getByEquipoId(otherEquipoId)
-
-        // Assert
-        assertEquals(1, convocatoriasEquipo1.size)
-        assertEquals("Partido amistoso", convocatoriasEquipo1[0].descripcion)
-
-        assertEquals(1, convocatoriasEquipo2.size)
-        assertEquals("Partido de otro equipo", convocatoriasEquipo2[0].descripcion)
-    }
-
-    @Test
-    fun `test validarConvocatoria validates according to rules`() {
-        // Arrange
-        val validConvocatoria = Convocatoria(
-            id = 0,
-            fecha = LocalDate.of(2023, 8, 5),
-            descripcion = "Convocatoria válida",
+    fun `validarConvocatoria returns false when no jugadores are present`() {
+        val convocatoria = Convocatoria(
+            id = 1,
+            fecha = LocalDate.now().plusDays(1),
+            descripcion = "Test Convocatoria",
             equipoId = 1,
-            entrenadorId = entrenador.id,
-            jugadores = listOf(jugador1.id, jugador2.id),
-            titulares = listOf(jugador1.id, jugador2.id),
-            createdAt = LocalDateTime.now(),
-            updatedAt = LocalDateTime.now()
+            entrenadorId = 1,
+            jugadores = emptyList(),
+            titulares = listOf(1)
         )
 
-        val invalidConvocatoria = Convocatoria(
-            id = 0,
-            fecha = LocalDate.of(2023, 8, 5),
-            descripcion = "Convocatoria inválida",
+        val repository = ConvocatoriaRepositoryImpl(personalRepository)
+        val isValid = repository.validarConvocatoria(convocatoria)
+
+        assertFalse(isValid)
+    }
+
+    @Test
+    fun `validarConvocatoria returns false when no titulares are present`() {
+        val convocatoria = Convocatoria(
+            id = 1,
+            fecha = LocalDate.now().plusDays(1),
+            descripcion = "Test Convocatoria",
             equipoId = 1,
-            entrenadorId = entrenador.id,
-            jugadores = listOf(jugador1.id),
-            titulares = listOf(jugador1.id, jugador2.id), // jugador2 no está en la lista de convocados
-            createdAt = LocalDateTime.now(),
-            updatedAt = LocalDateTime.now()
+            entrenadorId = 1,
+            jugadores = listOf(1, 2),
+            titulares = emptyList()
         )
 
-        // Act
-        val validResult = convocatoriaRepository.validarConvocatoria(validConvocatoria)
-        val invalidResult = convocatoriaRepository.validarConvocatoria(invalidConvocatoria)
+        val repository = ConvocatoriaRepositoryImpl(personalRepository)
+        val isValid = repository.validarConvocatoria(convocatoria)
 
-        // Assert
-        assertTrue(validResult)
-        assertFalse(invalidResult)
+        assertFalse(isValid)
     }
 
     @Test
-    fun `test getJugadoresConvocados returns players in a convocatoria`() {
-        // Arrange
-        val allConvocatorias = convocatoriaRepository.getAll()
-        val convocatoria = allConvocatorias[0]
-
-        // Set up the mock for this specific test
-        lenient().`when`(personalRepository.getById(1)).thenReturn(jugador1)
-        lenient().`when`(personalRepository.getById(2)).thenReturn(jugador2)
-
-        // Act
-        val jugadores = convocatoriaRepository.getJugadoresConvocados(convocatoria.id)
-
-        // Assert
-        assertEquals(2, jugadores.size)
-        assertTrue(jugadores.any { it.id == jugador1.id })
-        assertTrue(jugadores.any { it.id == jugador2.id })
-
-        // Verify that personalRepository.getById was called for each player
-        verify(personalRepository).getById(1)
-        verify(personalRepository).getById(2)
-    }
-
-    @Test
-    fun `test getJugadoresTitulares returns starting players in a convocatoria`() {
-        // Arrange
-        val allConvocatorias = convocatoriaRepository.getAll()
-        val convocatoria = allConvocatorias[0]
-
-        // Set up the mock for this specific test
-        lenient().`when`(personalRepository.getById(1)).thenReturn(jugador1)
-
-        // Act
-        val titulares = convocatoriaRepository.getJugadoresTitulares(convocatoria.id)
-
-        // Assert
-        assertEquals(1, titulares.size)
-        assertEquals(jugador1.id, titulares[0].id)
-
-        // Verify that personalRepository.getById was called for each player
-        verify(personalRepository).getById(1)
-    }
-
-    @Test
-    fun `test getJugadoresSuplentes returns substitute players in a convocatoria`() {
-        // Arrange
-        val allConvocatorias = convocatoriaRepository.getAll()
-        val convocatoria = allConvocatorias[0]
-
-        // Set up the mock for this specific test
-        lenient().`when`(personalRepository.getById(2)).thenReturn(jugador2)
-
-        // Act
-        val suplentes = (convocatoriaRepository as TestConvocatoriaRepository).getJugadoresSuplentes(convocatoria.id)
-
-        // Assert
-        assertEquals(1, suplentes.size)
-        assertEquals(jugador2.id, suplentes[0].id)
-
-        // Verify that personalRepository.getById was called for each player
-        verify(personalRepository).getById(2)
-    }
-
-    @Test
-    fun `test getJugadoresNoConvocados returns players not in a convocatoria`() {
-        // Arrange
-        val allConvocatorias = convocatoriaRepository.getAll()
-        val convocatoria = allConvocatorias[0]
-
-        // Create a player that is not in the convocatoria
-        val jugador3 = Jugador(
-            id = 3,
-            nombre = "Jugador 3",
-            apellidos = "Apellido 3",
-            fechaNacimiento = LocalDate.of(1995, 5, 15),
-            fechaIncorporacion = LocalDate.of(2020, 1, 1),
-            salario = 1000.0,
-            paisOrigen = "España",
-            createdAt = LocalDateTime.now(),
-            updatedAt = LocalDateTime.now(),
-            posicion = Jugador.Posicion.DEFENSA,
-            dorsal = 3,
-            altura = 180.0,
-            peso = 75.0,
-            goles = 0,
-            partidosJugados = 0
+    fun `validarConvocatoria returns false when a titular is not part of the jugadores`() {
+        val convocatoria = Convocatoria(
+            id = 1,
+            fecha = LocalDate.now().plusDays(1),
+            descripcion = "Test Convocatoria",
+            equipoId = 1,
+            entrenadorId = 1,
+            jugadores = listOf(1, 2),
+            titulares = listOf(3)
         )
 
-        // Set up the mock to return all players when getAll is called
-        val allJugadores = listOf(jugador1, jugador2, jugador3)
-        lenient().`when`(personalRepository.getAll()).thenReturn(allJugadores)
+        val repository = ConvocatoriaRepositoryImpl(personalRepository)
+        val isValid = repository.validarConvocatoria(convocatoria)
 
-        // Act
-        val noConvocados = (convocatoriaRepository as TestConvocatoriaRepository).getJugadoresNoConvocados(convocatoria.id)
-
-        // Assert
-        assertEquals(1, noConvocados.size)
-        assertEquals(jugador3.id, noConvocados[0].id)
-
-        // Verify that personalRepository.getAll was called
-        verify(personalRepository).getAll()
+        assertFalse(isValid)
     }
 
     @Test
-    fun `test initDefaultConvocatoria initializes repository`() {
-        // This is a simple test to ensure the method doesn't throw exceptions
-        // Since the method is private and called in the init block, we're just verifying
-        // that the repository was initialized correctly
+    fun `getJugadoresNoConvocados returns empty list when no players exist`() {
+        val connection = mock<Connection>()
 
-        // Arrange & Act - the repository is already initialized in setUp()
+        val dbManager = mock<DataBaseManager>()
+        `when`(dbManager.connection).thenReturn(connection)
+        DataBaseManager.instance = dbManager
 
-        // Assert - verify that we can get convocatorias
-        val convocatorias = convocatoriaRepository.getAll()
-        assertNotNull(convocatorias)
-    }
+        `when`(personalRepository.getAll()).thenReturn(emptyList())
 
-    // Test-specific implementation of ConvocatoriaRepository that doesn't use the database
-    class TestConvocatoriaRepository(private val personalRepository: PersonalRepository) : ConvocatoriaRepository {
-        private val convocatorias = mutableMapOf<Int, Convocatoria>()
-        private var nextId = 1
+        val repository = ConvocatoriaRepositoryImpl(personalRepository)
+        val result = repository.getJugadoresNoConvocados(1)
 
-        override fun getAll(): List<Convocatoria> {
-            return convocatorias.values.toList()
-        }
-
-        override fun getById(id: Int): Convocatoria? {
-            return convocatorias[id]
-        }
-
-        override fun save(entidad: Convocatoria): Convocatoria {
-            val isUpdate = entidad.id > 0
-
-            if (isUpdate) {
-                return update(entidad.id, entidad) ?: throw IllegalStateException("No se pudo actualizar la convocatoria")
-            } else {
-                val id = nextId++
-                val now = LocalDateTime.now()
-
-                val newConvocatoria = entidad.copy(
-                    id = id,
-                    createdAt = now,
-                    updatedAt = now
-                )
-
-                convocatorias[id] = newConvocatoria
-                return newConvocatoria
-            }
-        }
-
-        override fun update(id: Int, entidad: Convocatoria): Convocatoria? {
-            val existingConvocatoria = convocatorias[id] ?: return null
-
-            val updatedConvocatoria = entidad.copy(
-                id = id,
-                createdAt = existingConvocatoria.createdAt,
-                updatedAt = LocalDateTime.now()
-            )
-
-            convocatorias[id] = updatedConvocatoria
-            return updatedConvocatoria
-        }
-
-        override fun delete(id: Int): Convocatoria? {
-            return convocatorias.remove(id)
-        }
-
-        override fun getByEquipoId(equipoId: Int): List<Convocatoria> {
-            return convocatorias.values.filter { it.equipoId == equipoId }
-        }
-
-        override fun validarConvocatoria(convocatoria: Convocatoria): Boolean {
-            // Para propósitos de prueba, no validamos que la fecha sea futura
-            // ya que estamos usando fechas fijas en los tests
-
-            // Validar que haya al menos un jugador convocado
-            if (convocatoria.jugadores.isEmpty()) {
-                return false
-            }
-
-            // Validar que haya al menos un jugador titular
-            if (convocatoria.titulares.isEmpty()) {
-                return false
-            }
-
-            // Validar que todos los titulares estén en la lista de jugadores
-            for (titularId in convocatoria.titulares) {
-                if (titularId !in convocatoria.jugadores) {
-                    return false
-                }
-            }
-
-            return true
-        }
-
-        override fun getJugadoresConvocados(convocatoriaId: Int): List<Jugador> {
-            val convocatoria = getById(convocatoriaId) ?: return emptyList()
-            return convocatoria.jugadores.mapNotNull { jugadorId ->
-                personalRepository.getById(jugadorId) as? Jugador
-            }
-        }
-
-        override fun getJugadoresTitulares(convocatoriaId: Int): List<Jugador> {
-            val convocatoria = getById(convocatoriaId) ?: return emptyList()
-            return convocatoria.titulares.mapNotNull { jugadorId ->
-                personalRepository.getById(jugadorId) as? Jugador
-            }
-        }
-
-        // Implementation of getJugadoresSuplentes for testing
-        fun getJugadoresSuplentes(convocatoriaId: Int): List<Jugador> {
-            val convocatoria = getById(convocatoriaId) ?: return emptyList()
-            val suplentes = convocatoria.jugadores.filter { it !in convocatoria.titulares }
-            return suplentes.mapNotNull { jugadorId ->
-                personalRepository.getById(jugadorId) as? Jugador
-            }
-        }
-
-        // Implementation of getJugadoresNoConvocados for testing
-        fun getJugadoresNoConvocados(convocatoriaId: Int): List<Jugador> {
-            val convocatoria = getById(convocatoriaId) ?: return emptyList()
-            val allJugadores = personalRepository.getAll().filterIsInstance<Jugador>()
-            return allJugadores.filter { jugador -> jugador.id !in convocatoria.jugadores }
-        }
+        assertTrue(result.isEmpty())
     }
 }

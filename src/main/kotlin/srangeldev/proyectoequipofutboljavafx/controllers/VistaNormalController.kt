@@ -18,6 +18,7 @@ import srangeldev.proyectoequipofutboljavafx.newteam.models.Jugador
 import srangeldev.proyectoequipofutboljavafx.newteam.models.Personal
 import srangeldev.proyectoequipofutboljavafx.NewTeamApplication
 import srangeldev.proyectoequipofutboljavafx.newteam.models.User
+import srangeldev.proyectoequipofutboljavafx.newteam.repository.PersonalRepositoryImpl
 import srangeldev.proyectoequipofutboljavafx.newteam.repository.UserRepositoryImpl
 import srangeldev.proyectoequipofutboljavafx.routes.RoutesManager
 import srangeldev.proyectoequipofutboljavafx.newteam.session.Session
@@ -116,6 +117,9 @@ class VistaNormalController {
         // Configurar eventos de la tabla
         setupTableViewEvents()
 
+        // Cargar datos desde la base de datos
+        loadPersonalFromDatabase()
+
         // Actualizar estadísticas
         updateStatistics()
     }
@@ -163,6 +167,10 @@ class VistaNormalController {
     private fun loadPersonalFromDatabase() {
         try {
             logger.debug { "Cargando datos de personal desde la base de datos" }
+
+            // Limpiar la caché del repositorio para evitar duplicados
+            val repository = PersonalRepositoryImpl()
+            repository.clearCache()
 
             // Crear una instancia del servicio
             val service = PersonalServiceImpl()
@@ -259,14 +267,9 @@ class VistaNormalController {
                 val controller = Controller()
 
                 // Cargar datos desde los archivos CSV, JSON y XML
-                try {
-                    controller.cargarDatos("CSV")
-                    controller.cargarDatos("JSON")
-                    controller.cargarDatos("XML")
-                    logger.debug { "Datos cargados correctamente" }
-                } catch (e: Exception) {
-                    logger.error { "Error al cargar datos: ${e.message}" }
-                }
+                controller.cargarDatos("CSV")
+                controller.cargarDatos("JSON")
+                controller.cargarDatos("XML")
 
                 // Actualizar la lista de personal con los datos cargados
                 loadPersonalFromDatabase()

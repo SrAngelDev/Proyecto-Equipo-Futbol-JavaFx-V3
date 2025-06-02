@@ -19,6 +19,7 @@ import srangeldev.proyectoequipofutboljavafx.newteam.models.User
 import srangeldev.proyectoequipofutboljavafx.NewTeamApplication
 import srangeldev.proyectoequipofutboljavafx.newteam.config.Config
 import srangeldev.proyectoequipofutboljavafx.routes.RoutesManager
+import srangeldev.proyectoequipofutboljavafx.newteam.repository.PersonalRepositoryImpl
 import srangeldev.proyectoequipofutboljavafx.newteam.repository.UserRepository
 import srangeldev.proyectoequipofutboljavafx.newteam.repository.UserRepositoryImpl
 import srangeldev.proyectoequipofutboljavafx.newteam.session.Session
@@ -205,7 +206,7 @@ class VistaAdminController {
         // Configurar eventos del menú
         setupMenuItems()
 
-        // Cargar datos de personal desde la base de datos
+        // Cargar datos desde la base de datos
         loadPersonalFromDatabase()
     }
 
@@ -969,40 +970,31 @@ class VistaAdminController {
         try {
             logger.debug { "Cargando datos de personal desde la base de datos" }
 
+            // Limpiar la caché del repositorio para evitar duplicados
+            val repository = PersonalRepositoryImpl()
+            repository.clearCache()
+
             // Crear una instancia del servicio
-            logger.debug { "Creando instancia de PersonalServiceImpl" }
             val service = PersonalServiceImpl()
-            logger.debug { "Instancia de PersonalServiceImpl creada correctamente" }
 
             // Obtener todos los miembros del personal
-            logger.debug { "Obteniendo todos los miembros del personal" }
             val allPersonal = service.getAll()
-            logger.debug { "Miembros del personal obtenidos correctamente: ${allPersonal.size}" }
 
             // Limpiar la lista actual
-            logger.debug { "Limpiando lista actual" }
             personalList.clear()
-            logger.debug { "Lista actual limpiada correctamente" }
 
             // Añadir los nuevos datos
-            logger.debug { "Añadiendo nuevos datos" }
             personalList.addAll(allPersonal)
-            logger.debug { "Nuevos datos añadidos correctamente" }
 
             // Actualizar la tabla
-            logger.debug { "Actualizando tabla" }
             playersTableView.refresh()
-            logger.debug { "Tabla actualizada correctamente" }
 
             // Actualizar estadísticas
-            logger.debug { "Actualizando estadísticas" }
             updateStatistics()
-            logger.debug { "Estadísticas actualizadas correctamente" }
 
             logger.debug { "Datos cargados correctamente: ${personalList.size} miembros" }
         } catch (e: Exception) {
             logger.error { "Error al cargar datos desde la base de datos: ${e.message}" }
-            logger.error { "Stack trace: ${e.stackTraceToString()}" }
             showErrorDialog("Error", "No se pudieron cargar los datos desde la base de datos: ${e.message}")
         }
     }
@@ -1010,6 +1002,7 @@ class VistaAdminController {
     private fun setupMenuItems() {
         // Cargar datos
         loadDataMenuItem.setOnAction {
+
             try {
                 // Crear una instancia del controlador
                 val controller = Controller()

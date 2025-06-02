@@ -23,11 +23,11 @@ class EquipoRepositoryImpl : EquipoRepository {
      * Inicializa un equipo por defecto si no existe ninguno.
      * Las tablas ya se crean a través del archivo tablas.sql
      */
-    private fun initDefaultEquipo() {
+    fun initDefaultEquipo() {
         logger.debug { "Inicializando equipo por defecto" }
 
         // Comprobamos si hay equipos
-        DataBaseManager.use { db ->
+        DataBaseManager.instance.use { db ->
             val connection = db.connection ?: throw IllegalStateException("Conexión a la base de datos no disponible")
 
             // Comprobamos si hay equipos
@@ -64,7 +64,7 @@ class EquipoRepositoryImpl : EquipoRepository {
 
         val sql = "SELECT * FROM Equipos"
 
-        DataBaseManager.use { db ->
+        DataBaseManager.instance.use { db ->
             val statement = db.connection?.createStatement()
             val resultSet = statement?.executeQuery(sql)
 
@@ -103,7 +103,7 @@ class EquipoRepositoryImpl : EquipoRepository {
 
         val sql = "SELECT * FROM Equipos WHERE id = ?"
 
-        DataBaseManager.use { db ->
+        DataBaseManager.instance.use { db ->
             val preparedStatement = db.connection?.prepareStatement(sql)
             preparedStatement?.setInt(1, id)
             val resultSet = preparedStatement?.executeQuery()
@@ -145,8 +145,8 @@ class EquipoRepositoryImpl : EquipoRepository {
         } else {
             // Crear nuevo equipo
             var newEquipo: Equipo? = null
-            
-            DataBaseManager.use { db ->
+
+            DataBaseManager.instance.use { db ->
                 val connection = db.connection ?: throw IllegalStateException("Conexión a la base de datos no disponible")
 
                 // Insertar el equipo
@@ -182,7 +182,7 @@ class EquipoRepositoryImpl : EquipoRepository {
                     throw IllegalStateException("No se pudo obtener el ID del equipo creado")
                 }
             }
-            
+
             if (newEquipo != null) {
                 return newEquipo!!
             } else {
@@ -201,7 +201,7 @@ class EquipoRepositoryImpl : EquipoRepository {
             return null
         }
 
-        DataBaseManager.use { db ->
+        DataBaseManager.instance.use { db ->
             val connection = db.connection ?: throw IllegalStateException("Conexión a la base de datos no disponible")
 
             // Actualizar el equipo
@@ -229,7 +229,7 @@ class EquipoRepositoryImpl : EquipoRepository {
             // Actualizar la caché
             equipos[updatedEquipo.id] = updatedEquipo
         }
-        
+
         return updatedEquipo
     }
 
@@ -245,7 +245,7 @@ class EquipoRepositoryImpl : EquipoRepository {
 
         var success = false
 
-        DataBaseManager.use { db ->
+        DataBaseManager.instance.use { db ->
             val connection = db.connection ?: throw IllegalStateException("Conexión a la base de datos no disponible")
 
             // Eliminar el equipo

@@ -21,10 +21,4 @@ sealed class PersonalException(message: String) : Exception(message) {
      */
     class PersonalStorageException(message: String) : PersonalException("Error en el almacenamiento: $message")
 
-    /**
-     * Excepción lanzada cuando los datos de personal no son válidos.
-     *
-     * @param message El mensaje de error de validación.
-     */
-    class PersonalValidationException(message: String) : PersonalException("Error de validación: $message")
 }

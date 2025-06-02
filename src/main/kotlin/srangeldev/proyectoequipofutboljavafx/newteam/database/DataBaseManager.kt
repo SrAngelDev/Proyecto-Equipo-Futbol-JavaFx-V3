@@ -9,7 +9,7 @@ import java.io.Reader
 import java.sql.Connection
 import java.sql.DriverManager
 
-object DataBaseManager: AutoCloseable {
+class DataBaseManager private constructor(): AutoCloseable {
     private val logger = logging()
 
     // Realizamos conexión con la base de datos
@@ -18,6 +18,10 @@ object DataBaseManager: AutoCloseable {
 
     init {
         initDatabase()
+    }
+
+    companion object {
+        var instance: DataBaseManager = DataBaseManager()
     }
 
     private fun initDatabase() {
@@ -42,7 +46,6 @@ object DataBaseManager: AutoCloseable {
 
         // Only initialize data if explicitly configured and this is a new database
         if (!dbExists && Config.configProperties.databaseInitData) {
-            logger.debug { "First run detected, initializing data..." }
             initData()
         } else {
             logger.debug { "Skipping data initialization as per configuration or database already exists" }
@@ -68,11 +71,7 @@ object DataBaseManager: AutoCloseable {
                 logger.debug { "Deleting existing database file: $dbFilePath" }
                 if (dbFile.delete()) {
                     logger.debug { "Database file deleted successfully" }
-                } else {
-                    logger.error { "Failed to delete database file" }
                 }
-            } else {
-                logger.debug { "Database file does not exist, no need to delete" }
             }
         }
     }
@@ -82,8 +81,6 @@ object DataBaseManager: AutoCloseable {
         if (connection == null || connection!!.isClosed) {
             connection = DriverManager.getConnection(Config.configProperties.databaseUrl)
             logger.debug { "Conexión con la base de datos iniciada" }
-        } else {
-            logger.debug { "La conexión con la base de datos ya está iniciada" }
         }
     }
 
@@ -102,8 +99,6 @@ object DataBaseManager: AutoCloseable {
                 if (file.exists()) {
                     scriptRunner(file.bufferedReader(), true)
                     logger.debug { "Tablas de la base de datos equipo creadas desde archivo" }
-                } else {
-                    logger.error { "No se pudo encontrar el archivo tablas.sql en el sistema de archivos" }
                 }
             }
         } catch (e: Exception) {
