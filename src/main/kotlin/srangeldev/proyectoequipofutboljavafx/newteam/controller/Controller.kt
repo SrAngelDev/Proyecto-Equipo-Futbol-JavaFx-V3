@@ -25,11 +25,18 @@ class Controller {
     }
 
     fun cargarDatos(formato: String) {
-        logger.debug { "Cargando datos" }
+        logger.debug { "Cargando datos de formato: $formato" }
         val normalizedFormat = formato.trim().uppercase()
         val filePath = constructFilePath(normalizedFormat)
         val inputFormat = FileFormat.valueOf(normalizedFormat)
-        service.importFromFile(filePath, inputFormat)
+
+        try {
+            service.importFromFile(filePath, inputFormat)
+            logger.debug { "Datos importados correctamente desde: $filePath" }
+        } catch (e: Exception) {
+            logger.error { "Error al importar datos desde $filePath: ${e.message}" }
+            throw e
+        }
     }
 
     private fun constructFilePath(formato: String): String {
@@ -41,7 +48,7 @@ class Controller {
             else -> throw IllegalArgumentException("Formato no soportado: $formato")
         }
 
-        // List of possible resource paths to try
+        // Lista de posibles rutas para el recurso
         val possiblePaths = listOf(
             "/srangeldev/proyectoequipofutboljavafx/data/$fileName",
             "/data/$fileName",
@@ -49,20 +56,20 @@ class Controller {
             "/srangeldev/proyectoequipofutboljavafx/data/${fileName.lowercase()}"
         )
 
-        // Try each possible path
+        // Intenta cargar el recurso desde las rutas posibles
         for (resourcePath in possiblePaths) {
             val resourceUrl = this::class.java.getResource(resourcePath)
 
             if (resourceUrl != null) {
                 logger.debug { "Archivo encontrado en recursos: $resourceUrl" }
 
-                // If running from JAR, extract the file to a temporary location
+                // Si se ejecuta desde un JAR, extrae el recurso a un archivo temporal
                 if (resourceUrl.protocol == "jar") {
                     val extension = formato.lowercase()
                     val tempFile = File.createTempFile("personal", ".$extension")
                     tempFile.deleteOnExit()
 
-                    // Get the resource stream and copy it to the temporary file
+                    // Obtiene el stream del recurso
                     val resourceStream = this::class.java.getResourceAsStream(resourcePath)
                     if (resourceStream == null) {
                         logger.error { "No se pudo obtener el stream del recurso: $resourcePath" }
@@ -86,48 +93,29 @@ class Controller {
                     }
                 }
 
-                // If running from IDE, use the file directly
+                // Si se ejecuta desde un entorno de desarrollo, devuelve la ruta del recurso directamente
                 return resourceUrl.file
             }
         }
 
-        // If not found in resources, try the configured data directory
+        // Si no se encuentra el recurso, intenta buscar en el directorio de datos configurado
         val dataDir = Config.configProperties.dataDir
         val filePath = Paths.get(dataDir, fileName).toString()
 
-        // Check if the file exists in the data directory
+        // Comprobar si el archivo existe en el directorio de datos
         val file = File(filePath)
         if (file.exists()) {
             return filePath
         }
 
-        // Try with lowercase filename
+        // Intenta buscar el archivo con nombre en minúsculas
         val lowercaseFilePath = Paths.get(dataDir, fileName.lowercase()).toString()
         val lowercaseFile = File(lowercaseFilePath)
         if (lowercaseFile.exists()) {
             return lowercaseFilePath
         }
 
-        // If file doesn't exist, create an empty one
-        try {
-            file.parentFile?.mkdirs()
-
-            // Create an empty file with appropriate content based on format
-            val emptyContent = when (formato.uppercase()) {
-                "JSON" -> "[]"
-                "CSV" -> ""
-                "XML" -> "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<personal></personal>"
-                else -> ""
-            }
-
-            file.writeText(emptyContent)
-            logger.debug { "Archivo vacío creado en: $filePath" }
-            return filePath
-        } catch (e: Exception) {
-            logger.error { "Error al crear archivo vacío: ${e.message}" }
-        }
-
-        // Return the original path even if the file doesn't exist
+        // Devuelve la ruta del archivo original si no se encuentra en recursos ni en el directorio de datos
         return filePath
     }
 }
