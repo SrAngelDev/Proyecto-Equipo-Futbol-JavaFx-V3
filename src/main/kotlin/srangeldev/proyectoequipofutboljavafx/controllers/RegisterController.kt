@@ -21,7 +21,7 @@ import srangeldev.proyectoequipofutboljavafx.routes.RoutesManager
  */
 class RegisterController : KoinComponent {
     private val logger = logging()
-    
+
     // Inyectar el repositorio de usuarios usando Koin
     private val userRepository: UserRepository by inject()
 
@@ -79,56 +79,56 @@ class RegisterController : KoinComponent {
     private fun register() {
         // Mostrar el indicador de carga
         showLoadingIndicator(true)
-        
+
         // Deshabilitar el botón mientras se procesa
         registerButton.isDisable = true
-        
+
         // Limpiar mensaje de error anterior
         errorMessage.text = ""
-        
+
         try {
             // Validar campos
             val username = usernameField.text.trim()
             val password = passwordField.text
             val confirmPassword = confirmPasswordField.text
-            
+
             if (username.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
                 showError("Por favor complete todos los campos")
                 return
             }
-            
+
             if (password != confirmPassword) {
                 showError("Las contraseñas no coinciden")
                 return
             }
-            
+
             // Verificar si el usuario ya existe
             val existingUser = userRepository.getByUsername(username)
             if (existingUser != null) {
                 showError("El nombre de usuario ya está en uso")
                 return
             }
-            
+
             // Crear el nuevo usuario con rol USER
             val newUser = User(
                 username = username,
                 password = password, // El repositorio se encargará de hashear la contraseña
                 role = User.Role.USER
             )
-            
+
             // Guardar el usuario
             userRepository.save(newUser)
-            
+
             // Mostrar mensaje de éxito
             showAlert(
                 Alert.AlertType.INFORMATION,
                 "Registro exitoso",
                 "Su cuenta ha sido creada correctamente. Ahora puede iniciar sesión."
             )
-            
+
             // Navegar a la pantalla de login
             navigateToLogin()
-            
+
         } catch (e: Exception) {
             logger.error { "Error al registrar usuario: ${e.message}" }
             showError("Error al registrar usuario: ${e.message}")
@@ -156,7 +156,7 @@ class RegisterController : KoinComponent {
             logger.debug { "Navegando a la pantalla de inicio de sesión" }
             val loader = FXMLLoader(RoutesManager.getResource(RoutesManager.View.LOGIN.fxml))
             val stage = usernameField.scene.window as Stage
-            stage.scene = Scene(loader.load(), 1920.0, 1080.0)
+            stage.scene = Scene(loader.load())
             stage.title = "Iniciar Sesión"
             logger.debug { "Navegación a la pantalla de inicio de sesión exitosa" }
         } catch (e: Exception) {

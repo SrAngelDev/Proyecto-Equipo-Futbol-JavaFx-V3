@@ -11,7 +11,7 @@
 
 <AnchorPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
-            prefHeight="700.0" prefWidth="1100.0"
+            prefHeight="600.0" prefWidth="900.0"
             fx:controller="srangeldev.proyectoequipofutboljavafx.controllers.RegisterController">
     <stylesheets>
         <URL value="@../../styles/logging.css" />
@@ -29,8 +29,8 @@
 
         <!-- Main content container -->
         <GridPane alignment="CENTER" 
-                  maxWidth="1000"
-                  maxHeight="650"
+                  maxWidth="800"
+                  maxHeight="550"
                   hgap="40" vgap="10"
                   styleClass="login-container">
 
