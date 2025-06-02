@@ -161,7 +161,6 @@ class RegisterController : KoinComponent {
             logger.debug { "Navegación a la pantalla de inicio de sesión exitosa" }
         } catch (e: Exception) {
             logger.error { "Error al navegar a la pantalla de inicio de sesión: ${e.message}" }
-            logger.error { "Stack trace: ${e.stackTraceToString()}" }
         }
     }
 

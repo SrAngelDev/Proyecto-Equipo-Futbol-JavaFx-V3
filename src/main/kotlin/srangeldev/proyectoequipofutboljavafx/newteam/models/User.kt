@@ -13,6 +13,9 @@ data class User(
     val createdAt: LocalDateTime = LocalDateTime.now(),
     val updatedAt: LocalDateTime = LocalDateTime.now()
 ) {
+    override fun toString(): String {
+        return "User(id=$id, username='$username', role=$role, createdAt=$createdAt, updatedAt=$updatedAt)"
+    }
     /**
      * Roles disponibles en el sistema.
      */

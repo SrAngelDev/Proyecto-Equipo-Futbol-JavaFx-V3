@@ -103,51 +103,71 @@ class UserRepositoryImpl : UserRepository {
     override fun save(user: User): User {
         logger.debug { "Guardando usuario: ${user.username}" }
 
-        val timeStamp = LocalDateTime.now()
-
-        // Hasheamos la contraseña
-        val hashedPassword = BCryptUtil.hashPassword(user.password)
-
-        var generatedId = 0
-
-        DataBaseManager.use { db ->
-            val connection = db.connection ?: throw IllegalStateException("Conexión a la base de datos no disponible")
-
-            val sql = """
-                INSERT INTO Usuarios (username, password, role, created_at, updated_at) 
-                VALUES (?, ?, ?, ?, ?)
-            """.trimIndent()
-
-            val preparedStatement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)
-            preparedStatement.apply {
-                setString(1, user.username)
-                setString(2, hashedPassword)
-                setString(3, user.role.name)
-                setString(4, timeStamp.toString())
-                setString(5, timeStamp.toString())
-            }
-
-            preparedStatement.executeUpdate()
-
-            generatedId = preparedStatement.generatedKeys.let {
-                it.next()
-                it.getInt(1)
-            }
+        // Hashear la contraseña si no está hasheada
+        val hashedPassword = if (!user.password.startsWith("$2a$")) {
+            BCryptUtil.hashPassword(user.password)
+        } else {
+            user.password
         }
 
-        val savedUser = User(
-            id = generatedId,
-            username = user.username,
-            password = hashedPassword,
-            role = user.role,
-            createdAt = timeStamp,
-            updatedAt = timeStamp
-        )
+        val isUpdate = user.id > 0
 
-        // Añadimos el usuario a la caché
-        users[user.username] = savedUser
+        if (isUpdate) {
+            // Actualizar usuario existente
+            val updated = update(user.id, user)
+            if (updated != null) {
+                return updated
+            } else {
+                throw IllegalStateException("No se pudo actualizar el usuario")
+            }
+        } else {
+            // Crear nuevo usuario
+            var newUser: User? = null
+            
+            DataBaseManager.use { db ->
+                val connection = db.connection ?: throw IllegalStateException("Conexión a la base de datos no disponible")
 
-        return savedUser
+                // Insertar el usuario
+                val insertSql = """
+                    INSERT INTO Usuarios (username, password, role, created_at, updated_at) 
+                    VALUES (?, ?, ?, ?, ?)
+                """.trimIndent()
+
+                val now = LocalDateTime.now().toString()
+
+                val preparedStatement = connection.prepareStatement(insertSql, Statement.RETURN_GENERATED_KEYS)
+                preparedStatement.setString(1, user.username)
+                preparedStatement.setString(2, hashedPassword)
+                preparedStatement.setString(3, user.role.name)
+                preparedStatement.setString(4, now)
+                preparedStatement.setString(5, now)
+
+                preparedStatement.executeUpdate()
+
+                // Obtener el ID generado
+                val generatedKeys = preparedStatement.generatedKeys
+                if (generatedKeys.next()) {
+                    val userId = generatedKeys.getInt(1)
+
+                    // Obtener el usuario creado
+                    newUser = getByUsername(user.username)
+                    if (newUser != null) {
+                        // Actualizar la caché
+                        users[newUser!!.username] = newUser!!
+                    } else {
+                        throw IllegalStateException("No se pudo obtener el usuario creado")
+                    }
+                } else {
+                    throw IllegalStateException("No se pudo obtener el ID del usuario creado")
+                }
+            }
+            
+            if (newUser != null) {
+                return newUser!!
+            } else {
+                throw IllegalStateException("No se pudo crear el usuario")
+            }
+        }
     }
 
     override fun update(id: Int, user: User): User? {
@@ -156,59 +176,44 @@ class UserRepositoryImpl : UserRepository {
         // Verificar si el usuario existe
         val existingUser = getById(id)
         if (existingUser == null) {
-            logger.debug { "No se encontró el usuario con ID: $id" }
+            logger.debug { "No se encontró ningún usuario con ID: $id" }
             return null
         }
 
-        val timeStamp = LocalDateTime.now()
-
-        // Hasheamos la contraseña si ha cambiado
-        val hashedPassword = if (user.password != existingUser.password) {
+        // Hashear la contraseña si no está hasheada
+        val hashedPassword = if (!user.password.startsWith("$2a$")) {
             BCryptUtil.hashPassword(user.password)
         } else {
             user.password
         }
 
-        var rowsAffected = 0
-
         DataBaseManager.use { db ->
             val connection = db.connection ?: throw IllegalStateException("Conexión a la base de datos no disponible")
 
-            val sql = """
+            // Actualizar el usuario
+            val updateSql = """
                 UPDATE Usuarios 
                 SET username = ?, password = ?, role = ?, updated_at = ? 
                 WHERE id = ?
             """.trimIndent()
 
-            val preparedStatement = connection.prepareStatement(sql)
-            preparedStatement.apply {
-                setString(1, user.username)
-                setString(2, hashedPassword)
-                setString(3, user.role.name)
-                setString(4, timeStamp.toString())
-                setInt(5, id)
-            }
+            val preparedStatement = connection.prepareStatement(updateSql)
+            preparedStatement.setString(1, user.username)
+            preparedStatement.setString(2, hashedPassword)
+            preparedStatement.setString(3, user.role.name)
+            preparedStatement.setString(4, LocalDateTime.now().toString())
+            preparedStatement.setInt(5, id)
 
-            rowsAffected = preparedStatement.executeUpdate()
+            preparedStatement.executeUpdate()
         }
 
-        if (rowsAffected == 0) {
-            logger.debug { "No se actualizó ningún usuario con ID: $id" }
-            return null
+        // Obtener el usuario actualizado
+        val updatedUser = getByUsername(user.username)
+        if (updatedUser != null) {
+            // Actualizar la caché
+            users[updatedUser.username] = updatedUser
         }
-
-        val updatedUser = User(
-            id = id,
-            username = user.username,
-            password = hashedPassword,
-            role = user.role,
-            createdAt = existingUser.createdAt,
-            updatedAt = timeStamp
-        )
-
-        // Actualizar la caché
-        users[user.username] = updatedUser
-
+        
         return updatedUser
     }
 
@@ -218,7 +223,7 @@ class UserRepositoryImpl : UserRepository {
         // Verificar si el usuario existe
         val existingUser = getById(id)
         if (existingUser == null) {
-            logger.debug { "No se encontró el usuario con ID: $id" }
+            logger.debug { "No se encontró ningún usuario con ID: $id" }
             return false
         }
 
@@ -293,23 +298,9 @@ class UserRepositoryImpl : UserRepository {
     override fun initDefaultUsers() {
         logger.debug { "Inicializando usuarios por defecto" }
 
-        // Comprobamos si la tabla existe
+        // Comprobamos si hay usuarios
         DataBaseManager.use { db ->
             val connection = db.connection ?: throw IllegalStateException("Conexión a la base de datos no disponible")
-
-            // Creamos la tabla si no existe
-            val createTableSql = """
-                CREATE TABLE IF NOT EXISTS Usuarios (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    username TEXT NOT NULL UNIQUE,
-                    password TEXT NOT NULL,
-                    role TEXT NOT NULL,
-                    created_at TEXT NOT NULL,
-                    updated_at TEXT NOT NULL
-                )
-            """.trimIndent()
-
-            connection.createStatement().execute(createTableSql)
 
             // Comprobamos si hay usuarios
             val countSql = "SELECT COUNT(*) FROM Usuarios"

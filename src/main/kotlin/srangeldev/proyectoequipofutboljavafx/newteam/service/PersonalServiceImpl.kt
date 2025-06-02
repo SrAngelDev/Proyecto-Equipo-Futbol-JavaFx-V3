@@ -6,7 +6,7 @@ import srangeldev.proyectoequipofutboljavafx.newteam.cache.CacheImpl
 import srangeldev.proyectoequipofutboljavafx.newteam.exceptions.PersonalException
 import srangeldev.proyectoequipofutboljavafx.newteam.models.Personal
 import srangeldev.proyectoequipofutboljavafx.newteam.repository.PersonalRepository
-import srangeldev.proyectoequipofutboljavafx.newteam.repository.PersonalRespositoryImpl
+import srangeldev.proyectoequipofutboljavafx.newteam.repository.PersonalRepositoryImpl
 import srangeldev.proyectoequipofutboljavafx.newteam.storage.FileFormat
 import srangeldev.proyectoequipofutboljavafx.newteam.storage.PersonalStorage
 import srangeldev.proyectoequipofutboljavafx.newteam.storage.PersonalStorageImpl
@@ -20,7 +20,7 @@ private const val CACHE_SIZE = 5
  */
 class PersonalServiceImpl(
     private val storage: PersonalStorage = PersonalStorageImpl(),
-    private val repository: PersonalRepository = PersonalRespositoryImpl(),
+    private val repository: PersonalRepository = PersonalRepositoryImpl(),
     private val cache: Cache<Int, Personal> = CacheImpl(CACHE_SIZE)
 ): PersonalService {
     private val logger = logging()

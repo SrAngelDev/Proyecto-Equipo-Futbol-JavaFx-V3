@@ -365,9 +365,32 @@ class VistaAdminController {
         deletePlayerButton.setOnAction {
             val selected = playersTableView.selectionModel.selectedItem
             if (selected != null) {
-                personalList.remove(selected)
-                clearDetailsPanel()
-                updateStatistics()
+                // Mostrar diálogo de confirmación
+                val alert = Alert(Alert.AlertType.CONFIRMATION)
+                alert.title = "Confirmar eliminación"
+                alert.headerText = "¿Está seguro de que desea eliminar este jugador/entrenador?"
+                alert.contentText = "Esta acción eliminará el jugador/entrenador de la base de datos. Esta acción no se puede deshacer."
+
+                val result = alert.showAndWait()
+                if (result.isPresent && result.get() == ButtonType.OK) {
+                    try {
+                        // Crear una instancia del servicio
+                        val service = PersonalServiceImpl()
+
+                        // Eliminar el jugador/entrenador de la base de datos
+                        service.delete(selected.id)
+
+                        // Eliminar de la lista de UI
+                        personalList.remove(selected)
+                        clearDetailsPanel()
+                        updateStatistics()
+
+                        showInfoDialog("Operación exitosa", "Jugador/entrenador eliminado correctamente.")
+                    } catch (e: Exception) {
+                        logger.error { "Error al eliminar jugador/entrenador con ID ${selected.id}: ${e.message}" }
+                        showErrorDialog("Error", "No se pudo eliminar el jugador/entrenador: ${e.message}")
+                    }
+                }
             } else {
                 showInfoDialog("Selección requerida", "Por favor, seleccione un jugador o entrenador para eliminar.")
             }
@@ -1287,8 +1310,7 @@ class VistaAdminController {
             contentText = "Versión 1.0\n" +
                     "Desarrolladores:\n" +
                     "- Ángel Sánchez Gasanz\n" +
-                    "- Jorge Morgado Giménez\n" +
-                    "- Antoine López"
+                    "- Jorge Morgado Giménez\n"
         }.showAndWait()
     }
 }
