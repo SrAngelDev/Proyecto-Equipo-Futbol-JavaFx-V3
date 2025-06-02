@@ -48,7 +48,7 @@ class NewTeamApplication : Application(), KoinComponent {
         println("Cerrando la aplicación y eliminando la base de datos")
         try {
             // Eliminar la base de datos (esto también cierra la conexión)
-            DataBaseManager.deleteDatabase()
+            DataBaseManager.instance.deleteDatabase()
             println("Base de datos eliminada correctamente")
         } catch (e: Exception) {
             println("Error al eliminar la base de datos: ${e.message}")

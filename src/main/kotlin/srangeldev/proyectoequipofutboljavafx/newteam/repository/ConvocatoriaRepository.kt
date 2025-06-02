@@ -38,4 +38,20 @@ interface ConvocatoriaRepository : CrudRepository<Int, Convocatoria> {
      * @return Una lista de jugadores titulares.
      */
     fun getJugadoresTitulares(convocatoriaId: Int): List<Jugador>
+
+    /**
+     * Obtiene los jugadores suplentes de una convocatoria.
+     *
+     * @param convocatoriaId El ID de la convocatoria.
+     * @return Una lista de jugadores suplentes.
+     */
+    fun getJugadoresSuplentes(convocatoriaId: Int): List<Jugador>
+
+    /**
+     * Obtiene los jugadores que no están convocados para una convocatoria.
+     *
+     * @param convocatoriaId El ID de la convocatoria.
+     * @return Una lista de jugadores no convocados.
+     */
+    fun getJugadoresNoConvocados(convocatoriaId: Int): List<Jugador>
 }

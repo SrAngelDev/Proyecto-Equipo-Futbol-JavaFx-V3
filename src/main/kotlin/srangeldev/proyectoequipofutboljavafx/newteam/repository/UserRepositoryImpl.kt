@@ -29,7 +29,7 @@ class UserRepositoryImpl : UserRepository {
 
         val sql = "SELECT * FROM Usuarios"
 
-        DataBaseManager.use { db ->
+        DataBaseManager.instance.use { db ->
             val statement = db.connection?.createStatement()
             val resultSet = statement?.executeQuery(sql)
 
@@ -65,7 +65,7 @@ class UserRepositoryImpl : UserRepository {
 
         val sql = "SELECT * FROM Usuarios WHERE username = ?"
 
-        DataBaseManager.use { db ->
+        DataBaseManager.instance.use { db ->
             val preparedStatement = db.connection?.prepareStatement(sql)
             preparedStatement?.setString(1, username)
             val resultSet = preparedStatement?.executeQuery()
@@ -123,8 +123,8 @@ class UserRepositoryImpl : UserRepository {
         } else {
             // Crear nuevo usuario
             var newUser: User? = null
-            
-            DataBaseManager.use { db ->
+
+            DataBaseManager.instance.use { db ->
                 val connection = db.connection ?: throw IllegalStateException("Conexión a la base de datos no disponible")
 
                 // Insertar el usuario
@@ -161,7 +161,7 @@ class UserRepositoryImpl : UserRepository {
                     throw IllegalStateException("No se pudo obtener el ID del usuario creado")
                 }
             }
-            
+
             if (newUser != null) {
                 return newUser!!
             } else {
@@ -187,7 +187,7 @@ class UserRepositoryImpl : UserRepository {
             user.password
         }
 
-        DataBaseManager.use { db ->
+        DataBaseManager.instance.use { db ->
             val connection = db.connection ?: throw IllegalStateException("Conexión a la base de datos no disponible")
 
             // Actualizar el usuario
@@ -213,7 +213,7 @@ class UserRepositoryImpl : UserRepository {
             // Actualizar la caché
             users[updatedUser.username] = updatedUser
         }
-        
+
         return updatedUser
     }
 
@@ -229,7 +229,7 @@ class UserRepositoryImpl : UserRepository {
 
         var success = false
 
-        DataBaseManager.use { db ->
+        DataBaseManager.instance.use { db ->
             val connection = db.connection ?: throw IllegalStateException("Conexión a la base de datos no disponible")
 
             val sql = "DELETE FROM Usuarios WHERE id = ?"
@@ -272,7 +272,7 @@ class UserRepositoryImpl : UserRepository {
 
         val sql = "SELECT * FROM Usuarios WHERE id = ?"
 
-        DataBaseManager.use { db ->
+        DataBaseManager.instance.use { db ->
             val preparedStatement = db.connection?.prepareStatement(sql)
             preparedStatement?.setInt(1, id)
             val resultSet = preparedStatement?.executeQuery()
@@ -299,7 +299,7 @@ class UserRepositoryImpl : UserRepository {
         logger.debug { "Inicializando usuarios por defecto" }
 
         // Comprobamos si hay usuarios
-        DataBaseManager.use { db ->
+        DataBaseManager.instance.use { db ->
             val connection = db.connection ?: throw IllegalStateException("Conexión a la base de datos no disponible")
 
             // Comprobamos si hay usuarios

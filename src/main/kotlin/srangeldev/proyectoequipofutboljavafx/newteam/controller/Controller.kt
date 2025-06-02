@@ -18,7 +18,7 @@ import java.util.Locale.getDefault
  */
 class Controller {
     private val logger = logging()
-    private val service = PersonalServiceImpl()
+    var service = PersonalServiceImpl()
 
     init {
         logger.debug { "Inicializando controlador" }
@@ -39,7 +39,7 @@ class Controller {
         }
     }
 
-    private fun constructFilePath(formato: String): String {
+    fun constructFilePath(formato: String): String {
         logger.debug { "Construyendo la ruta del fichero para el formato: $formato" }
         val fileName = when (formato.uppercase()) {
             "CSV" -> "personal.csv"

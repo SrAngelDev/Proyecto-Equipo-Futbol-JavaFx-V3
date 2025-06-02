@@ -44,7 +44,7 @@ class PersonalRepositoryImpl : PersonalRepository {
 
         val entrenadores = mutableListOf<Entrenador>()
 
-        DataBaseManager.use { db ->
+        DataBaseManager.instance.use { db ->
             logger.debug { "Ejecutando consulta SQL para obtener entrenadores" }
             val res = db.connection?.prepareStatement(sql)!!.executeQuery()
             var count = 0
@@ -87,7 +87,7 @@ class PersonalRepositoryImpl : PersonalRepository {
             WHERE p.tipo = 'JUGADOR'
         """.trimIndent()
 
-        DataBaseManager.use { db ->
+        DataBaseManager.instance.use { db ->
             val res = db.connection?.prepareStatement(sql)!!.executeQuery()
             while (res.next()) {
                 val jugador = Jugador(
@@ -141,7 +141,7 @@ class PersonalRepositoryImpl : PersonalRepository {
         """.trimIndent()
 
         var entrenador: Entrenador? = null
-        DataBaseManager.use { db ->
+        DataBaseManager.instance.use { db ->
             val preparedStatement = db.connection?.prepareStatement(sqlEntrenador)
             preparedStatement?.setInt(1, id)
             val res = preparedStatement?.executeQuery()
@@ -176,7 +176,7 @@ class PersonalRepositoryImpl : PersonalRepository {
         """.trimIndent()
 
         var jugador: Jugador? = null
-        DataBaseManager.use { db ->
+        DataBaseManager.instance.use { db ->
             val preparedStatement = db.connection?.prepareStatement(sqlJugador)
             preparedStatement?.setInt(1, id)
             val res = preparedStatement?.executeQuery()
@@ -216,7 +216,7 @@ class PersonalRepositoryImpl : PersonalRepository {
         logger.debug { "Guardando personal: $entidad" }
         val timeStamp = LocalDateTime.now()
 
-        DataBaseManager.use { db ->
+        DataBaseManager.instance.use { db ->
             val connection = db.connection ?: throw IllegalStateException("Conexión a la base de datos no disponible")
 
             // Primero insertamos en la tabla Personal
@@ -336,7 +336,7 @@ class PersonalRepositoryImpl : PersonalRepository {
                 WHERE id = ?
             """.trimIndent()
 
-            DataBaseManager.use { db ->
+            DataBaseManager.instance.use { db ->
                 val preparedStatement = db.connection?.prepareStatement(sqlPersonal)!!
                 preparedStatement.setString(1, entidad.nombre)
                 preparedStatement.setString(2, entidad.apellidos)
@@ -364,7 +364,7 @@ class PersonalRepositoryImpl : PersonalRepository {
                 else -> throw IllegalArgumentException("Tipo desconocido de Personal")
             }
 
-            DataBaseManager.use { db ->
+            DataBaseManager.instance.use { db ->
                 val preparedStatement = db.connection?.prepareStatement(sql)!!
 
                 if (entidad is Jugador) {
@@ -405,7 +405,7 @@ class PersonalRepositoryImpl : PersonalRepository {
                 is Entrenador -> "DELETE FROM Entrenadores WHERE id = ?"
                 else -> throw IllegalArgumentException("Tipo desconocido de Personal")
             }
-            DataBaseManager.use { db ->
+            DataBaseManager.instance.use { db ->
                 val preparedStatement = db.connection?.prepareStatement(sql)!!
                 preparedStatement.setInt(1, id)
                 preparedStatement.executeUpdate()

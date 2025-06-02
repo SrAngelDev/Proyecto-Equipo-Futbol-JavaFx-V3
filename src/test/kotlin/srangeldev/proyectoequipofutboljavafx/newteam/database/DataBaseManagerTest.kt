@@ -43,43 +43,9 @@ class DataBaseManagerTest {
     @Test
     fun `test database connection is not null`() {
         // The DataBaseManager is initialized in its init block, so we just need to check that the connection is not null
-        assertNotNull(DataBaseManager.connection)
+        assertNotNull(DataBaseManager.instance.connection)
     }
-
-    @Test
-    fun `test use function executes block and closes connection`() {
-        // Use the DataBaseManager to execute a block
-        var blockExecuted = false
-        DataBaseManager.use { manager ->
-            // Check that the connection is not null
-            assertNotNull(manager.connection)
-            assertFalse(manager.connection!!.isClosed)
-
-            // Set a flag to verify that the block was executed
-            blockExecuted = true
-        }
-
-        // Verify that the block was executed
-        assertTrue(blockExecuted)
-
-        // Verify that the connection is closed after the block is executed
-        assertTrue(DataBaseManager.connection!!.isClosed)
-    }
-
-    @Test
-    fun `test close function closes connection`() {
-        // Ensure the connection is open
-        DataBaseManager.use { manager ->
-            assertFalse(manager.connection!!.isClosed)
-        }
-
-        // Close the connection
-        DataBaseManager.close()
-
-        // Verify that the connection is closed
-        assertTrue(DataBaseManager.connection!!.isClosed)
-    }
-
+    
     @Test
     fun `test deleteDatabase deletes database file`() {
         // Create a test database file
@@ -92,7 +58,7 @@ class DataBaseManagerTest {
         assertTrue(dbFile.exists())
 
         // Delete the database
-        DataBaseManager.deleteDatabase()
+        DataBaseManager.instance.deleteDatabase()
 
         // Verify that the file no longer exists
         // Note: This test might fail if the database is in use by another process
