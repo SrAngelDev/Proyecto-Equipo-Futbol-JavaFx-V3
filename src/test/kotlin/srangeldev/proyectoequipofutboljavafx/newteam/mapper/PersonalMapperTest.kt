@@ -45,7 +45,6 @@ class PersonalMapperTest {
         altura = 1.80,
         peso = 75.0,
         goles = 10,
-        partidosJugados = 20
     )
     
     // CSV DTO tests
@@ -263,7 +262,6 @@ class PersonalMapperTest {
         assertEquals(1.8, jugador.altura)
         assertEquals(75.0, jugador.peso)
         assertEquals(10, jugador.goles)
-        assertEquals(20, jugador.partidosJugados)
     }
     
     // XML DTO tests

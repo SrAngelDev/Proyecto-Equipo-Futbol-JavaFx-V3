@@ -64,6 +64,7 @@ fun Jugador.toCsvDto(): PersonalCsvDto {
         altura = this.altura.toString(),
         peso = this.peso.toString(),
         goles = this.goles.toString(),
+        partidosJugados = this.partidosJugados.toString(),
         imagenUrl = this.imagenUrl
     )
 }
@@ -98,6 +99,7 @@ fun Jugador.toJsonDto(): PersonalJsonDto {
         altura = this.altura,
         peso = this.peso,
         goles = this.goles,
+        partidosJugados = this.partidosJugados,
         imagenUrl = this.imagenUrl
     )
 }
@@ -132,6 +134,7 @@ fun Jugador.toXmlDto(): PersonalXmlDto {
         altura = this.altura.toString(),
         peso = this.peso.toString(),
         goles = this.goles.toString(),
+        partidosJugados = this.partidosJugados.toString(),
         imagenUrl = this.imagenUrl
     )
 }
@@ -178,6 +181,7 @@ fun PersonalCsvDto.toJugador(): Jugador {
         altura = this.altura.toDouble(),
         peso = this.peso.toDouble(),
         goles = this.goles.toInt(),
+        partidosJugados = this.partidosJugados?.toInt() ?: 0,
         imagenUrl = this.imagenUrl
     )
 }
@@ -224,6 +228,7 @@ fun PersonalJsonDto.toJugador(): Jugador {
         altura = this.altura?.toDouble() ?: 0.0,
         peso = this.peso?.toDouble() ?: 0.0,
         goles = this.goles?.toInt() ?: 0,
+        partidosJugados = this.partidosJugados?.toInt() ?: 0,
         imagenUrl = this.imagenUrl
     )
 }
@@ -270,6 +275,7 @@ fun PersonalXmlDto.toJugador(): Jugador {
         altura = this.altura.toDouble(),
         peso = this.peso.toDouble(),
         goles = this.goles.toInt(),
+        partidosJugados = this.partidosJugados?.toInt() ?: 0,
         imagenUrl = this.imagenUrl
     )
 }

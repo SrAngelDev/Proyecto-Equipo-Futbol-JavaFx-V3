@@ -21,6 +21,7 @@ class Jugador(
     val altura: Double,
     val peso: Double,
     val goles: Int,
+    val partidosJugados: Int,
     imagenUrl: String = ""
 ): Personal(id, nombre, apellidos, fechaNacimiento, fechaIncorporacion, salario, paisOrigen, createdAt, updatedAt, imagenUrl) {
     enum class Posicion {
@@ -30,6 +31,6 @@ class Jugador(
         DELANTERO
     }
     override fun toString(): String {
-        return "Jugador(id=$id, nombre='$nombre', apellidos='$apellidos', fechaNacimiento=$fechaNacimiento, fechaIncorporacion=$fechaIncorporacion, salario=$salario, paisOrigen='$paisOrigen', posicion=$posicion, dorsal=$dorsal, altura=$altura, peso=$peso, goles=$goles)"
+        return "Jugador(id=$id, nombre='$nombre', apellidos='$apellidos', fechaNacimiento=$fechaNacimiento, fechaIncorporacion=$fechaIncorporacion, salario=$salario, paisOrigen='$paisOrigen', posicion=$posicion, dorsal=$dorsal, altura=$altura, peso=$peso, goles=$goles, partidosJugados=$partidosJugados)"
     }
 }

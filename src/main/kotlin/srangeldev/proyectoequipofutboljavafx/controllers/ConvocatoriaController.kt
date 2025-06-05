@@ -240,7 +240,7 @@ class ConvocatoriaController : KoinComponent {
         }
 
         // Configurar el cell factory para mostrar "Sí" o "No" en lugar de true/false
-        titularColumn.setCellFactory { column ->
+        titularColumn.setCellFactory { _ ->
             val cell = TableCell<Jugador, Boolean>()
             cell.textProperty().bind(
                 javafx.beans.binding.Bindings.createStringBinding(
@@ -368,8 +368,7 @@ class ConvocatoriaController : KoinComponent {
      */
     private fun selectEntrenadores() {
         logger.debug { "Seleccionando entrenadores para la convocatoria" }
-
-        val convocatoria = currentConvocatoria ?: return
+        
 
         // Limpiar la caché del repositorio para asegurar datos actualizados
         personalRepository.clearCache()

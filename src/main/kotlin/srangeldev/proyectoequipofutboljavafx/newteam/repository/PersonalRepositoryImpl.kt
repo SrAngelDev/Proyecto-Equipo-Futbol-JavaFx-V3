@@ -103,6 +103,7 @@ class PersonalRepositoryImpl : PersonalRepository {
                     altura = res.getDouble("altura"),
                     peso = res.getDouble("peso"),
                     goles = res.getInt("goles"),
+                    partidosJugados = res.getInt("partidos_jugados"),
                     createdAt = res.getTimestamp("created_at")?.toLocalDateTime() ?: LocalDateTime.now(),
                     updatedAt = res.getTimestamp("updated_at")?.toLocalDateTime() ?: LocalDateTime.now()
                 )
@@ -194,6 +195,7 @@ class PersonalRepositoryImpl : PersonalRepository {
                     altura = res.getDouble("altura"),
                     peso = res.getDouble("peso"),
                     goles = res.getInt("goles"),
+                    partidosJugados = res.getInt("partidos_jugados"),
                     createdAt = res.getTimestamp("created_at")?.toLocalDateTime() ?: LocalDateTime.now(),
                     updatedAt = res.getTimestamp("updated_at")?.toLocalDateTime() ?: LocalDateTime.now(),
                     imagenUrl = res.getString("imagen_url") ?: ""
@@ -257,6 +259,7 @@ class PersonalRepositoryImpl : PersonalRepository {
                         setDouble(4, entidad.altura)
                         setDouble(5, entidad.peso)
                         setInt(6, entidad.goles)
+                        setInt(7, entidad.partidosJugados)
                         executeUpdate()
                     }
 
@@ -273,6 +276,7 @@ class PersonalRepositoryImpl : PersonalRepository {
                         altura = entidad.altura,
                         peso = entidad.peso,
                         goles = entidad.goles,
+                        partidosJugados = entidad.partidosJugados,
                         createdAt = timeStamp,
                         updatedAt = timeStamp,
                         imagenUrl = entidad.imagenUrl
@@ -369,6 +373,7 @@ class PersonalRepositoryImpl : PersonalRepository {
                     preparedStatement.setDouble(3, entidad.altura)
                     preparedStatement.setDouble(4, entidad.peso)
                     preparedStatement.setInt(5, entidad.goles)
+                    preparedStatement.setInt(6, entidad.partidosJugados)
                     preparedStatement.setInt(7, id)
                 } else if (entidad is Entrenador) {
                     preparedStatement.setString(1, entidad.especializacion.name)
