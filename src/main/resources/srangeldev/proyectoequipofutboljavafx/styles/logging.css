@@ -393,3 +393,31 @@
     -fx-font-style: italic;
     -fx-animation: blink 1.5s infinite;
 }
+
+/* Dialog styles */
+.dialog-pane {
+    -fx-background-radius: 0;
+    -fx-border-radius: 0;
+}
+
+.dialog-header-text {
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -accent-color;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.7), 5, 0, 0, 0);
+}
+
+.dialog-separator {
+    -fx-background-color: -accent-color;
+    -fx-opacity: 0.9;
+    -fx-effect: dropshadow(three-pass-box, -glow-yellow, 5, 0.5, 0, 0);
+    -fx-pref-width: 250;
+}
+
+.dialog-header-area {
+    -fx-padding: 15 25 15 25;
+}
+
+.dialog-content-area {
+    -fx-padding: 25;
+}
