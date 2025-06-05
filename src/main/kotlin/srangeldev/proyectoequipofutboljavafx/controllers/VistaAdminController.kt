@@ -62,8 +62,7 @@ class VistaAdminController {
     private lateinit var nombreColumn: TableColumn<Personal, String>
     @FXML
     private lateinit var apellidosColumn: TableColumn<Personal, String>
-    @FXML
-    private lateinit var avgMinutosLabel: Label
+    // Removed avgMinutosLabel as per issue requirements
     @FXML
     private lateinit var avgGolesLabel: Label
     @FXML
@@ -102,10 +101,7 @@ class VistaAdminController {
     private lateinit var golesLabel: Label
     @FXML
     private lateinit var golesTextField: TextField
-    @FXML
-    private lateinit var minutosLabel: Label
-    @FXML
-    private lateinit var minutosTextField: TextField
+    // Removed minutosLabel and minutosTextField as per issue requirements
     @FXML
     private lateinit var saveButton: Button
     @FXML
@@ -473,9 +469,6 @@ class VistaAdminController {
         partidosTextField.isVisible = false
         golesLabel.isVisible = false
         golesTextField.isVisible = false
-        minutosLabel.isVisible = false
-        minutosTextField.isVisible = false
-
         // Mostrar campos específicos según el tipo
         when (personal) {
             is Jugador -> {
@@ -491,15 +484,11 @@ class VistaAdminController {
 
                 partidosLabel.isVisible = true
                 partidosTextField.isVisible = true
-                partidosTextField.text = personal.partidosJugados.toString()
 
                 golesLabel.isVisible = true
                 golesTextField.isVisible = true
                 golesTextField.text = personal.goles.toString()
 
-                minutosLabel.isVisible = true
-                minutosTextField.isVisible = true
-                //minutosTextField.text = personal.minutosJugados.toString()
             }
 
             is Entrenador -> {
@@ -615,7 +604,6 @@ class VistaAdminController {
                         altura = (selectedPersonal as Jugador).altura,
                         peso = (selectedPersonal as Jugador).peso,
                         goles = goles,
-                        partidosJugados = partidosJugados,
                         imagenUrl = selectedImageUrl // Usar la URL de la imagen seleccionada
                     )
                 }
@@ -681,7 +669,6 @@ class VistaAdminController {
         fechaIncorporacionPicker.value = LocalDate.now()
         partidosTextField.clear()
         golesTextField.clear()
-        minutosTextField.clear()
 
         loadDefaultImage()
         playersTableView.selectionModel.clearSelection()
@@ -698,7 +685,6 @@ class VistaAdminController {
         fechaIncorporacionPicker.isDisable = !editable
         partidosTextField.isEditable = editable
         golesTextField.isEditable = editable
-        minutosTextField.isEditable = editable
     }
 
     private fun updateStatistics() {
@@ -712,7 +698,6 @@ class VistaAdminController {
             //avgMinutosLabel.text = String.format("%.1f", avgMinutos)
             avgGolesLabel.text = String.format("%.1f", avgGoles)
         } else {
-            avgMinutosLabel.text = "0"
             avgGolesLabel.text = "0"
         }
     }
@@ -1357,8 +1342,6 @@ class VistaAdminController {
         partidosTextField.isVisible = true
         golesLabel.isVisible = true
         golesTextField.isVisible = true
-        minutosLabel.isVisible = true
-        minutosTextField.isVisible = true
 
         // Ocultar campos específicos para entrenador
         especialidadLabel.isVisible = false
@@ -1386,7 +1369,5 @@ class VistaAdminController {
         partidosTextField.isVisible = false
         golesLabel.isVisible = false
         golesTextField.isVisible = false
-        minutosLabel.isVisible = false
-        minutosTextField.isVisible = false
     }
 }

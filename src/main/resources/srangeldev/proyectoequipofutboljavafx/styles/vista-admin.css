@@ -560,9 +560,13 @@
 }
 
 .stats-container {
-    -fx-background-color: derive(-background-light, 2%);
+    -fx-background-color: -dark-surface;
     -fx-background-radius: 5;
     -fx-border-radius: 5;
+    -fx-border-color: -dark-border;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 5, 0, 0, 0);
+    -fx-padding: 10;
 }
 
 /* Image container styles */

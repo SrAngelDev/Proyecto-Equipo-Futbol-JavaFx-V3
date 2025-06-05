@@ -230,7 +230,6 @@ class PersonalStorageXml : PersonalStorageFile {
                         xmlBuilder.append("        <altura>${personal.altura}</altura>\n")
                         xmlBuilder.append("        <peso>${personal.peso}</peso>\n")
                         xmlBuilder.append("        <goles>${personal.goles}</goles>\n")
-                        xmlBuilder.append("        <partidosJugados>${personal.partidosJugados}</partidosJugados>\n")
                         if (personal.imagenUrl.isNotEmpty()) {
                             xmlBuilder.append("        <imagenUrl>${personal.imagenUrl}</imagenUrl>\n")
                         }

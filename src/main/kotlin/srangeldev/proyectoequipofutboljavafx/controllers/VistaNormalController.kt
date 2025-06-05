@@ -49,7 +49,7 @@ class VistaNormalController {
     @FXML private lateinit var allToggleButton: ToggleButton
     @FXML private lateinit var playerToggleButton: ToggleButton
     @FXML private lateinit var coachToggleButton: ToggleButton
-    @FXML private lateinit var avgMinutosLabel: Label
+    // Removed avgMinutosLabel as per issue requirements
     @FXML private lateinit var avgGolesLabel: Label
 
     // Panel derecho - Detalles del jugador
@@ -347,7 +347,7 @@ class VistaNormalController {
                 val fxmlLoader = FXMLLoader(RoutesManager.getResource("views/newTeam/convocatoria-normal.fxml"))
                 val stage = Stage()
                 stage.title = "Convocatorias"
-                stage.scene = Scene(fxmlLoader.load(), 1280.0, 720.0)
+                stage.scene = Scene(fxmlLoader.load())
                 stage.show()
             } catch (e: Exception) {
                 logger.error { "Error al abrir la vista de convocatorias: ${e.message}" }
@@ -449,7 +449,6 @@ class VistaNormalController {
                 logger.debug { "Posición del jugador (name): ${personal.posicion.name}" }
                 posicionComboBox.value = personal.posicion.name
                 dorsalTextField.text = personal.dorsal.toString()
-                partidosTextField.text = personal.partidosJugados.toString()
                 golesTextField.text = personal.goles.toString()
                 //minutosTextField.text = personal.minutosJugados.toString()
             }
@@ -581,7 +580,6 @@ class VistaNormalController {
             //avgMinutosLabel.text = String.format("%.2f", avgMinutos)
             avgGolesLabel.text = String.format("%.2f", avgGoles)
         } else {
-            avgMinutosLabel.text = "0"
             avgGolesLabel.text = "0"
         }
     }

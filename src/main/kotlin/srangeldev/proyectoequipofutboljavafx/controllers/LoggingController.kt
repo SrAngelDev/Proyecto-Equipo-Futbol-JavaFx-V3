@@ -2,6 +2,7 @@ package srangeldev.proyectoequipofutboljavafx.controllers
 
 import javafx.fxml.FXML
 import javafx.fxml.FXMLLoader
+import javafx.scene.Parent
 import javafx.scene.Scene
 import javafx.scene.control.*
 import javafx.scene.image.ImageView
@@ -135,11 +136,10 @@ class LoggingController : KoinComponent {
     private fun cargarVistaAdmin() {
         try {
             logger.debug { "Intentando cargar vista de administración" }
-            val loader = FXMLLoader(RoutesManager.getResource(srangeldev.proyectoequipofutboljavafx.routes.RoutesManager.View.ADMIN.fxml))
+            val loader = FXMLLoader(RoutesManager.getResource(RoutesManager.View.ADMIN.fxml))
+            val root = loader.load<Parent>()
             val stage = usuarioField.scene.window as Stage
-            logger.debug { "Stage obtenido correctamente" }
-            stage.scene = Scene(loader.load(), 1920.0, 1080.0)
-            logger.debug { "Scene cargada correctamente con dimensiones 1920x1080" }
+            stage.scene = Scene(root)
             stage.title = "Panel de Administración"
             logger.debug { "Vista de administración cargada correctamente" }
         } catch (e: Exception) {
@@ -160,11 +160,10 @@ class LoggingController : KoinComponent {
     private fun cargarVistaUsuario() {
         try {
             logger.debug { "Intentando cargar vista de usuario normal" }
-            val loader = FXMLLoader(srangeldev.proyectoequipofutboljavafx.routes.RoutesManager.getResource(srangeldev.proyectoequipofutboljavafx.routes.RoutesManager.View.NORMAL.fxml))
+            val loader = FXMLLoader(RoutesManager.getResource(RoutesManager.View.NORMAL.fxml))
+            val root = loader.load<Parent>()
             val stage = usuarioField.scene.window as Stage
-            logger.debug { "Stage obtenido correctamente" }
-            stage.scene = Scene(loader.load(), 1920.0, 1080.0)
-            logger.debug { "Scene cargada correctamente con dimensiones 1920x1080" }
+            stage.scene = Scene(root)
             stage.title = "Panel de Usuario Normal"
             logger.debug { "Vista de usuario normal cargada correctamente" }
         } catch (e: Exception) {

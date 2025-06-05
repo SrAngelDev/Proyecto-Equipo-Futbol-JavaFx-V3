@@ -106,7 +106,7 @@ object RoutesManager {
     private fun welcomeStage(stage: Stage) {
         val fxmlLoader = FXMLLoader(getResource(View.WELCOME.fxml))
         stage.apply {
-            scene = Scene(fxmlLoader.load(), 1280.0, 720.0)
+            scene = Scene(fxmlLoader.load())
             title = "Bienvenido"
             show()
         }
