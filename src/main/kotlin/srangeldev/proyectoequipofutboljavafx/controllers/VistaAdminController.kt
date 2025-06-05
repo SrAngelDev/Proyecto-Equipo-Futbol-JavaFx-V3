@@ -56,6 +56,10 @@ class VistaAdminController : KoinComponent {
     private val logger = logging()
     private val userRepository: UserRepository = UserRepositoryImpl()
 
+    // Elemento oculto para tamaños de diálogos
+    @FXML
+    private lateinit var dialogTableSizes: TableView<*>
+
     // Inyectar los repositorios usando Koin para la funcionalidad de convocatorias
     private val convocatoriaRepository: ConvocatoriaRepository by inject()
     private val personalRepository: PersonalRepository by inject()
@@ -228,8 +232,6 @@ class VistaAdminController : KoinComponent {
     @FXML
     private lateinit var selectEntrenadoresButton: Button
     @FXML
-    private lateinit var entrenadoresCountLabel: Label
-    @FXML
     private lateinit var entrenadoresTableView: TableView<Entrenador>
     @FXML
     private lateinit var idEntrenadorColumn: TableColumn<Entrenador, Int>
@@ -275,6 +277,10 @@ class VistaAdminController : KoinComponent {
     private lateinit var saveConvocatoriaButton: Button
     @FXML
     private lateinit var cancelConvocatoriaButton: Button
+
+    // Convocatorias Tab - SplitPane
+    @FXML
+    private lateinit var convocatoriasSplitPane: SplitPane
 
     private val personalList: ObservableList<Personal> = FXCollections.observableArrayList()
     private val filteredPersonalList: FilteredList<Personal> = FilteredList(personalList) { true }
@@ -574,7 +580,7 @@ class VistaAdminController : KoinComponent {
             is Jugador -> {
                 posicionLabel.isVisible = true
                 posicionComboBox.isVisible = true
-                logger.debug { "Posición del jugador: ${personal.posicion.toString()}" }
+                logger.debug { "Posición del jugador: ${personal.posicion}" }
                 logger.debug { "Posición del jugador (name): ${personal.posicion.name}" }
                 posicionComboBox.value = personal.posicion.name
 
@@ -595,7 +601,7 @@ class VistaAdminController : KoinComponent {
             is Entrenador -> {
                 especialidadLabel.isVisible = true
                 especialidadComboBox.isVisible = true
-                logger.debug { "Especialización del entrenador: ${personal.especializacion.toString()}" }
+                logger.debug { "Especialización del entrenador: ${personal.especializacion}" }
                 logger.debug { "Especialización del entrenador (name): ${personal.especializacion.name}" }
                 especialidadComboBox.value = personal.especializacion.name
             }
@@ -775,6 +781,7 @@ class VistaAdminController : KoinComponent {
         loadDefaultImage()
         playersTableView.selectionModel.clearSelection()
         selectedPersonal = null
+        setFieldsEditable(false)
     }
 
     private fun setFieldsEditable(editable: Boolean) {
@@ -794,10 +801,8 @@ class VistaAdminController : KoinComponent {
         val jugadores = filteredPersonalList.filterIsInstance<Jugador>()
 
         if (jugadores.isNotEmpty()) {
-            //val avgMinutos = jugadores.map { it.minutosJugados }.average()
             val avgGoles = jugadores.map { it.goles }.average()
 
-            //avgMinutosLabel.text = String.format("%.1f", avgMinutos)
             avgGolesLabel.text = String.format("%.1f", avgGoles)
         } else {
             avgGolesLabel.text = "0"
@@ -924,7 +929,7 @@ class VistaAdminController : KoinComponent {
             if (isEditingUser && selectedUser != null) {
                 // Actualizar usuario existente
                 // Si la contraseña está vacía, mantener la contraseña actual
-                val updatedPassword = if (password.isEmpty()) selectedUser!!.password else password
+                val updatedPassword = password.ifEmpty { selectedUser!!.password }
 
                 val updatedUser = User(
                     id = selectedUser!!.id,
@@ -1036,6 +1041,16 @@ class VistaAdminController : KoinComponent {
 
         // Inicialmente, ocultar el panel de detalles
         clearConvocatoriaDetailsPanel()
+
+        // Fijar la posición del divisor del SplitPane en 0.68
+        convocatoriasSplitPane.setDividerPosition(0, 0.68)
+
+        // Añadir un listener para mantener la posición del divisor en 0.68
+        convocatoriasSplitPane.dividers[0].positionProperty().addListener { _, _, newValue ->
+            if (newValue.toDouble() != 0.68) {
+                convocatoriasSplitPane.setDividerPosition(0, 0.68)
+            }
+        }
     }
 
     /**
@@ -1252,7 +1267,6 @@ class VistaAdminController : KoinComponent {
         currentConvocatoria = null
         fechaConvocatoriaPicker.value = null
         entrenadoresSeleccionados.clear()
-        entrenadoresCountLabel.text = "0 entrenadores seleccionados"
         descripcionTextArea.text = ""
         jugadoresConvocados.clear()
         updateConvocatoriaCountLabels()
@@ -1332,7 +1346,6 @@ class VistaAdminController : KoinComponent {
             val principalCount = entrenadoresSeleccionados.count { it.especializacion == Entrenador.Especializacion.ENTRENADOR_PRINCIPAL }
             val asistenteCount = entrenadoresSeleccionados.count { it.especializacion == Entrenador.Especializacion.ENTRENADOR_ASISTENTE }
             val porterosCount = entrenadoresSeleccionados.count { it.especializacion == Entrenador.Especializacion.ENTRENADOR_PORTEROS }
-            entrenadoresCountLabel.text = "${entrenadoresSeleccionados.size} entrenadores seleccionados ($principalCount Principal, $asistenteCount Asistente, $porterosCount Porteros)"
         }
 
         // Cargar los jugadores convocados
@@ -1399,8 +1412,6 @@ class VistaAdminController : KoinComponent {
         entrenadoresSeleccionados.clear()
         entrenadoresSeleccionados.add(entrenadorPrincipal)
 
-        // Actualizar la etiqueta de conteo
-        entrenadoresCountLabel.text = "${entrenadoresSeleccionados.size} entrenadores seleccionados"
 
         // Habilitar la edición
         setConvocatoriaFieldsEditable(true)
@@ -1553,8 +1564,8 @@ class VistaAdminController : KoinComponent {
 
         // Crear la tabla de entrenadores
         val tableView = TableView<Entrenador>()
-        tableView.prefWidth = 600.0
-        tableView.prefHeight = 400.0
+        tableView.prefWidth = dialogTableSizes.prefWidth
+        tableView.prefHeight = dialogTableSizes.prefHeight
 
         // Columnas
         val idColumn = TableColumn<Entrenador, Int>("ID")
@@ -1690,8 +1701,6 @@ class VistaAdminController : KoinComponent {
             val principalCount = entrenadoresSeleccionados.count { it.especializacion == Entrenador.Especializacion.ENTRENADOR_PRINCIPAL }
             val asistenteCount = entrenadoresSeleccionados.count { it.especializacion == Entrenador.Especializacion.ENTRENADOR_ASISTENTE }
             val porterosCount = entrenadoresSeleccionados.count { it.especializacion == Entrenador.Especializacion.ENTRENADOR_PORTEROS }
-            entrenadoresCountLabel.text = "${entrenadoresSeleccionados.size} entrenadores seleccionados ($principalCount Principal, $asistenteCount Asistente, $porterosCount Porteros)"
-
             // Refrescar la tabla
             entrenadoresTableView.refresh()
         }
@@ -1735,8 +1744,8 @@ class VistaAdminController : KoinComponent {
 
         // Crear la tabla de jugadores
         val tableView = TableView<Jugador>()
-        tableView.prefWidth = 600.0
-        tableView.prefHeight = 400.0
+        tableView.prefWidth = dialogTableSizes.prefWidth
+        tableView.prefHeight = dialogTableSizes.prefHeight
 
         // Columnas
         val idColumn = TableColumn<Jugador, Int>("ID")
@@ -1898,8 +1907,8 @@ class VistaAdminController : KoinComponent {
 
         // Crear la tabla de jugadores
         val tableView = TableView<Jugador>()
-        tableView.prefWidth = 600.0
-        tableView.prefHeight = 400.0
+        tableView.prefWidth = dialogTableSizes.prefWidth
+        tableView.prefHeight = dialogTableSizes.prefHeight
 
         // Columnas
         val idColumn = TableColumn<Jugador, Int>("ID")
@@ -2076,8 +2085,8 @@ class VistaAdminController : KoinComponent {
                             salario = entrenadorPrincipal.salario,
                             paisOrigen = entrenadorPrincipal.paisOrigen,
                             especializacion = entrenadorPrincipal.especializacion,
-                            createdAt = java.time.LocalDateTime.now(),
-                            updatedAt = java.time.LocalDateTime.now()
+                            createdAt = LocalDateTime.now(),
+                            updatedAt = LocalDateTime.now()
                         )
                     )
 

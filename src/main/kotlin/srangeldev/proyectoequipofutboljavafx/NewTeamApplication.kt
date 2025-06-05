@@ -5,7 +5,6 @@ import javafx.stage.Stage
 import org.koin.core.component.KoinComponent
 import org.koin.core.context.startKoin
 import org.koin.core.logger.Level
-import org.koin.dsl.module
 import srangeldev.proyectoequipofutboljavafx.di.appModule
 import srangeldev.proyectoequipofutboljavafx.newteam.database.DataBaseManager
 import srangeldev.proyectoequipofutboljavafx.routes.RoutesManager

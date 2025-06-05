@@ -36,6 +36,12 @@
       <URL value="@../../styles/vista-normal.css" />
    </stylesheets>
    <children>
+      <!-- Hidden elements for dialog sizes -->
+      <AnchorPane fx:id="dialogSizes" managed="false" visible="false">
+         <children>
+            <TableView fx:id="dialogTableSizes" prefHeight="400.0" prefWidth="800.0" />
+         </children>
+      </AnchorPane>
       <MenuBar styleClass="menu-bar" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
         <menus>
           <Menu mnemonicParsing="false" text="Opciones">
@@ -295,7 +301,7 @@
                           </GridPane>
 
                           <Label text="Jugadores Convocados" styleClass="section-title" />
-                          <TableView fx:id="jugadoresConvocadosTableView" prefHeight="200.0">
+                          <TableView fx:id="jugadoresConvocadosTableView" prefHeight="200.0" styleClass="styled-table-view">
                             <columns>
                               <TableColumn fx:id="idJugadorColumn" prefWidth="50.0" text="ID" />
                               <TableColumn fx:id="nombreJugadorColumn" prefWidth="150.0" text="Nombre" />
