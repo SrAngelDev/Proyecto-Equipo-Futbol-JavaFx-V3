@@ -108,7 +108,7 @@
                                   <Label fx:id="avgMinutosLabel" text="0" />
                                   <Label text="Promedio goles anotados:" />
                                   <Label fx:id="avgGolesLabel" text="0" />
-                                  <Button fx:id="addPlayerButton" mnemonicParsing="false" prefHeight="30.0" prefWidth="120.0" styleClass="green-button" text="Añadir">
+                                  <Button fx:id="addPlayerButton" mnemonicParsing="false" prefHeight="30.0" prefWidth="150.0" styleClass="green-button" text="Crear miembro">
                                   </Button>
                                   <Button fx:id="deletePlayerButton" mnemonicParsing="false" prefHeight="30.0" prefWidth="120.0" styleClass="red-button" text="Eliminar">
                                   </Button>

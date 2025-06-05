@@ -5,6 +5,7 @@ import javafx.collections.ObservableList
 import javafx.collections.transformation.FilteredList
 import javafx.fxml.FXML
 import javafx.scene.control.*
+import javafx.scene.control.ButtonBar
 import javafx.scene.control.cell.PropertyValueFactory
 import javafx.scene.image.Image
 import javafx.scene.image.ImageView
@@ -358,9 +359,8 @@ class VistaAdminController {
 
     private fun setupPlayerButtons() {
         addPlayerButton.setOnAction {
-            clearDetailsPanel()
-            setFieldsEditable(true)
-            selectedPersonal = null
+            // Mostrar diálogo para elegir entre crear jugador o entrenador
+            showCreateMemberDialog()
         }
 
         deletePlayerButton.setOnAction {
@@ -1305,5 +1305,88 @@ class VistaAdminController {
                     "- Ángel Sánchez Gasanz\n" +
                     "- Jorge Morgado Giménez\n"
         }.showAndWait()
+    }
+
+    /**
+     * Muestra un diálogo para elegir entre crear un jugador o un entrenador
+     */
+    private fun showCreateMemberDialog() {
+        // Crear un diálogo de tipo Alert con botones personalizados
+        val dialog = Alert(Alert.AlertType.CONFIRMATION)
+        dialog.title = "Crear Miembro"
+        dialog.headerText = "¿Qué tipo de miembro desea crear?"
+        dialog.contentText = "Seleccione el tipo de miembro que desea añadir al equipo."
+
+        // Personalizar los botones
+        val jugadorButton = ButtonType("Jugador")
+        val entrenadorButton = ButtonType("Entrenador")
+        val cancelarButton = ButtonType("Cancelar", ButtonBar.ButtonData.CANCEL_CLOSE)
+
+        dialog.buttonTypes.setAll(jugadorButton, entrenadorButton, cancelarButton)
+
+        // Mostrar el diálogo y procesar la respuesta
+        val result = dialog.showAndWait()
+
+        when {
+            result.isPresent && result.get() == jugadorButton -> {
+                // Preparar el formulario para crear un jugador
+                prepareFormForPlayer()
+            }
+            result.isPresent && result.get() == entrenadorButton -> {
+                // Preparar el formulario para crear un entrenador
+                prepareFormForCoach()
+            }
+            // Si se selecciona Cancelar o se cierra el diálogo, no hacer nada
+        }
+    }
+
+    /**
+     * Prepara el formulario para crear un jugador
+     */
+    private fun prepareFormForPlayer() {
+        clearDetailsPanel()
+        setFieldsEditable(true)
+        selectedPersonal = null
+
+        // Mostrar campos específicos para jugador
+        posicionLabel.isVisible = true
+        posicionComboBox.isVisible = true
+        dorsalLabel.isVisible = true
+        dorsalTextField.isVisible = true
+        partidosLabel.isVisible = true
+        partidosTextField.isVisible = true
+        golesLabel.isVisible = true
+        golesTextField.isVisible = true
+        minutosLabel.isVisible = true
+        minutosTextField.isVisible = true
+
+        // Ocultar campos específicos para entrenador
+        especialidadLabel.isVisible = false
+        especialidadComboBox.isVisible = false
+    }
+
+    /**
+     * Prepara el formulario para crear un entrenador
+     */
+    private fun prepareFormForCoach() {
+        clearDetailsPanel()
+        setFieldsEditable(true)
+        selectedPersonal = null
+
+        // Mostrar campos específicos para entrenador
+        especialidadLabel.isVisible = true
+        especialidadComboBox.isVisible = true
+
+        // Ocultar campos específicos para jugador
+        posicionLabel.isVisible = false
+        posicionComboBox.isVisible = false
+        dorsalLabel.isVisible = false
+        dorsalTextField.isVisible = false
+        partidosLabel.isVisible = false
+        partidosTextField.isVisible = false
+        golesLabel.isVisible = false
+        golesTextField.isVisible = false
+        minutosLabel.isVisible = false
+        minutosTextField.isVisible = false
     }
 }
