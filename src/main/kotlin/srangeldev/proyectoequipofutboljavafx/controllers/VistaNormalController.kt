@@ -12,6 +12,7 @@ import javafx.scene.layout.*
 import javafx.stage.Stage
 import javafx.scene.image.Image
 import javafx.scene.image.ImageView
+import javafx.geometry.Insets
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.lighthousegames.logging.logging
@@ -746,14 +747,28 @@ class VistaNormalController : KoinComponent {
     }
 
     private fun showAboutDialog() {
-        Alert(Alert.AlertType.INFORMATION).apply {
-            title = "Acerca De"
-            headerText = "Gestor de Jugadores de Fútbol"
-            contentText = "Versión 1.0\n" +
-                    "Desarrolladores:\n" +
-                    "- Ángel Sánchez Gasanz\n" +
-                    "- Jorge Morgado Jimenez"
-        }.showAndWait()
+        try {
+            // Load the FXML file
+            val loader = FXMLLoader(javaClass.getResource("/srangeldev/proyectoequipofutboljavafx/views/newTeam/about-dialog.fxml"))
+            val root = loader.load<GridPane>()
+
+            // Create a dialog
+            val dialog = Dialog<ButtonType>()
+            dialog.title = "Acerca De"
+            dialog.headerText = "Gestor de Jugadores de Fútbol"
+
+            // Set the content
+            dialog.dialogPane.content = root
+
+            // Add buttons
+            dialog.dialogPane.buttonTypes.add(ButtonType.CLOSE)
+
+            // Show the dialog
+            dialog.showAndWait()
+        } catch (e: Exception) {
+            logger.error { "Error loading about dialog: ${e.message}" }
+            showErrorDialog("Error", "No se pudo cargar el diálogo de acerca de: ${e.message}")
+        }
     }
 
     /**

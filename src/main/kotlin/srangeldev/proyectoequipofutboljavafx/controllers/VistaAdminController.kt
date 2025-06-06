@@ -8,13 +8,16 @@ import javafx.collections.FXCollections
 import javafx.collections.ObservableList
 import javafx.collections.transformation.FilteredList
 import javafx.fxml.FXML
+import javafx.fxml.FXMLLoader
 import javafx.scene.control.*
 import javafx.scene.control.ButtonBar
 import javafx.scene.control.cell.CheckBoxTableCell
 import javafx.scene.control.cell.PropertyValueFactory
 import javafx.scene.image.Image
 import javafx.scene.image.ImageView
+import javafx.scene.layout.GridPane
 import javafx.scene.layout.VBox
+import javafx.geometry.Insets
 import javafx.stage.DirectoryChooser
 import javafx.stage.Stage
 import org.koin.core.component.KoinComponent
@@ -2590,14 +2593,28 @@ class VistaAdminController : KoinComponent {
     }
 
     private fun showAboutDialog() {
-        Alert(Alert.AlertType.INFORMATION).apply {
-            title = "Acerca De"
-            headerText = "Gestor de Jugadores de Fútbol"
-            contentText = "Versión 1.0\n" +
-                    "Desarrolladores:\n" +
-                    "- Ángel Sánchez Gasanz\n" +
-                    "- Jorge Morgado Giménez\n"
-        }.showAndWait()
+        try {
+            // Load the FXML file
+            val loader = FXMLLoader(javaClass.getResource("/srangeldev/proyectoequipofutboljavafx/views/newTeam/about-dialog.fxml"))
+            val root = loader.load<GridPane>()
+
+            // Create a dialog
+            val dialog = Dialog<ButtonType>()
+            dialog.title = "Acerca De"
+            dialog.headerText = "Gestor de Jugadores de Fútbol"
+
+            // Set the content
+            dialog.dialogPane.content = root
+
+            // Add buttons
+            dialog.dialogPane.buttonTypes.add(ButtonType.CLOSE)
+
+            // Show the dialog
+            dialog.showAndWait()
+        } catch (e: Exception) {
+            logger.error { "Error loading about dialog: ${e.message}" }
+            showErrorDialog("Error", "No se pudo cargar el diálogo de acerca de: ${e.message}")
+        }
     }
 
     /**
