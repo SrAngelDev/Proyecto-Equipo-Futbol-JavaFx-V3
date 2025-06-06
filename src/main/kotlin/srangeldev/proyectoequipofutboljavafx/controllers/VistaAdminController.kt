@@ -813,7 +813,10 @@ class VistaAdminController : KoinComponent {
         // Configurar tabla de usuarios
         userIdColumn.cellValueFactory = PropertyValueFactory("id")
         usernameColumn.cellValueFactory = PropertyValueFactory("username")
-        passwordColumn.cellValueFactory = PropertyValueFactory("password")
+        // Mostrar asteriscos en lugar de la contraseña hasheada por seguridad
+        passwordColumn.cellValueFactory = javafx.util.Callback { _ -> 
+            SimpleStringProperty("********") 
+        }
         roleColumn.cellValueFactory = PropertyValueFactory("role")
 
         // Cargar usuarios
@@ -910,7 +913,7 @@ class VistaAdminController : KoinComponent {
 
     private fun showUserDetails(user: User) {
         usernameTextField.text = user.username
-        passwordTextField.text = user.password // Mostramos la contraseña hasheada
+        passwordTextField.text = user.password
         roleComboBox.value = if (user.role == User.Role.ADMIN) "Administrador" else "Usuario"
         isEditingUser = true
     }
@@ -928,8 +931,12 @@ class VistaAdminController : KoinComponent {
         try {
             if (isEditingUser && selectedUser != null) {
                 // Actualizar usuario existente
-                // Si la contraseña está vacía, mantener la contraseña actual
-                val updatedPassword = password.ifEmpty { selectedUser!!.password }
+                // Si la contraseña está vacía o contiene asteriscos (contraseña oculta), mantener la contraseña actual
+                val updatedPassword = if (password.isEmpty() || password == "********") {
+                    selectedUser!!.password
+                } else {
+                    password
+                }
 
                 val updatedUser = User(
                     id = selectedUser!!.id,
