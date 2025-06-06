@@ -24,31 +24,31 @@ class UserRepositoryImpl : UserRepository {
     override fun findAll(): List<User> {
         logger.debug { "Obteniendo todos los usuarios" }
 
-        // Limpiar la caché para asegurarnos de obtener datos actualizados
-        users.clear()
-
         val usersList = mutableListOf<User>()
 
-        val sql = "SELECT * FROM Usuarios"
-
-        DataBaseManager.instance.use { db ->
-            val statement = db.connection?.createStatement()
-            val resultSet = statement?.executeQuery(sql)
-
-            while (resultSet?.next() == true) {
-                val user = User(
-                    id = resultSet.getInt("id"),
-                    username = resultSet.getString("username"),
-                    password = resultSet.getString("password"),
-                    role = User.Role.valueOf(resultSet.getString("role")),
-                    createdAt = LocalDateTime.parse(resultSet.getString("created_at"), dateTimeFormatter),
-                    updatedAt = LocalDateTime.parse(resultSet.getString("updated_at"), dateTimeFormatter)
-                )
-
-                // Añadir a la lista y a la caché
-                usersList.add(user)
-                users[user.username] = user
+        try {
+            DataBaseManager.instance.use { db ->
+                val sql = "SELECT * FROM Usuarios"
+                db.connection?.prepareStatement(sql)?.use { statement ->
+                    statement.executeQuery().use { resultSet ->
+                        while (resultSet.next()) {
+                            val user = User(
+                                id = resultSet.getInt("id"),
+                                username = resultSet.getString("username"),
+                                password = resultSet.getString("password"),
+                                role = User.Role.valueOf(resultSet.getString("role")),
+                                createdAt = LocalDateTime.parse(resultSet.getString("created_at"), dateTimeFormatter),
+                                updatedAt = LocalDateTime.parse(resultSet.getString("updated_at"), dateTimeFormatter)
+                            )
+                            usersList.add(user)
+                            users[user.username] = user
+                        }
+                    }
+                }
             }
+        } catch (e: Exception) {
+            logger.error { "Error al obtener los usuarios: ${e.message}" }
+            throw RuntimeException("Error al obtener los usuarios: ${e.message}")
         }
 
         return usersList
@@ -138,7 +138,8 @@ class UserRepositoryImpl : UserRepository {
             var newUser: User? = null
 
             DataBaseManager.instance.use { db ->
-                val connection = db.connection ?: throw IllegalStateException("Conexión a la base de datos no disponible")
+                val connection =
+                    db.connection ?: throw IllegalStateException("Conexión a la base de datos no disponible")
 
                 // Insertar el usuario
                 val insertSql = """

@@ -15,10 +15,6 @@ import java.time.LocalDateTime
 class PersonalRepositoryImpl : PersonalRepository {
     private val logger = logging()
     private val personal = mutableMapOf<Int, Personal>()
-    // SQLite stores timestamps in the format "YYYY-MM-DD HH:MM:SS"
-    // No longer needed as we're using getTimestamp instead of getString for datetime fields
-    // private val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
-
     init {
         logger.debug { "Inicializando repositorio de personal" }
     }
