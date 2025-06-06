@@ -69,6 +69,9 @@ dependencies {
     // Open Browser
     implementation("com.vaadin:open:8.5.0.4")
 
+    // Informe PDF
+    implementation("com.itextpdf:itextpdf:5.5.13.4")
+
     // Cache Caffeine
     implementation("com.github.ben-manes.caffeine:caffeine:3.2.0")
 

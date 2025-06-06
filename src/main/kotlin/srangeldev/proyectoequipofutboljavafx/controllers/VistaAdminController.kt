@@ -42,6 +42,7 @@ import srangeldev.proyectoequipofutboljavafx.newteam.storage.PersonalStorageJson
 import srangeldev.proyectoequipofutboljavafx.newteam.utils.ZipFile
 import srangeldev.proyectoequipofutboljavafx.newteam.storage.PersonalStorageXml
 import srangeldev.proyectoequipofutboljavafx.newteam.utils.HtmlReportGenerator
+import srangeldev.proyectoequipofutboljavafx.newteam.utils.PdfReportGenerator
 import java.awt.Desktop
 import java.io.File
 import java.time.LocalDate
@@ -153,6 +154,8 @@ class VistaAdminController : KoinComponent {
     private lateinit var importDataMenuItem: MenuItem
     @FXML
     private lateinit var printHtmlMenuItem: MenuItem
+    @FXML
+    private lateinit var printPdfMenuItem: MenuItem
     @FXML
     private lateinit var closeMenuItem: MenuItem
     @FXML
@@ -2452,46 +2455,106 @@ class VistaAdminController : KoinComponent {
         // Imprimir HTML
         printHtmlMenuItem.setOnAction {
             try {
-                // Obtener el directorio de informes desde la configuración
-                val reportsDir = Config.configProperties.reportsDir
-                val reportsDirFile = File(reportsDir)
-                if (!reportsDirFile.exists()) {
-                    reportsDirFile.mkdirs()
-                }
+                // Crear un FileChooser para seleccionar dónde guardar el HTML
+                val fileChooser = javafx.stage.FileChooser()
+                fileChooser.title = "Guardar informe HTML"
+
+                // Configurar filtros para archivos HTML
+                fileChooser.extensionFilters.add(
+                    javafx.stage.FileChooser.ExtensionFilter("Archivos HTML", "*.html")
+                )
 
                 // Generar nombre de archivo con timestamp
                 val timestamp = LocalDateTime.now().toString().replace(":", "-").replace(".", "-")
-                val outputPath = "$reportsDir/plantilla_${timestamp}.html"
+                fileChooser.initialFileName = "plantilla_${timestamp}.html"
 
-                // Generar el informe HTML
-                val reportPath = HtmlReportGenerator.generateReport(personalList, outputPath)
+                // Mostrar el diálogo de selección de archivo
+                val selectedFile = fileChooser.showSaveDialog(playerImageView.scene.window as Stage)
 
-                // Abrir el informe en el navegador predeterminado
-                val file = File(reportPath)
-                try {
-                    if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
-                        Desktop.getDesktop().browse(file.toURI())
-                        showInfoDialog(
-                            "Informe HTML generado",
-                            "El informe HTML ha sido generado y abierto en su navegador predeterminado.\n\nRuta: $reportPath"
-                        )
-                    } else {
-                        logger.error { "No se puede abrir el navegador predeterminado" }
+                if (selectedFile != null) {
+                    // Generar el informe HTML en la ubicación seleccionada
+                    val reportPath = HtmlReportGenerator.generateReport(personalList, selectedFile.absolutePath)
+
+                    // Abrir el informe en el navegador predeterminado
+                    val file = File(reportPath)
+                    try {
+                        if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+                            Desktop.getDesktop().browse(file.toURI())
+                            showInfoDialog(
+                                "Informe HTML generado",
+                                "El informe HTML ha sido generado y abierto en su navegador predeterminado.\n\nRuta: $reportPath"
+                            )
+                        } else {
+                            logger.error { "No se puede abrir el navegador predeterminado" }
+                            showInfoDialog(
+                                "Informe HTML generado",
+                                "El informe HTML ha sido generado pero no se pudo abrir automáticamente.\n\nRuta: $reportPath"
+                            )
+                        }
+                    } catch (e: Exception) {
+                        logger.error { "No se puede abrir el navegador predeterminado: ${e.message}" }
                         showInfoDialog(
                             "Informe HTML generado",
                             "El informe HTML ha sido generado pero no se pudo abrir automáticamente.\n\nRuta: $reportPath"
                         )
                     }
-                } catch (e: Exception) {
-                    logger.error { "No se puede abrir el navegador predeterminado: ${e.message}" }
-                    showInfoDialog(
-                        "Informe HTML generado",
-                        "El informe HTML ha sido generado pero no se pudo abrir automáticamente.\n\nRuta: $reportPath"
-                    )
                 }
             } catch (e: Exception) {
                 logger.error { "Error al generar el informe HTML: ${e.message}" }
                 showErrorDialog("Error", "No se pudo generar el informe HTML: ${e.message}")
+            }
+        }
+
+        // Imprimir PDF
+        printPdfMenuItem.setOnAction {
+            try {
+                // Crear un FileChooser para seleccionar dónde guardar el PDF
+                val fileChooser = javafx.stage.FileChooser()
+                fileChooser.title = "Guardar informe PDF"
+
+                // Configurar filtros para archivos PDF
+                fileChooser.extensionFilters.add(
+                    javafx.stage.FileChooser.ExtensionFilter("Archivos PDF", "*.pdf")
+                )
+
+                // Generar nombre de archivo con timestamp
+                val timestamp = LocalDateTime.now().toString().replace(":", "-").replace(".", "-")
+                fileChooser.initialFileName = "plantilla_${timestamp}.pdf"
+
+                // Mostrar el diálogo de selección de archivo
+                val selectedFile = fileChooser.showSaveDialog(playerImageView.scene.window as Stage)
+
+                if (selectedFile != null) {
+                    // Generar el informe PDF en la ubicación seleccionada
+                    val reportPath = PdfReportGenerator.generateReport(personalList, selectedFile.absolutePath)
+
+                    // Abrir el informe en el visor de PDF predeterminado
+                    val file = File(reportPath)
+                    try {
+                        if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.OPEN)) {
+                            Desktop.getDesktop().open(file)
+                            showInfoDialog(
+                                "Informe PDF generado",
+                                "El informe PDF ha sido generado y abierto en su visor de PDF predeterminado.\n\nRuta: $reportPath"
+                            )
+                        } else {
+                            logger.error { "No se puede abrir el visor de PDF predeterminado" }
+                            showInfoDialog(
+                                "Informe PDF generado",
+                                "El informe PDF ha sido generado pero no se pudo abrir automáticamente.\n\nRuta: $reportPath"
+                            )
+                        }
+                    } catch (e: Exception) {
+                        logger.error { "No se puede abrir el visor de PDF predeterminado: ${e.message}" }
+                        showInfoDialog(
+                            "Informe PDF generado",
+                            "El informe PDF ha sido generado pero no se pudo abrir automáticamente.\n\nRuta: $reportPath"
+                        )
+                    }
+                }
+            } catch (e: Exception) {
+                logger.error { "Error al generar el informe PDF: ${e.message}" }
+                showErrorDialog("Error", "No se pudo generar el informe PDF: ${e.message}")
             }
         }
 
