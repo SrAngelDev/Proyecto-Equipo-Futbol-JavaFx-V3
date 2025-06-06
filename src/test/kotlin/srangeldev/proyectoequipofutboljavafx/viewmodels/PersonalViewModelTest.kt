@@ -69,12 +69,12 @@ class PersonalViewModelTest {
         val adminUser = User(
             id = 1,
             username = "admin",
-            password = "hashedPassword",
+            password = "admin",
             role = User.Role.ADMIN
         )
         viewModel.username.set("admin")
-        viewModel.password.set("admin123")
-        whenever(userRepository.verifyCredentials("admin", "admin123")).thenReturn(adminUser)
+        viewModel.password.set("admin")
+        whenever(userRepository.verifyCredentials("admin", "admin")).thenReturn(adminUser)
 
         // When
         viewModel.login()
@@ -89,12 +89,12 @@ class PersonalViewModelTest {
         val regularUser = User(
             id = 2,
             username = "user",
-            password = "hashedPassword",
+            password = "user",
             role = User.Role.USER
         )
         viewModel.username.set("user")
-        viewModel.password.set("user123")
-        whenever(userRepository.verifyCredentials("user", "user123")).thenReturn(regularUser)
+        viewModel.password.set("user")
+        whenever(userRepository.verifyCredentials("user", "user")).thenReturn(regularUser)
 
         // When
         viewModel.login()

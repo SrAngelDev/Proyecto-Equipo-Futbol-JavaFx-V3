@@ -83,7 +83,7 @@ class AboutDialogController {
 
         jorgeGithubLink.setOnAction {
             try {
-                Desktop.getDesktop().browse(URI("https://github.com/jorgemorgado25"))
+                Desktop.getDesktop().browse(URI("https://github.com/JorgeMrj"))
             } catch (e: Exception) {
                 logger.error { "Error opening browser: ${e.message}" }
                 showErrorDialog("Error", "No se pudo abrir el navegador: ${e.message}")

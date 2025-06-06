@@ -9,6 +9,7 @@ import javafx.collections.ObservableList
 import javafx.collections.transformation.FilteredList
 import javafx.fxml.FXML
 import javafx.fxml.FXMLLoader
+import javafx.scene.Scene
 import javafx.scene.control.*
 import javafx.scene.control.ButtonBar
 import javafx.scene.control.cell.CheckBoxTableCell
@@ -16,6 +17,7 @@ import javafx.scene.control.cell.PropertyValueFactory
 import javafx.scene.image.Image
 import javafx.scene.image.ImageView
 import javafx.scene.layout.GridPane
+import javafx.scene.layout.StackPane
 import javafx.scene.layout.VBox
 import javafx.geometry.Insets
 import javafx.stage.DirectoryChooser
@@ -2596,24 +2598,25 @@ class VistaAdminController : KoinComponent {
         try {
             // Load the FXML file
             val loader = FXMLLoader(javaClass.getResource("/srangeldev/proyectoequipofutboljavafx/views/newTeam/about-dialog.fxml"))
-            val root = loader.load<GridPane>()
+            val root = loader.load<StackPane>()
 
-            // Create a dialog
-            val dialog = Dialog<ButtonType>()
-            dialog.title = "Acerca De"
-            dialog.headerText = "Gestor de Jugadores de Fútbol"
+            // Create a new scene with the loaded FXML
+            val scene = Scene(root, 600.0, 450.0)
 
-            // Set the content
-            dialog.dialogPane.content = root
+            // Create a new stage
+            val stage = Stage()
+            stage.title = "Acerca De"
+            stage.scene = scene
+            stage.isResizable = false
 
-            // Add buttons
-            dialog.dialogPane.buttonTypes.add(ButtonType.CLOSE)
+            // Make the stage modal so it blocks input to other windows
+            stage.initModality(javafx.stage.Modality.APPLICATION_MODAL)
 
-            // Show the dialog
-            dialog.showAndWait()
+            // Show the stage and wait for it to close
+            stage.showAndWait()
         } catch (e: Exception) {
             logger.error { "Error loading about dialog: ${e.message}" }
-            showErrorDialog("Error", "No se pudo cargar el diálogo de acerca de: ${e.message}")
+            showErrorDialog("Error", "No se pudo cargar la ventana de acerca de: ${e.message}")
         }
     }
 
