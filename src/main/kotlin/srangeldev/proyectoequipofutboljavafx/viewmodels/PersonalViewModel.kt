@@ -67,6 +67,9 @@ class PersonalViewModel(
     fun login() {
         logger.debug { "Intentando login con usuario: ${username.get()}" }
 
+        // Resetear el resultado del login para asegurar que el listener se active en cada intento
+        loginResult.set(null)
+
         // Validar campos vacíos
         if (username.get().isEmpty() || password.get().isEmpty()) {
             loginResult.set(LoginResult.EMPTY_FIELDS)
