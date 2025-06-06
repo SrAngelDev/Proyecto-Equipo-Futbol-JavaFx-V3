@@ -50,7 +50,7 @@ object RoutesManager {
     }
 
     fun initSplashScreenStage(stage: Stage) {
-        logger.debug { "Inicializando MainStage" }
+        logger.debug { "Inicializando MainStage con SplashScreen" }
 
         // Initialize mainStage and _activeStage
         mainStage = stage
@@ -59,8 +59,8 @@ object RoutesManager {
         val fxmlLoader = FXMLLoader(getResource(View.SPLASH.fxml))
 
         val scene = Scene(fxmlLoader.load())
-        val controller = fxmlLoader.getController<SplashScreenController>()
 
+        // Configurar el stage
         stage.apply {
             isResizable = false
             icons.add(Image(NewTeamApplication::class.java.getResourceAsStream("icons/newTeamLogo.png")))
@@ -69,38 +69,8 @@ object RoutesManager {
             show()
         }
 
-        // Creamos un Timeline para la barra de progreso con una animación más suave
-        val timeline = Timeline(
-            KeyFrame(Duration.ZERO, KeyValue(controller.progressBar.progressProperty(), 0.0)),
-            KeyFrame(Duration.seconds(1.0), KeyValue(controller.progressBar.progressProperty(), 0.3)),
-            KeyFrame(Duration.seconds(2.0), KeyValue(controller.progressBar.progressProperty(), 0.6)),
-            KeyFrame(Duration.seconds(3.5), KeyValue(controller.progressBar.progressProperty(), 0.8)),
-            KeyFrame(Duration.seconds(5.0), KeyValue(controller.progressBar.progressProperty(), 1.0))
-        )
-
-        // Actualizar el texto de carga según el progreso
-        timeline.currentTimeProperty().addListener { _, _, newValue ->
-            val progress = newValue.toSeconds() / 5.0
-            when {
-                progress < 0.3 -> controller.loadingText.text = "Inicializando..."
-                progress < 0.6 -> controller.loadingText.text = "Cargando datos..."
-                progress < 0.9 -> controller.loadingText.text = "Preparando aplicación..."
-                else -> controller.loadingText.text = "¡Listo!"
-            }
-        }
-
-        timeline.setOnFinished {
-            // Crear una transición de desvanecimiento para la escena actual
-            val fadeOut = FadeTransition(Duration.seconds(1.0), scene.root)
-            fadeOut.fromValue = 1.0
-            fadeOut.toValue = 0.0
-            fadeOut.setOnFinished {
-                welcomeStage(stage)
-            }
-            fadeOut.play()
-        }
-
-        timeline.play()
+        // El controlador SplashScreenController se encargará de la animación y la carga de recursos
+        // No necesitamos duplicar esa lógica aquí
     }
 
     private fun welcomeStage(stage: Stage) {
