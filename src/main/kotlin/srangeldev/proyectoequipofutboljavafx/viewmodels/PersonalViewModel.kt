@@ -2,6 +2,7 @@ package srangeldev.proyectoequipofutboljavafx.viewmodels
 
 import com.github.michaelbull.result.Result
 import com.github.michaelbull.result.onSuccess
+import javafx.application.Platform
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.property.SimpleStringProperty
@@ -17,6 +18,7 @@ import srangeldev.proyectoequipofutboljavafx.newteam.repository.UserRepository
 import srangeldev.proyectoequipofutboljavafx.newteam.storage.PersonalStorageJson
 import java.io.File
 import java.time.format.DateTimeFormatter
+import kotlin.concurrent.thread
 
 private val logger = logging()
 
@@ -59,6 +61,8 @@ class PersonalViewModel(
 
     /**
      * Realiza el inicio de sesión con las credenciales proporcionadas.
+     * Utiliza un hilo separado para simular un proceso de autenticación más largo
+     * y mostrar el indicador de carga durante un tiempo razonable.
      */
     fun login() {
         logger.debug { "Intentando login con usuario: ${username.get()}" }
@@ -69,7 +73,38 @@ class PersonalViewModel(
             return
         }
 
-        try {
+        // Crear un hilo separado para el proceso de autenticación
+        thread {
+            try {
+                // Simular un retraso para mostrar el indicador de carga (1 segundo)
+                Thread.sleep(1000)
+
+                // Resultado de la autenticación
+                val result = authenticateUser()
+
+                // Actualizar la UI en el hilo de JavaFX
+                Platform.runLater {
+                    loginResult.set(result)
+                }
+            } catch (e: Exception) {
+                logger.error { "Error durante el login: ${e.message}" }
+
+                // Actualizar la UI en el hilo de JavaFX
+                Platform.runLater {
+                    error.set("Error durante el login: ${e.message}")
+                    loginResult.set(LoginResult.INVALID_CREDENTIALS)
+                }
+            }
+        }
+    }
+
+    /**
+     * Autentica al usuario con las credenciales proporcionadas.
+     * 
+     * @return El resultado de la autenticación.
+     */
+    private fun authenticateUser(): LoginResult {
+        return try {
             // Verificar credenciales con el repositorio de usuarios
             userRepository?.let { repo ->
                 // Usar verifyCredentials en lugar de buscar y comparar manualmente
@@ -78,27 +113,26 @@ class PersonalViewModel(
                 if (user != null) {
                     // Determinar tipo de usuario
                     if (user.role == User.Role.ADMIN) {
-                        loginResult.set(LoginResult.ADMIN_LOGIN)
+                        LoginResult.ADMIN_LOGIN
                     } else {
-                        loginResult.set(LoginResult.USER_LOGIN)
+                        LoginResult.USER_LOGIN
                     }
                 } else {
-                    loginResult.set(LoginResult.INVALID_CREDENTIALS)
+                    LoginResult.INVALID_CREDENTIALS
                 }
             } ?: run {
                 // Si no hay repositorio, simulamos un login básico
                 if (username.get() == "admin" && password.get() == "admin") {
-                    loginResult.set(LoginResult.ADMIN_LOGIN)
+                    LoginResult.ADMIN_LOGIN
                 } else if (username.get() == "user" && password.get() == "user") {
-                    loginResult.set(LoginResult.USER_LOGIN)
+                    LoginResult.USER_LOGIN
                 } else {
-                    loginResult.set(LoginResult.INVALID_CREDENTIALS)
+                    LoginResult.INVALID_CREDENTIALS
                 }
             }
         } catch (e: Exception) {
-            logger.error { "Error durante el login: ${e.message}" }
-            error.set("Error durante el login: ${e.message}")
-            loginResult.set(LoginResult.INVALID_CREDENTIALS)
+            logger.error { "Error durante la autenticación: ${e.message}" }
+            throw e
         }
     }
 

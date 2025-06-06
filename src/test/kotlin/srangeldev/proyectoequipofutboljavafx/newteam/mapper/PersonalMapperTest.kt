@@ -45,6 +45,7 @@ class PersonalMapperTest {
         altura = 1.80,
         peso = 75.0,
         goles = 10,
+        partidosJugados = 20,
     )
     
     // CSV DTO tests

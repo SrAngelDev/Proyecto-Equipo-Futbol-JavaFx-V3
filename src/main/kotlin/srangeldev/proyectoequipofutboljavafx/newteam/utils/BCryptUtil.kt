@@ -36,6 +36,9 @@ object BCryptUtil {
     fun checkPassword(password: String, hash: String): Boolean {
         // En una implementación real, se usaría BCrypt.checkpw(password, hash)
         // Esta es una implementación simplificada para demostración
-        return hashPassword(password) == hash
+        val hashedPassword = hashPassword(password)
+        val result = hashedPassword == hash
+        println("Comparing password hash: $hashedPassword with stored hash: $hash, result: $result")
+        return result
     }
 }

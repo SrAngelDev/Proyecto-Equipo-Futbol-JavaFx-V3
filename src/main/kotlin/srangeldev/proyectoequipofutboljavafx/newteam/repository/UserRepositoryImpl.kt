@@ -6,6 +6,7 @@ import srangeldev.proyectoequipofutboljavafx.newteam.models.User
 import srangeldev.proyectoequipofutboljavafx.newteam.utils.BCryptUtil
 import java.sql.Statement
 import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 /**
  * Implementación del repositorio de usuarios.
@@ -13,6 +14,7 @@ import java.time.LocalDateTime
 class UserRepositoryImpl : UserRepository {
     private val logger = logging()
     private val users = mutableMapOf<String, User>()
+    private val dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
 
     init {
         logger.debug { "Inicializando repositorio de usuarios" }
@@ -39,8 +41,8 @@ class UserRepositoryImpl : UserRepository {
                     username = resultSet.getString("username"),
                     password = resultSet.getString("password"),
                     role = User.Role.valueOf(resultSet.getString("role")),
-                    createdAt = LocalDateTime.parse(resultSet.getString("created_at")),
-                    updatedAt = LocalDateTime.parse(resultSet.getString("updated_at"))
+                    createdAt = LocalDateTime.parse(resultSet.getString("created_at"), dateTimeFormatter),
+                    updatedAt = LocalDateTime.parse(resultSet.getString("updated_at"), dateTimeFormatter)
                 )
 
                 // Añadir a la lista y a la caché
@@ -76,8 +78,8 @@ class UserRepositoryImpl : UserRepository {
                     username = resultSet.getString("username"),
                     password = resultSet.getString("password"),
                     role = User.Role.valueOf(resultSet.getString("role")),
-                    createdAt = LocalDateTime.parse(resultSet.getString("created_at")),
-                    updatedAt = LocalDateTime.parse(resultSet.getString("updated_at"))
+                    createdAt = LocalDateTime.parse(resultSet.getString("created_at"), dateTimeFormatter),
+                    updatedAt = LocalDateTime.parse(resultSet.getString("updated_at"), dateTimeFormatter)
                 )
 
                 // Añadimos el usuario a la caché
@@ -103,10 +105,14 @@ class UserRepositoryImpl : UserRepository {
     override fun save(user: User): User {
         logger.debug { "Guardando usuario: ${user.username}" }
 
-        // Hashear la contraseña si no está hasheada
-        val hashedPassword = if (!user.password.startsWith("$2a$")) {
+        // Para nuevos usuarios, siempre hasheamos la contraseña
+        // Para usuarios existentes, la actualización se maneja en el método update
+        val hashedPassword = if (user.id == 0) {
+            // Si es un nuevo usuario (id = 0), hasheamos la contraseña
+            logger.debug { "Hasheando contraseña para nuevo usuario: ${user.username}" }
             BCryptUtil.hashPassword(user.password)
         } else {
+            // Si es un usuario existente, dejamos que el método update maneje el hashing
             user.password
         }
 
@@ -114,7 +120,14 @@ class UserRepositoryImpl : UserRepository {
 
         if (isUpdate) {
             // Actualizar usuario existente
-            val updated = update(user.id, user)
+            // Crear una copia del usuario con la contraseña hasheada si es necesario
+            val userToUpdate = if (hashedPassword != user.password) {
+                user.copy(password = hashedPassword)
+            } else {
+                user
+            }
+
+            val updated = update(user.id, userToUpdate)
             if (updated != null) {
                 return updated
             } else {
@@ -133,7 +146,7 @@ class UserRepositoryImpl : UserRepository {
                     VALUES (?, ?, ?, ?, ?)
                 """.trimIndent()
 
-                val now = LocalDateTime.now().toString()
+                val now = LocalDateTime.now().format(dateTimeFormatter)
 
                 val preparedStatement = connection.prepareStatement(insertSql, Statement.RETURN_GENERATED_KEYS)
                 preparedStatement.setString(1, user.username)
@@ -180,10 +193,15 @@ class UserRepositoryImpl : UserRepository {
             return null
         }
 
-        // Hashear la contraseña si no está hasheada
-        val hashedPassword = if (!user.password.startsWith("$2a$")) {
+        // Determinar si la contraseña necesita ser hasheada
+        // Verificamos si la contraseña es diferente a la almacenada
+        // Si es diferente, asumimos que es una nueva contraseña que necesita ser hasheada
+        val hashedPassword = if (user.password != existingUser.password) {
+            // Si la contraseña es diferente a la almacenada, la hasheamos
+            logger.debug { "Hasheando nueva contraseña para el usuario: ${user.username}" }
             BCryptUtil.hashPassword(user.password)
         } else {
+            // Si la contraseña es igual a la almacenada, la mantenemos como está
             user.password
         }
 
@@ -201,7 +219,7 @@ class UserRepositoryImpl : UserRepository {
             preparedStatement.setString(1, user.username)
             preparedStatement.setString(2, hashedPassword)
             preparedStatement.setString(3, user.role.name)
-            preparedStatement.setString(4, LocalDateTime.now().toString())
+            preparedStatement.setString(4, LocalDateTime.now().format(dateTimeFormatter))
             preparedStatement.setInt(5, id)
 
             preparedStatement.executeUpdate()
@@ -283,8 +301,8 @@ class UserRepositoryImpl : UserRepository {
                     username = resultSet.getString("username"),
                     password = resultSet.getString("password"),
                     role = User.Role.valueOf(resultSet.getString("role")),
-                    createdAt = LocalDateTime.parse(resultSet.getString("created_at")),
-                    updatedAt = LocalDateTime.parse(resultSet.getString("updated_at"))
+                    createdAt = LocalDateTime.parse(resultSet.getString("created_at"), dateTimeFormatter),
+                    updatedAt = LocalDateTime.parse(resultSet.getString("updated_at"), dateTimeFormatter)
                 )
 
                 // Añadimos el usuario a la caché
@@ -295,38 +313,9 @@ class UserRepositoryImpl : UserRepository {
         return user
     }
 
-    override fun initDefaultUsers() {
-        logger.debug { "Inicializando usuarios por defecto" }
-
-        // Comprobamos si hay usuarios
-        DataBaseManager.instance.use { db ->
-            val connection = db.connection ?: throw IllegalStateException("Conexión a la base de datos no disponible")
-
-            // Comprobamos si hay usuarios
-            val countSql = "SELECT COUNT(*) FROM Usuarios"
-            val resultSet = connection.createStatement().executeQuery(countSql)
-
-            if (resultSet.next() && resultSet.getInt(1) == 0) {
-                // No hay usuarios, creamos los usuarios por defecto
-                val adminUser = User(
-                    username = "admin",
-                    password = "admin", // Se hasheará en el método save
-                    role = User.Role.ADMIN
-                )
-
-                val normalUser = User(
-                    username = "user",
-                    password = "user", // Se hasheará en el método save
-                    role = User.Role.USER
-                )
-
-                save(adminUser)
-                save(normalUser)
-
-                logger.debug { "Usuarios por defecto creados" }
-            } else {
-                logger.debug { "Ya existen usuarios en la base de datos" }
-            }
-        }
+    private fun initDefaultUsers() {
+        logger.debug { "Los usuarios por defecto se inicializan desde data.sql" }
+        // Los usuarios por defecto ahora se crean desde el archivo data.sql
+        // No es necesario crearlos programáticamente
     }
 }
