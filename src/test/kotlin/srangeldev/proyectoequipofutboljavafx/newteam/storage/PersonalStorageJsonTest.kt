@@ -1,253 +1,260 @@
 package srangeldev.proyectoequipofutboljavafx.newteam.storage
 
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.assertThrows
+
+import org.junit.jupiter.api.*
+import org.junit.jupiter.api.io.TempDir
 import srangeldev.proyectoequipofutboljavafx.newteam.exceptions.PersonalException
-import srangeldev.proyectoequipofutboljavafx.newteam.models.Jugador
 import srangeldev.proyectoequipofutboljavafx.newteam.models.Entrenador
-import srangeldev.proyectoequipofutboljavafx.newteam.models.Personal
-import java.io.File
+import srangeldev.proyectoequipofutboljavafx.newteam.models.Jugador
+import java.nio.file.Path
 import java.time.LocalDate
 import java.time.LocalDateTime
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
+import kotlin.io.path.*
+import kotlin.test.Test
+import kotlin.test.*
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@DisplayName("PersonalStorageJson")
 class PersonalStorageJsonTest {
 
-    private lateinit var storage: PersonalStorageJson
-    private lateinit var testFile: File
-    private lateinit var nonExistentFile: File
-    private lateinit var invalidFile: File
-    private lateinit var emptyFile: File
-    private lateinit var nonJsonFile: File
-    
-    private val now = LocalDateTime.now()
-    private val jugador = Jugador(
-        id = 1,
-        nombre = "Juan",
-        apellidos = "Pérez",
-        fechaNacimiento = LocalDate.of(1990, 1, 1),
-        fechaIncorporacion = LocalDate.of(2020, 1, 1),
-        salario = 50000.0,
-        paisOrigen = "España",
-        createdAt = now,
-        updatedAt = now,
-        posicion = Jugador.Posicion.DELANTERO,
-        dorsal = 9,
-        altura = 1.80,
-        peso = 75.0,
-        goles = 10,
-        partidosJugados = 20
-    )
-    
+    private val storage = PersonalStorageJson()
+
+    /* ==========   datos base   ========== */
+
+    private val ahora = LocalDateTime.now()
+
     private val entrenador = Entrenador(
-        id = 2,
-        nombre = "Carlos",
-        apellidos = "Gómez",
-        fechaNacimiento = LocalDate.of(1980, 5, 15),
-        fechaIncorporacion = LocalDate.of(2018, 7, 1),
-        salario = 70000.0,
+        id = 1,
+        nombre = "Pep",
+        apellidos = "Guardiola",
+        fechaNacimiento = LocalDate.of(1971, 1, 18),
+        fechaIncorporacion = LocalDate.of(2023, 7, 1),
+        salario = 8_000_000.0,
         paisOrigen = "España",
-        createdAt = now,
-        updatedAt = now,
-        especializacion = Entrenador.Especializacion.ENTRENADOR_PRINCIPAL
+        createdAt = ahora,
+        updatedAt = ahora,
+        especializacion = Entrenador.Especializacion.ENTRENADOR_PRINCIPAL,
+        imagenUrl = "pep.png"
     )
-    
-    private val personalList = listOf(jugador, entrenador)
-    
-    @BeforeEach
-    fun setUp() {
-        storage = PersonalStorageJson()
-        
-        // Create test directory if it doesn't exist
-        val testDir = File("test-files")
-        if (!testDir.exists()) {
-            testDir.mkdir()
+
+    private val jugador = Jugador(
+        id = 10,
+        nombre = "Leo",
+        apellidos = "Messi",
+        fechaNacimiento = LocalDate.of(1987, 6, 24),
+        fechaIncorporacion = LocalDate.of(2023, 7, 1),
+        salario = 40_000_000.0,
+        paisOrigen = "Argentina",
+        createdAt = ahora,
+        updatedAt = ahora,
+        posicion = Jugador.Posicion.DELANTERO,
+        dorsal = 10,
+        altura = 1.69,
+        peso = 67.0,
+        goles = 30,
+        partidosJugados = 35,
+        imagenUrl = "leo.png"
+    )
+
+    /* ==========   utilidades   ========== */
+
+    private fun Path.writeJson(text: String): Path = apply { writeText(text) }
+
+    private fun plantillaJugadorJson() = """
+        {
+          "id": 10,
+          "nombre": "Leo",
+          "apellidos": "Messi",
+          "fecha_nacimiento": "1987-06-24",
+          "fecha_incorporacion": "2023-07-01",
+          "salario": 40000000.0,
+          "pais": "Argentina",
+          "rol": "Jugador",
+          "posicion": "DELANTERO", 
+          "dorsal": 10,
+          "altura": 1.69,
+          "peso": 67.0,
+          "goles": 30,
+          "partidos_jugados": 35,
+          "imagen": "leo.png"
         }
-        
-        // Set up test files
-        testFile = File(testDir, "test-personal.json")
-        nonExistentFile = File(testDir, "non-existent.json")
-        invalidFile = File(testDir, "invalid.json")
-        emptyFile = File(testDir, "empty.json")
-        nonJsonFile = File(testDir, "test.txt")
-        
-        // Create valid JSON file with test data
-        val validJson = """
-            [
-                {
-                    "id": 1,
-                    "nombre": "Juan",
-                    "apellidos": "Pérez",
-                    "fecha_nacimiento": "1990-01-01",
-                    "fecha_incorporacion": "2020-01-01",
-                    "salario": 50000.0,
-                    "pais": "España",
-                    "rol": "Jugador",
-                    "posicion": "DELANTERO",
-                    "dorsal": 9,
-                    "altura": 1.8,
-                    "peso": 75.0,
-                    "goles": 10,
-                    "partidos_jugados": 20
-                },
-                {
-                    "id": 2,
-                    "nombre": "Carlos",
-                    "apellidos": "Gómez",
-                    "fecha_nacimiento": "1980-05-15",
-                    "fecha_incorporacion": "2018-07-01",
-                    "salario": 70000.0,
-                    "pais": "España",
-                    "rol": "Entrenador",
-                    "especialidad": "ENTRENADOR_PRINCIPAL"
-                }
-            ]
-        """.trimIndent()
-        
-        testFile.writeText(validJson)
-        
-        // Create invalid JSON file
-        invalidFile.writeText("{ This is not valid JSON }")
-        
-        // Create empty JSON file
-        emptyFile.writeText("")
-        
-        // Create non-JSON file
-        nonJsonFile.writeText("This is not a JSON file")
-        
-        // Ensure non-existent file doesn't exist
-        if (nonExistentFile.exists()) {
-            nonExistentFile.delete()
+    """.trimIndent()
+
+    private fun plantillaEntrenadorJson() = """
+        {
+          "id": 1,
+          "nombre": "Pep",
+          "apellidos": "Guardiola",
+          "fecha_nacimiento": "1971-01-18",
+          "fecha_incorporacion": "2023-07-01",
+          "salario": 8000000.0,
+          "pais": "España",
+          "rol": "Entrenador",
+          "especialidad": "ENTRENADOR_PRINCIPAL",
+          "imagen": "pep.png"
         }
-    }
-    
-    @AfterEach
-    fun tearDown() {
-        // Clean up test files
-        testFile.delete()
-        if (nonExistentFile.exists()) nonExistentFile.delete()
-        invalidFile.delete()
-        emptyFile.delete()
-        nonJsonFile.delete()
-        
-        // Remove test directory if empty
-        val testDir = File("test-files")
-        if (testDir.exists() && testDir.listFiles()?.isEmpty() == true) {
-            testDir.delete()
+    """.trimIndent()
+
+    /* *********************************************************************
+     *  CASOS DE LECTURA CORRECTA  
+     * ******************************************************************* */
+    @Nested
+    inner class LecturaOK {
+
+        @TempDir
+        lateinit var dir: Path
+
+        @Test
+        fun `lee entrenador y jugador en json valido`() {
+            val file = dir.resolve("plantilla.json").writeJson(
+                "[${plantillaEntrenadorJson()}, ${plantillaJugadorJson()}]"
+            )
+
+            val lista = storage.readFromFile(file.toFile())
+
+            assertEquals(2, lista.size)
+            assertTrue(lista.any { it.nombre == "Pep" })
+            assertTrue(lista.any { it.nombre == "Leo" })
         }
-    }
-    
-    @Test
-    fun `readFromFile should read personal from valid JSON file`() {
-        // When
-        val result = storage.readFromFile(testFile)
-        
-        // Then
-        assertEquals(2, result.size)
-        
-        val resultJugador = result.find { it is Jugador } as Jugador
-        assertEquals(1, resultJugador.id)
-        assertEquals("Juan", resultJugador.nombre)
-        assertEquals("Pérez", resultJugador.apellidos)
-        assertEquals(LocalDate.of(1990, 1, 1), resultJugador.fechaNacimiento)
-        assertEquals(LocalDate.of(2020, 1, 1), resultJugador.fechaIncorporacion)
-        assertEquals(50000.0, resultJugador.salario)
-        assertEquals("España", resultJugador.paisOrigen)
-        assertEquals(Jugador.Posicion.DELANTERO, resultJugador.posicion)
-        assertEquals(9, resultJugador.dorsal)
-        assertEquals(1.8, resultJugador.altura)
-        assertEquals(75.0, resultJugador.peso)
-        assertEquals(10, resultJugador.goles)
-        assertEquals(20, resultJugador.partidosJugados)
-        
-        val resultEntrenador = result.find { it is Entrenador } as Entrenador
-        assertEquals(2, resultEntrenador.id)
-        assertEquals("Carlos", resultEntrenador.nombre)
-        assertEquals("Gómez", resultEntrenador.apellidos)
-        assertEquals(LocalDate.of(1980, 5, 15), resultEntrenador.fechaNacimiento)
-        assertEquals(LocalDate.of(2018, 7, 1), resultEntrenador.fechaIncorporacion)
-        assertEquals(70000.0, resultEntrenador.salario)
-        assertEquals("España", resultEntrenador.paisOrigen)
-        assertEquals(Entrenador.Especializacion.ENTRENADOR_PRINCIPAL, resultEntrenador.especializacion)
-    }
-    
-    @Test
-    fun `readFromFile should create empty file when file doesn't exist`() {
-        // When
-        val result = storage.readFromFile(nonExistentFile)
-        
-        // Then
-        assertTrue(nonExistentFile.exists())
-        assertTrue(result.isEmpty())
-    }
-    
-    @Test
-    fun `readFromFile should throw exception for empty file`() {
-        // When/Then
-        assertThrows<PersonalException.PersonalStorageException> {
-            storage.readFromFile(emptyFile)
+
+        @Test
+        fun `usa archivo alternativo con extension json si el solicitado no existe`() {
+            val solicitado = dir.resolve("equipo.data").toFile()
+            val alternativo = dir.resolve("equipo.json")
+                .writeJson("[${plantillaEntrenadorJson()}]")
+
+            val lista = storage.readFromFile(solicitado)
+
+            assertEquals(1, lista.size)
+            assertTrue(lista[0] is Entrenador)
+            assertTrue(alternativo.readText().isNotEmpty()) // comprobamos que lo leyó
+        }
+
+        @Test
+        fun `crea archivo vacio y devuelve lista vacia si no existe`() {
+            val nuevo = dir.resolve("nuevo.json").toFile()
+
+            val lista = storage.readFromFile(nuevo)
+
+            assertTrue(lista.isEmpty())
+            assertTrue(nuevo.exists())
+            assertEquals("[]", nuevo.readText())
         }
     }
-    
-    @Test
-    fun `readFromFile should throw exception for invalid JSON`() {
-        // When/Then
-        assertThrows<PersonalException.PersonalStorageException> {
-            storage.readFromFile(invalidFile)
+
+    /* *********************************************************************
+     *  CAMINOS DE ERROR EN LECTURA
+     * ******************************************************************* */
+    @Nested
+    inner class LecturaErrores {
+
+        @TempDir
+        lateinit var dir: Path
+
+        @Test
+        fun `lanza PersonalStorageException cuando es directorio`() {
+            val file = dir.resolve("directorio").toFile().apply { mkdirs() }
+            val exception = assertThrows<PersonalException.PersonalStorageException> {
+                storage.readFromFile(file)
+            }
+            assertTrue(exception.message?.contains("No es un fichero") == true)
+        }
+
+        @Test
+        fun `lanza PersonalStorageException cuando archivo vacio`() {
+            val file = dir.resolve("vacio.json").writeJson("").toFile()
+            val exception = assertThrows<PersonalException.PersonalStorageException> {
+                storage.readFromFile(file)
+            }
+            assertTrue(exception.message?.contains("vacío") == true)
+        }
+
+        @Test
+        fun `lanza PersonalStorageException cuando contenido no es JSON`() {
+            val file = dir.resolve("malo.txt").writeJson("no-json").toFile()
+            val exception = assertThrows<PersonalException.PersonalStorageException> {
+                storage.readFromFile(file)
+            }
+            assertTrue(exception.message?.contains("no parece ser JSON") == true)
+        }
+
+        @Test
+        fun `lanza PersonalStorageException cuando JSON mal formado`() {
+            val file = dir.resolve("mal.json").writeJson("{").toFile()
+            val exception = assertThrows<PersonalException.PersonalStorageException> {
+                storage.readFromFile(file)
+            }
+            assertTrue(exception.message?.contains("Error en el almacenamiento") == true)
         }
     }
-    
-    @Test
-    fun `writeToFile should write personal to file`() {
-        // When
-        storage.writeToFile(testFile, personalList)
-        
-        // Then
-        val result = storage.readFromFile(testFile)
-        assertEquals(2, result.size)
-        
-        val resultJugador = result.find { it is Jugador } as Jugador
-        assertEquals(jugador.id, resultJugador.id)
-        assertEquals(jugador.nombre, resultJugador.nombre)
-        assertEquals(jugador.apellidos, resultJugador.apellidos)
-        
-        val resultEntrenador = result.find { it is Entrenador } as Entrenador
-        assertEquals(entrenador.id, resultEntrenador.id)
-        assertEquals(entrenador.nombre, resultEntrenador.nombre)
-        assertEquals(entrenador.apellidos, resultEntrenador.apellidos)
-    }
-    
-    @Test
-    fun `writeToFile should create parent directories if they don't exist`() {
-        // Given
-        val nestedDir = File("test-files/nested/dir")
-        val nestedFile = File(nestedDir, "nested-test.json")
-        
-        try {
-            // When
-            storage.writeToFile(nestedFile, personalList)
-            
-            // Then
-            assertTrue(nestedDir.exists())
-            assertTrue(nestedFile.exists())
-            
-            val result = storage.readFromFile(nestedFile)
-            assertEquals(2, result.size)
-        } finally {
-            // Clean up
-            nestedFile.delete()
-            nestedDir.deleteRecursively()
+    /* *********************************************************************
+     *  CAMINOS DE ESCRITURA
+     * ******************************************************************* */
+    @Nested
+    inner class Escritura {
+
+        @TempDir
+        lateinit var dir: Path
+
+        @Test
+        fun `escribe archivo prettyPrint incluso en carpetas inexistentes`() {
+            val destino = dir.resolve("deep/nested/personal.JSON").toFile() // mayus-minús test
+            storage.writeToFile(destino, listOf(entrenador, jugador))
+
+            assertTrue(destino.exists())
+            assertTrue(destino.readText().contains("\"rol\": \"Entrenador\""))
         }
-    }
-    
-    @Test
-    fun `writeToFile should throw exception for non-JSON file`() {
-        // When/Then
-        assertThrows<PersonalException.PersonalStorageException> {
-            storage.writeToFile(nonJsonFile, personalList)
+
+        @Test
+        fun `falla si la extension no es json`() {
+            val destino = dir.resolve("equipo.cfg").toFile()
+
+            val exception = assertThrows<PersonalException.PersonalStorageException> {
+                storage.writeToFile(destino, emptyList())
+            }
+            assertTrue(exception.message?.contains("extensión JSON") == true)
+        }
+
+        @Test
+        fun `falla si la lista contiene tipo no soportado`() {
+            val objetoRaro = object : srangeldev.proyectoequipofutboljavafx.newteam.models.Personal(
+                id = 99,
+                nombre = "???",
+                apellidos = "???",
+                fechaNacimiento = LocalDate.now(),
+                fechaIncorporacion = LocalDate.now(),
+                salario = 0.0,
+                paisOrigen = "Nowhere",
+                createdAt = ahora,
+                updatedAt = ahora
+            ) {}
+
+            val destino = dir.resolve("equipo.json").toFile()
+
+            val exception = assertThrows<PersonalException.PersonalStorageException> {
+                storage.writeToFile(destino, listOf(objetoRaro))
+            }
+            assertTrue(exception.message?.contains("no soportado") == true)
+        }
+
+        @Test
+        fun `round-trip write-read mantiene datos`() {
+            val destino = dir.resolve("equipo.json").toFile()
+            val original = listOf(entrenador, jugador)
+
+            storage.writeToFile(destino, original)
+            val leido = storage.readFromFile(destino)
+
+            assertEquals(original.size, leido.size)
+            for (i in original.indices) {
+                assertEquals(original[i].id, leido[i].id)
+                assertEquals(original[i].nombre, leido[i].nombre)
+                assertEquals(original[i].apellidos, leido[i].apellidos)
+                assertEquals(original[i].fechaNacimiento, leido[i].fechaNacimiento)
+                assertEquals(original[i].fechaIncorporacion, leido[i].fechaIncorporacion)
+                assertEquals(original[i].salario, leido[i].salario)
+                assertEquals(original[i].paisOrigen, leido[i].paisOrigen)
+            }
         }
     }
 }

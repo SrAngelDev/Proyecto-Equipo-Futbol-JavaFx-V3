@@ -1,6 +1,8 @@
 package srangeldev.proyectoequipofutboljavafx.newteam.utils
 
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import java.time.LocalDateTime
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNotEquals
@@ -113,5 +115,53 @@ class BCryptUtilTest {
         // Then
         assertTrue(hash.isNotEmpty())
         assertTrue(BCryptUtil.checkPassword(passwordWithSpecialChars, hash))
+    }
+
+    @Test
+    fun `print hashed passwords for data sql`() {
+        val adminPassword = "admin"
+        val userPassword = "user"
+
+        val adminHash = BCryptUtil.hashPassword(adminPassword)
+        val userHash = BCryptUtil.hashPassword(userPassword)
+
+        println("[DEBUG_LOG] Hashed password for 'admin': $adminHash")
+        println("[DEBUG_LOG] Hashed password for 'user': $userHash")
+        println("[DEBUG_LOG] Current timestamp: ${LocalDateTime.now()}")
+    }
+
+    @Test
+    fun `test password hashing for default users`() {
+        // Given
+        val adminPassword = "admin"
+        val userPassword = "user"
+
+        // When
+        val adminHash = BCryptUtil.hashPassword(adminPassword)
+        val userHash = BCryptUtil.hashPassword(userPassword)
+
+        // Then
+        println("[DEBUG_LOG] Hashed password for 'admin': $adminHash")
+        println("[DEBUG_LOG] Hashed password for 'user': $userHash")
+
+        // Compare with values in data.sql
+        val adminExpectedHash = "jGl25bVBBBW96Qi9Te4V37Fnqchz/Eu4qB9vKrRIqRg="
+        val userExpectedHash = "BPiZbadjt6lpsQKO4wB1aerzpjVIbdqyEdUSyFud+Ps="
+
+        Assertions.assertEquals(adminExpectedHash, adminHash, "Admin password hash doesn't match expected value")
+        Assertions.assertEquals(userExpectedHash, userHash, "User password hash doesn't match expected value")
+    }
+
+    @Test
+    fun `test password verification`() {
+        // Given
+        val password = "user"
+        val storedHash = "BPiZbadjt6lpsQKO4wB1aerzpjVIbdqyEdUSyFud+Ps="
+
+        // When
+        val result = BCryptUtil.checkPassword(password, storedHash)
+
+        // Then
+        Assertions.assertTrue(result, "Password verification should succeed")
     }
 }

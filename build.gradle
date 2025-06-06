@@ -102,12 +102,6 @@ test {
              "--add-reads", "org.junit.jupiter.api=kotlin.stdlib",
              "--add-reads", "srangeldev.proyectoequipofutboljavafx=kotlin.test"
      )
-
-    // Enable JaCoCo to properly detect Kotlin tests
-    jacoco {
-        includes = ['srangeldev.proyectoequipofutboljavafx.*']
-        excludes = ['**/controllers/**', '**/exceptions/**', '**/*Main*', '**/*Application*', '**/module-info*']
-    }
 }
 
 jlink {
@@ -152,10 +146,6 @@ jacocoTestReport {
                     "**/model/**",
                     "**/exception/**",
                     "**/error/**",
-                    "**/dao/AlineacionEntity.class",
-                    "**/dao/LineaAlineacionEntity.class",
-                    "**/dao/UsersEntity.class",
-                    "**/dao/PersonaEntity.class",
                     "**/di/**",
                     "**/controllers/**",
                     "**/viewmodels/**",
@@ -164,15 +154,25 @@ jacocoTestReport {
                     "**/config/**",
                     "**/controller/**",
                     "**/routes/**",
-                    "**/Main**"
+                    "**/Main**",
+                    "**/NewTeamApplication.class",
+                    "**/NewTeamApplication\$*.class",
+                    "**/NewTeamApplicationKt.class",
+                    "**/exceptions/**",
+                    "**/services/PersonalService.class",
+                    "**/services/PersonalService\$DefaultImpls.class",
+                    "**/PersonalService.*",
+                    "**/PersonalService\$*",
+                    "**/PersonalService\$DefaultImpls*",
+                    "**/*\$DefaultImpls*"
             ])
         }))
 
         // Ensure Kotlin source and test files are included
         sourceDirectories.setFrom(files(
-            "src/main/kotlin",
-            "src/main/java",
-            "src/test/kotlin"
+                "src/main/kotlin",
+                "src/main/java",
+                "src/test/kotlin"
         ))
     }
 }

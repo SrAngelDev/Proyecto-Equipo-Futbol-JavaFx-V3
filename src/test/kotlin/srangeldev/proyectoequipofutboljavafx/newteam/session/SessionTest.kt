@@ -4,12 +4,17 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.BeforeEach
 import srangeldev.proyectoequipofutboljavafx.newteam.models.User
 import java.time.LocalDateTime
+import kotlin.test.BeforeTest
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class SessionTest {
+    @BeforeTest
+    fun setup() {
+        Session.clearCredentials()
+    }
 
     private val adminUser = User(
         id = 1,
@@ -136,5 +141,83 @@ class SessionTest {
         // Then
         assertEquals(regularUser, Session.getCurrentUser())
         assertFalse(Session.isAdmin())
+    }
+
+    @Test
+    fun `setCurrentUser should overwrite previously set user`() {
+        // Given
+        Session.setCurrentUser(adminUser)
+
+        // When
+        Session.setCurrentUser(regularUser)
+
+        // Then
+        val currentUser = Session.getCurrentUser()
+        assertEquals(regularUser, currentUser)
+    }
+
+    @Test
+    fun `setCurrentUser should handle null and clear current user`() {
+        // Given
+        Session.setCurrentUser(adminUser)
+
+        // When
+        Session.setCurrentUser(null)
+
+        // Then
+        val currentUser = Session.getCurrentUser()
+        assertNull(currentUser)
+    }
+
+    @Test
+    fun `saveCredentials should store username and password`() {
+        // When
+        Session.saveCredentials("testUser", "testPass")
+
+        // Then
+        assertEquals("testUser", Session.getRememberedUsername())
+        assertEquals("testPass", Session.getRememberedPassword())
+        assertTrue(Session.hasRememberedCredentials())
+    }
+
+    @Test
+    fun `getRememberedUsername should return null when no credentials saved`() {
+        // When
+        val username = Session.getRememberedUsername()
+
+        // Then
+        assertNull(username)
+    }
+
+    @Test
+    fun `getRememberedPassword should return null when no credentials saved`() {
+        // When
+        val password = Session.getRememberedPassword()
+
+        // Then
+        assertNull(password)
+    }
+
+    @Test
+    fun `hasRememberedCredentials should return false when no credentials saved`() {
+        // When
+        val hasCredentials = Session.hasRememberedCredentials()
+
+        // Then
+        assertFalse(hasCredentials)
+    }
+
+    @Test
+    fun `clearCredentials should remove saved credentials`() {
+        // Given
+        Session.saveCredentials("testUser", "testPass")
+
+        // When
+        Session.clearCredentials()
+
+        // Then
+        assertNull(Session.getRememberedUsername())
+        assertNull(Session.getRememberedPassword())
+        assertFalse(Session.hasRememberedCredentials())
     }
 }

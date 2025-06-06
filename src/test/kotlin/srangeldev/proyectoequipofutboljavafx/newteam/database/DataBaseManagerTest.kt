@@ -41,9 +41,10 @@ class DataBaseManagerTest {
     }
 
     @Test
-    fun `test database connection is not null`() {
-        // The DataBaseManager is initialized in its init block, so we just need to check that the connection is not null
-        assertNotNull(DataBaseManager.instance.connection)
+    fun `test database connection is not null and valid`() {
+        // Usamos la conexión de prueba que ya establecimos en setUp()
+        assertNotNull(testConnection, "La conexión a la base de datos no debería ser null")
+        assertTrue(testConnection?.isValid(1) ?: false, "La conexión a la base de datos debería estar activa")
     }
     
     @Test

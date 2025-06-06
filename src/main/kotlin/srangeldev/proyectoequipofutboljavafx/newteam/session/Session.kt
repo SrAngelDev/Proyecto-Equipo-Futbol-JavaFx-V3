@@ -18,7 +18,7 @@ object Session {
      * 
      * @param user El usuario a establecer como actual.
      */
-    fun setCurrentUser(user: User) {
+    fun setCurrentUser(user: User?) {
         currentUser = user
     }
 
