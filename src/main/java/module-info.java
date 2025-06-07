@@ -23,6 +23,7 @@ module srangeldev.proyectoequipofutboljavafx {
 
     // SQL
     requires java.sql; // Como no pongas esto te vas a volver loco con los errores!!
+    requires java.base;
 
     // Koin
     requires koin.core.jvm;
@@ -46,10 +47,14 @@ module srangeldev.proyectoequipofutboljavafx {
     opens srangeldev.proyectoequipofutboljavafx to javafx.fxml;
     opens srangeldev.proyectoequipofutboljavafx.controllers to javafx.fxml;
     opens srangeldev.proyectoequipofutboljavafx.newteam.models to javafx.base;
+    opens srangeldev.proyectoequipofutboljavafx.newteam.dao to org.jdbi.v3.core;
 
     //Logging
     exports srangeldev.proyectoequipofutboljavafx;
     exports srangeldev.proyectoequipofutboljavafx.controllers;
     exports srangeldev.proyectoequipofutboljavafx.routes;
+
+    // models
+    exports srangeldev.proyectoequipofutboljavafx.newteam.models;
 
 }

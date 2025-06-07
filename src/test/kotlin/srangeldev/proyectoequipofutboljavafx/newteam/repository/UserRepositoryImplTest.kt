@@ -7,7 +7,8 @@ import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.io.TempDir
 import org.mockito.kotlin.*
 import srangeldev.proyectoequipofutboljavafx.newteam.config.Config
-import srangeldev.proyectoequipofutboljavafx.newteam.database.DataBaseManager
+import srangeldev.proyectoequipofutboljavafx.newteam.dao.UserDao
+import srangeldev.proyectoequipofutboljavafx.newteam.database.JdbiManager
 import srangeldev.proyectoequipofutboljavafx.newteam.models.User
 import java.nio.file.Path
 import java.sql.Connection
@@ -21,7 +22,8 @@ import kotlin.test.assertTrue
 
 class UserRepositoryImplTest {
     private lateinit var repository: UserRepositoryImpl
-    private lateinit var originalInstance: DataBaseManager
+    private lateinit var userDao: UserDao
+    private lateinit var originalInstance: JdbiManager
     private lateinit var originalDbUrl: String
     private lateinit var testDbUrl: String
     private lateinit var connection: Connection
@@ -31,7 +33,7 @@ class UserRepositoryImplTest {
 
     @BeforeEach
     fun setUp() {
-        originalInstance = DataBaseManager.instance
+        originalInstance = JdbiManager.getInstance()
         originalDbUrl = Config.configProperties.databaseUrl
 
         val testDbFile = tempDir.resolve("test_users.db").toFile().absolutePath
@@ -41,17 +43,20 @@ class UserRepositoryImplTest {
         urlField.isAccessible = true
         urlField.set(Config.configProperties, testDbUrl)
 
-        val constructor = DataBaseManager::class.java.getDeclaredConstructor()
+        val constructor = JdbiManager::class.java.getDeclaredConstructor()
         constructor.isAccessible = true
         val testInstance = constructor.newInstance()
 
-        val instanceField = DataBaseManager::class.java.getDeclaredField("instance")
+        val instanceField = JdbiManager::class.java.getDeclaredField("instance")
         instanceField.isAccessible = true
         instanceField.set(null, testInstance)
 
         connection = DriverManager.getConnection(testDbUrl)
         createUsersTable()
-        repository = UserRepositoryImpl()
+
+        // Create a mock UserDao
+        userDao = mock()
+        repository = UserRepositoryImpl(userDao)
     }
 
     private fun createUsersTable() {
@@ -95,7 +100,7 @@ class UserRepositoryImplTest {
         urlField.isAccessible = true
         urlField.set(Config.configProperties, originalDbUrl)
 
-        val instanceField = DataBaseManager::class.java.getDeclaredField("instance")
+        val instanceField = JdbiManager::class.java.getDeclaredField("instance")
         instanceField.isAccessible = true
         instanceField.set(null, originalInstance)
 
@@ -104,8 +109,13 @@ class UserRepositoryImplTest {
 
     @Test
     fun `findAll debería devolver todos los usuarios`() {
-        insertTestUser(username = "user1", password = "pass", role = User.Role.USER)
-        insertTestUser(username = "user2", password = "pass", role = User.Role.USER)
+        // Create test users
+        val user1 = User(1, "user1", "pass", User.Role.USER, LocalDateTime.now(), LocalDateTime.now())
+        val user2 = User(2, "user2", "pass", User.Role.USER, LocalDateTime.now(), LocalDateTime.now())
+        val usersList = listOf(user1, user2)
+
+        // Set up mock behavior
+        whenever(userDao.findAll()).thenReturn(usersList)
 
         val result = repository.findAll()
 
@@ -122,7 +132,11 @@ class UserRepositoryImplTest {
 
     @Test
     fun `getByUsername debería devolver usuario existente`() {
-        insertTestUser(username = "existinguser", password = "pass", role = User.Role.USER)
+        // Create test user
+        val existingUser = User(1, "existinguser", "pass", User.Role.USER, LocalDateTime.now(), LocalDateTime.now())
+
+        // Set up mock behavior
+        whenever(userDao.findByUsername("existinguser")).thenReturn(existingUser)
 
         val result = repository.getByUsername("existinguser")
 
@@ -138,7 +152,11 @@ class UserRepositoryImplTest {
 
     @Test
     fun `verifyCredentials debería devolver true para credenciales válidas`() {
-        insertTestUser(username = "validuser", password = "correctpass", role = User.Role.USER)
+        val hashedPassword = "GLTw6k8ixrje86Y8rN+fNTltfUmd4rm8g7OBFwlqcqE="
+        val validUser = User(1, "validuser", hashedPassword, User.Role.USER, LocalDateTime.now(), LocalDateTime.now())
+
+        // Set up mock behavior
+        whenever(userDao.findByUsername("validuser")).thenReturn(validUser)
 
         val result: User? = repository.verifyCredentials("validuser", "correctpass")
 
@@ -162,13 +180,30 @@ class UserRepositoryImplTest {
 
     @Test
     fun `save debería guardar nuevo usuario correctamente`() {
+        // Create test user
         val newUser = User(
+            id = 0, // New user has id 0
             username = "newuser",
             password = "newpass",
             role = User.Role.USER,
             createdAt = LocalDateTime.now(),
             updatedAt = LocalDateTime.now()
         )
+
+        // Create saved user with ID
+        val savedUser = User(
+            id = 1, // Saved user has id 1
+            username = "newuser",
+            password = "\$2a\$10\$k.58cTqDFMGMVpbHUXlH8eOY3JA6qnGaDf8lLWLyCUUJJRGzH4qHK", // Hashed password
+            role = User.Role.USER,
+            createdAt = LocalDateTime.now(),
+            updatedAt = LocalDateTime.now()
+        )
+
+        // Set up mock behavior
+        whenever(userDao.save(any())).thenReturn(1) // Return ID 1
+        whenever(userDao.findById(1)).thenReturn(savedUser)
+        whenever(userDao.findByUsername("newuser")).thenReturn(savedUser)
 
         val result = repository.save(newUser)
 
@@ -195,9 +230,29 @@ class UserRepositoryImplTest {
 
     @Test
     fun `update debería actualizar usuario existente`() {
-        insertTestUser(username = "toupdate", password = "pass", role = User.Role.USER)
-        val user = repository.getByUsername("toupdate")!!
-        val updatedUser = user.copy()
+        // Create existing user
+        val existingUser = User(
+            id = 1,
+            username = "toupdate",
+            password = "\$2a\$10\$k.58cTqDFMGMVpbHUXlH8eOY3JA6qnGaDf8lLWLyCUUJJRGzH4qHK", // Hashed password
+            role = User.Role.USER,
+            createdAt = LocalDateTime.now(),
+            updatedAt = LocalDateTime.now()
+        )
+
+        // Create updated user
+        val updatedUser = existingUser.copy(
+            updatedAt = LocalDateTime.now().plusMinutes(5)
+        )
+
+        // Set up mock behavior
+        whenever(userDao.findById(1)).thenReturn(existingUser)
+        whenever(userDao.findByUsername("toupdate")).thenReturn(existingUser)
+        whenever(userDao.update(any())).thenReturn(1) // 1 row affected
+
+        // After update, return the updated user
+        whenever(userDao.findById(1)).thenReturn(updatedUser)
+        whenever(userDao.findByUsername("toupdate")).thenReturn(updatedUser)
 
         val result = repository.update(updatedUser.id, updatedUser)
 
@@ -222,12 +277,27 @@ class UserRepositoryImplTest {
 
     @Test
     fun `delete debería eliminar usuario existente`() {
-        insertTestUser(username = "todelete", password = "pass", role = User.Role.USER)
-        val userToDelete = repository.getByUsername("todelete")!!
+        // Create test user
+        val userToDelete = User(1, "todelete", "pass", User.Role.USER, LocalDateTime.now(), LocalDateTime.now())
 
+        // Set up mock behavior for first call to getById
+        whenever(userDao.findById(1)).thenReturn(userToDelete)
+
+        // Set up mock behavior for delete
+        whenever(userDao.delete(1)).thenReturn(1) // Return 1 row affected
+
+        // Set up mock behavior for findByUsername - first call returns user, second call returns null
+        val findByUsernameMock = whenever(userDao.findByUsername("todelete"))
+        findByUsernameMock.thenReturn(userToDelete) // First call
+        findByUsernameMock.thenReturn(null) // Second call after deletion
+
+        // Execute delete
         val result = repository.delete(userToDelete.id)
 
+        // Verify result
         assertTrue(result)
+
+        // Verify user is no longer found
         assertNull(repository.getByUsername("todelete"))
     }
 
@@ -239,13 +309,31 @@ class UserRepositoryImplTest {
 
     @Test
     fun `delete debería mantener otros usuarios`() {
-        insertTestUser(username = "user1", password = "pass", role = User.Role.USER)
-        insertTestUser(username = "user2", password = "pass", role = User.Role.USER)
-        val user1 = repository.getByUsername("user1")!!
+        // Create test users
+        val user1 = User(1, "user1", "pass", User.Role.USER, LocalDateTime.now(), LocalDateTime.now())
+        val user2 = User(2, "user2", "pass", User.Role.USER, LocalDateTime.now(), LocalDateTime.now())
 
+        // Set up mock behavior for getById
+        whenever(userDao.findById(1)).thenReturn(user1)
+
+        // Set up mock behavior for delete
+        whenever(userDao.delete(1)).thenReturn(1) // Return 1 row affected
+
+        // Set up mock behavior for findByUsername for user1 - first call returns user, second call returns null
+        val findByUsername1Mock = whenever(userDao.findByUsername("user1"))
+        findByUsername1Mock.thenReturn(user1) // First call
+        findByUsername1Mock.thenReturn(null) // Second call after deletion
+
+        // Set up mock behavior for findByUsername for user2 - always returns user2
+        whenever(userDao.findByUsername("user2")).thenReturn(user2)
+
+        // Execute delete
         repository.delete(user1.id)
 
+        // Verify user1 is deleted
         assertNull(repository.getByUsername("user1"))
+
+        // Verify user2 still exists
         assertNotNull(repository.getByUsername("user2"))
     }
 }

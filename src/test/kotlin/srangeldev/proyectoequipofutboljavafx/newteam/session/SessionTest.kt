@@ -36,7 +36,6 @@ class SessionTest {
     
     @BeforeEach
     fun setUp() {
-        // Ensure session is clean before each test
         Session.logout()
     }
     
@@ -219,5 +218,53 @@ class SessionTest {
         assertNull(Session.getRememberedUsername())
         assertNull(Session.getRememberedPassword())
         assertFalse(Session.hasRememberedCredentials())
+    }
+
+    @Test
+    fun `hasRememberedCredentials should return false when rememberMe is false`() {
+        // Given
+        Session.saveCredentials("testUser", "testPass")
+        Session.clearCredentials()  // Esto establece rememberMe a false
+
+        // When
+        val hasCredentials = Session.hasRememberedCredentials()
+
+        // Then
+        assertFalse(hasCredentials)
+    }
+
+    @Test
+    fun `hasRememberedCredentials should return true only when all conditions are met`() {
+        // Given
+        Session.saveCredentials("testUser", "testPass")
+
+        // When/Then
+        assertTrue(Session.hasRememberedCredentials())
+    }
+
+    @Test
+    fun `hasRememberedCredentials should return false when username is null`() {
+        // Given: implementación específica para este caso de prueba
+        Session.clearCredentials()
+        Session.saveCredentials("", "testPass")
+
+        // When
+        val hasCredentials = Session.hasRememberedCredentials()
+
+        // Then
+        assertFalse(hasCredentials)
+    }
+
+    @Test
+    fun `hasRememberedCredentials should return false when password is null`() {
+        // Given: implementación específica para este caso de prueba
+        Session.clearCredentials()
+        Session.saveCredentials("testUser", "")
+
+        // When
+        val hasCredentials = Session.hasRememberedCredentials()
+
+        // Then
+        assertFalse(hasCredentials)
     }
 }

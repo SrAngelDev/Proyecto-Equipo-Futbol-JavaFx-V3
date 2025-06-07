@@ -1,132 +1,68 @@
 package srangeldev.proyectoequipofutboljavafx.newteam.repository
 
 import org.lighthousegames.logging.logging
-import srangeldev.proyectoequipofutboljavafx.newteam.database.DataBaseManager
+import srangeldev.proyectoequipofutboljavafx.newteam.dao.EquipoDao
 import srangeldev.proyectoequipofutboljavafx.newteam.models.Equipo
-import java.sql.Statement
 import java.time.LocalDate
 import java.time.LocalDateTime
 
 /**
  * Implementación del repositorio de equipos.
  */
-class EquipoRepositoryImpl : EquipoRepository {
+class EquipoRepositoryImpl(
+    private val equipoDao: EquipoDao
+) : EquipoRepository {
     private val logger = logging()
     private val equipos = mutableMapOf<Int, Equipo>()
 
     init {
         logger.debug { "Inicializando repositorio de equipos" }
-        initDefaultEquipo()
-    }
-
-    /**
-     * Inicializa un equipo por defecto si no existe ninguno.
-     * Las tablas ya se crean a través del archivo tablas.sql
-     */
-    fun initDefaultEquipo() {
-        logger.debug { "Inicializando equipo por defecto" }
-
-        // Comprobamos si hay equipos
-        DataBaseManager.instance.use { db ->
-            val connection = db.connection ?: throw IllegalStateException("Conexión a la base de datos no disponible")
-
-            // Comprobamos si hay equipos
-            val countSql = "SELECT COUNT(*) FROM Equipos"
-            val resultSet = connection.createStatement().executeQuery(countSql)
-
-            if (resultSet.next() && resultSet.getInt(1) == 0) {
-                // No hay equipos, creamos un equipo por defecto
-                val defaultEquipo = Equipo(
-                    nombre = "Mi Equipo",
-                    fechaFundacion = LocalDate.of(2000, 1, 1),
-                    escudoUrl = "",
-                    ciudad = "Mi Ciudad",
-                    estadio = "Mi Estadio",
-                    pais = "Mi País"
-                )
-
-                save(defaultEquipo)
-
-                logger.debug { "Equipo por defecto creado" }
-            } else {
-                logger.debug { "Ya existe un equipo en la base de datos" }
-            }
-        }
     }
 
     override fun getAll(): List<Equipo> {
         logger.debug { "Obteniendo todos los equipos" }
 
-        // Limpiar la caché para asegurarnos de obtener datos actualizados
-        equipos.clear()
+        try {
+            // Limpiar la caché para asegurarnos de obtener datos actualizados
+            equipos.clear()
 
-        val equiposList = mutableListOf<Equipo>()
+            // Obtener todos los equipos
+            val equiposList = equipoDao.findAll()
 
-        val sql = "SELECT * FROM Equipos"
-
-        DataBaseManager.instance.use { db ->
-            val statement = db.connection?.createStatement()
-            val resultSet = statement?.executeQuery(sql)
-
-            while (resultSet?.next() == true) {
-                val equipo = Equipo(
-                    id = resultSet.getInt("id"),
-                    nombre = resultSet.getString("nombre"),
-                    fechaFundacion = resultSet.getDate("fecha_fundacion").toLocalDate(),
-                    escudoUrl = resultSet.getString("escudo_url") ?: "",
-                    ciudad = resultSet.getString("ciudad"),
-                    estadio = resultSet.getString("estadio"),
-                    pais = resultSet.getString("pais"),
-                    createdAt = resultSet.getTimestamp("created_at")?.toLocalDateTime() ?: LocalDateTime.now(),
-                    updatedAt = resultSet.getTimestamp("updated_at")?.toLocalDateTime() ?: LocalDateTime.now()
-                )
-
-                // Añadir a la lista y a la caché
-                equiposList.add(equipo)
+            // Actualizar la caché
+            equiposList.forEach { equipo ->
                 equipos[equipo.id] = equipo
             }
-        }
 
-        return equiposList
+            return equiposList
+        } catch (e: Exception) {
+            logger.error { "Error al obtener todos los equipos: ${e.message}" }
+            return emptyList()
+        }
     }
 
     override fun getById(id: Int): Equipo? {
         logger.debug { "Obteniendo equipo por ID: $id" }
 
-        // Primero buscamos en la caché
+        // Check cache first for non-test scenarios
         if (equipos.containsKey(id)) {
             return equipos[id]
         }
 
-        // Si no está en la caché, buscamos en la base de datos
-        var equipo: Equipo? = null
+        try {
+            // Obtener el equipo por ID
+            val equipo = equipoDao.findById(id)
 
-        val sql = "SELECT * FROM Equipos WHERE id = ?"
-
-        DataBaseManager.instance.use { db ->
-            val preparedStatement = db.connection?.prepareStatement(sql)
-            preparedStatement?.setInt(1, id)
-            val resultSet = preparedStatement?.executeQuery()
-
-            if (resultSet?.next() == true) {
-                equipo = Equipo(
-                    id = resultSet.getInt("id"),
-                    nombre = resultSet.getString("nombre"),
-                    fechaFundacion = resultSet.getDate("fecha_fundacion").toLocalDate(),
-                    escudoUrl = resultSet.getString("escudo_url") ?: "",
-                    ciudad = resultSet.getString("ciudad"),
-                    estadio = resultSet.getString("estadio"),
-                    pais = resultSet.getString("pais"),
-                    createdAt = resultSet.getTimestamp("created_at")?.toLocalDateTime() ?: LocalDateTime.now(),
-                    updatedAt = resultSet.getTimestamp("updated_at")?.toLocalDateTime() ?: LocalDateTime.now()
-                )
-
-                // Añadimos el equipo a la caché
-                equipos[equipo!!.id] = equipo!!
+            // Actualizar la caché si se encontró el equipo
+            if (equipo != null) {
+                equipos[equipo.id] = equipo
             }
-        }
 
-        return equipo
+            return equipo
+        } catch (e: Exception) {
+            logger.error { "Error al obtener equipo por ID: $id: ${e.message}" }
+            return null
+        }
     }
 
     override fun save(equipo: Equipo): Equipo {
@@ -143,50 +79,21 @@ class EquipoRepositoryImpl : EquipoRepository {
                 throw IllegalStateException("No se pudo actualizar el equipo")
             }
         } else {
-            // Crear nuevo equipo
-            var newEquipo: Equipo? = null
+            try {
+                // Crear nuevo equipo
+                val equipoId = equipoDao.save(equipo)
 
-            DataBaseManager.instance.use { db ->
-                val connection = db.connection ?: throw IllegalStateException("Conexión a la base de datos no disponible")
+                // Obtener el equipo guardado
+                val savedEquipo = equipoDao.findById(equipoId)
+                    ?: throw IllegalStateException("No se pudo obtener el equipo creado")
 
-                // Insertar el equipo
-                val insertSql = """
-                    INSERT INTO Equipos (nombre, fecha_fundacion, escudo_url, ciudad, estadio, pais, created_at, updated_at) 
-                    VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-                """.trimIndent()
+                // Actualizar la caché
+                equipos[savedEquipo.id] = savedEquipo
 
-                val preparedStatement = connection.prepareStatement(insertSql, Statement.RETURN_GENERATED_KEYS)
-                preparedStatement.setString(1, equipo.nombre)
-                preparedStatement.setDate(2, java.sql.Date.valueOf(equipo.fechaFundacion))
-                preparedStatement.setString(3, equipo.escudoUrl)
-                preparedStatement.setString(4, equipo.ciudad)
-                preparedStatement.setString(5, equipo.estadio)
-                preparedStatement.setString(6, equipo.pais)
-
-                preparedStatement.executeUpdate()
-
-                // Obtener el ID generado
-                val generatedKeys = preparedStatement.generatedKeys
-                if (generatedKeys.next()) {
-                    val equipoId = generatedKeys.getInt(1)
-
-                    // Obtener el equipo creado
-                    newEquipo = getById(equipoId)
-                    if (newEquipo != null) {
-                        // Actualizar la caché
-                        equipos[newEquipo!!.id] = newEquipo!!
-                    } else {
-                        throw IllegalStateException("No se pudo obtener el equipo creado")
-                    }
-                } else {
-                    throw IllegalStateException("No se pudo obtener el ID del equipo creado")
-                }
-            }
-
-            if (newEquipo != null) {
-                return newEquipo!!
-            } else {
-                throw IllegalStateException("No se pudo crear el equipo")
+                return savedEquipo
+            } catch (e: Exception) {
+                logger.error { "Error al guardar el equipo: ${e.message}" }
+                throw IllegalStateException("No se pudo guardar el equipo: ${e.message}")
             }
         }
     }
@@ -201,36 +108,32 @@ class EquipoRepositoryImpl : EquipoRepository {
             return null
         }
 
-        DataBaseManager.instance.use { db ->
-            val connection = db.connection ?: throw IllegalStateException("Conexión a la base de datos no disponible")
-
+        try {
             // Actualizar el equipo
-            val updateSql = """
-                UPDATE Equipos 
-                SET nombre = ?, fecha_fundacion = ?, escudo_url = ?, ciudad = ?, estadio = ?, pais = ?, updated_at = CURRENT_TIMESTAMP 
-                WHERE id = ?
-            """.trimIndent()
+            val equipoToUpdate = entidad.copy(
+                id = id,
+                updatedAt = LocalDateTime.now()
+            )
 
-            val preparedStatement = connection.prepareStatement(updateSql)
-            preparedStatement.setString(1, entidad.nombre)
-            preparedStatement.setDate(2, java.sql.Date.valueOf(entidad.fechaFundacion))
-            preparedStatement.setString(3, entidad.escudoUrl)
-            preparedStatement.setString(4, entidad.ciudad)
-            preparedStatement.setString(5, entidad.estadio)
-            preparedStatement.setString(6, entidad.pais)
-            preparedStatement.setInt(7, id)
+            val rowsAffected = equipoDao.update(equipoToUpdate)
 
-            preparedStatement.executeUpdate()
+            if (rowsAffected > 0) {
+                // Obtener el equipo actualizado
+                val updatedEquipo = equipoDao.findById(id)
+
+                // Actualizar la caché
+                if (updatedEquipo != null) {
+                    equipos[id] = updatedEquipo
+                }
+
+                return updatedEquipo
+            }
+
+            return null
+        } catch (e: Exception) {
+            logger.error { "Error al actualizar el equipo: ${e.message}" }
+            return null
         }
-
-        // Obtener el equipo actualizado
-        val updatedEquipo = getById(id)
-        if (updatedEquipo != null) {
-            // Actualizar la caché
-            equipos[updatedEquipo.id] = updatedEquipo
-        }
-
-        return updatedEquipo
     }
 
     override fun delete(id: Int): Equipo? {
@@ -243,29 +146,22 @@ class EquipoRepositoryImpl : EquipoRepository {
             return null
         }
 
-        var success = false
-
-        DataBaseManager.instance.use { db ->
-            val connection = db.connection ?: throw IllegalStateException("Conexión a la base de datos no disponible")
-
+        try {
             // Eliminar el equipo
-            val sql = "DELETE FROM Equipos WHERE id = ?"
+            val rowsAffected = equipoDao.delete(id)
 
-            val preparedStatement = connection.prepareStatement(sql)
-            preparedStatement.setInt(1, id)
-
-            val rowsAffected = preparedStatement.executeUpdate()
-            success = rowsAffected > 0
-
-            if (success) {
+            if (rowsAffected > 0) {
                 // Eliminar de la caché
                 equipos.remove(id)
-                logger.debug { "Equipo eliminado correctamente: $id" }
-            } else {
-                logger.debug { "No se eliminó ningún equipo con ID: $id" }
-            }
-        }
 
-        return if (success) existingEquipo else null
+                logger.debug { "Equipo eliminado correctamente: $existingEquipo" }
+                return existingEquipo
+            }
+
+            return null
+        } catch (e: Exception) {
+            logger.error { "Error al eliminar el equipo: ${e.message}" }
+            return null
+        }
     }
 }

@@ -1,20 +1,17 @@
 package srangeldev.proyectoequipofutboljavafx.newteam.repository
 
 import org.lighthousegames.logging.logging
-import srangeldev.proyectoequipofutboljavafx.newteam.database.DataBaseManager
+import srangeldev.proyectoequipofutboljavafx.newteam.dao.UserDao
 import srangeldev.proyectoequipofutboljavafx.newteam.models.User
 import srangeldev.proyectoequipofutboljavafx.newteam.utils.BCryptUtil
-import java.sql.Statement
 import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 
 /**
  * Implementación del repositorio de usuarios.
  */
-class UserRepositoryImpl : UserRepository {
+class UserRepositoryImpl(private val userDao: UserDao) : UserRepository {
     private val logger = logging()
     private val users = mutableMapOf<String, User>()
-    private val dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
 
     init {
         logger.debug { "Inicializando repositorio de usuarios" }
@@ -24,34 +21,17 @@ class UserRepositoryImpl : UserRepository {
     override fun findAll(): List<User> {
         logger.debug { "Obteniendo todos los usuarios" }
 
-        val usersList = mutableListOf<User>()
-
         try {
-            DataBaseManager.instance.use { db ->
-                val sql = "SELECT * FROM Usuarios"
-                db.connection?.prepareStatement(sql)?.use { statement ->
-                    statement.executeQuery().use { resultSet ->
-                        while (resultSet.next()) {
-                            val user = User(
-                                id = resultSet.getInt("id"),
-                                username = resultSet.getString("username"),
-                                password = resultSet.getString("password"),
-                                role = User.Role.valueOf(resultSet.getString("role")),
-                                createdAt = LocalDateTime.parse(resultSet.getString("created_at"), dateTimeFormatter),
-                                updatedAt = LocalDateTime.parse(resultSet.getString("updated_at"), dateTimeFormatter)
-                            )
-                            usersList.add(user)
-                            users[user.username] = user
-                        }
-                    }
-                }
+            val usersList = userDao.findAll()
+            // Actualizar la caché
+            usersList.forEach { user ->
+                users[user.username] = user
             }
+            return usersList
         } catch (e: Exception) {
             logger.error { "Error al obtener los usuarios: ${e.message}" }
             throw RuntimeException("Error al obtener los usuarios: ${e.message}")
         }
-
-        return usersList
     }
 
     override fun getByUsername(username: String): User? {
@@ -63,31 +43,19 @@ class UserRepositoryImpl : UserRepository {
         }
 
         // Si no está en la caché, buscamos en la base de datos
-        var user: User? = null
+        try {
+            val user = userDao.findByUsername(username)
 
-        val sql = "SELECT * FROM Usuarios WHERE username = ?"
-
-        DataBaseManager.instance.use { db ->
-            val preparedStatement = db.connection?.prepareStatement(sql)
-            preparedStatement?.setString(1, username)
-            val resultSet = preparedStatement?.executeQuery()
-
-            if (resultSet?.next() == true) {
-                user = User(
-                    id = resultSet.getInt("id"),
-                    username = resultSet.getString("username"),
-                    password = resultSet.getString("password"),
-                    role = User.Role.valueOf(resultSet.getString("role")),
-                    createdAt = LocalDateTime.parse(resultSet.getString("created_at"), dateTimeFormatter),
-                    updatedAt = LocalDateTime.parse(resultSet.getString("updated_at"), dateTimeFormatter)
-                )
-
-                // Añadimos el usuario a la caché
-                users[username] = user!!
+            // Añadimos el usuario a la caché si existe
+            if (user != null) {
+                users[username] = user
             }
-        }
 
-        return user
+            return user
+        } catch (e: Exception) {
+            logger.error { "Error al obtener el usuario por nombre de usuario: ${e.message}" }
+            return null
+        }
     }
 
     override fun verifyCredentials(username: String, password: String): User? {
@@ -134,52 +102,28 @@ class UserRepositoryImpl : UserRepository {
                 throw IllegalStateException("No se pudo actualizar el usuario")
             }
         } else {
-            // Crear nuevo usuario
-            var newUser: User? = null
+            try {
+                // Crear nuevo usuario con la contraseña hasheada
+                val userToSave = user.copy(
+                    password = hashedPassword,
+                    createdAt = LocalDateTime.now(),
+                    updatedAt = LocalDateTime.now()
+                )
 
-            DataBaseManager.instance.use { db ->
-                val connection =
-                    db.connection ?: throw IllegalStateException("Conexión a la base de datos no disponible")
+                // Guardar el usuario y obtener el ID generado
+                val userId = userDao.save(userToSave)
 
-                // Insertar el usuario
-                val insertSql = """
-                    INSERT INTO Usuarios (username, password, role, created_at, updated_at) 
-                    VALUES (?, ?, ?, ?, ?)
-                """.trimIndent()
+                // Obtener el usuario creado
+                val newUser = userDao.findById(userId)
+                    ?: throw IllegalStateException("No se pudo obtener el usuario creado")
 
-                val now = LocalDateTime.now().format(dateTimeFormatter)
+                // Actualizar la caché
+                users[newUser.username] = newUser
 
-                val preparedStatement = connection.prepareStatement(insertSql, Statement.RETURN_GENERATED_KEYS)
-                preparedStatement.setString(1, user.username)
-                preparedStatement.setString(2, hashedPassword)
-                preparedStatement.setString(3, user.role.name)
-                preparedStatement.setString(4, now)
-                preparedStatement.setString(5, now)
-
-                preparedStatement.executeUpdate()
-
-                // Obtener el ID generado
-                val generatedKeys = preparedStatement.generatedKeys
-                if (generatedKeys.next()) {
-                    val userId = generatedKeys.getInt(1)
-
-                    // Obtener el usuario creado
-                    newUser = getByUsername(user.username)
-                    if (newUser != null) {
-                        // Actualizar la caché
-                        users[newUser!!.username] = newUser!!
-                    } else {
-                        throw IllegalStateException("No se pudo obtener el usuario creado")
-                    }
-                } else {
-                    throw IllegalStateException("No se pudo obtener el ID del usuario creado")
-                }
-            }
-
-            if (newUser != null) {
-                return newUser!!
-            } else {
-                throw IllegalStateException("No se pudo crear el usuario")
+                return newUser
+            } catch (e: Exception) {
+                logger.error { "Error al crear el usuario: ${e.message}" }
+                throw IllegalStateException("No se pudo crear el usuario: ${e.message}")
             }
         }
     }
@@ -206,34 +150,32 @@ class UserRepositoryImpl : UserRepository {
             user.password
         }
 
-        DataBaseManager.instance.use { db ->
-            val connection = db.connection ?: throw IllegalStateException("Conexión a la base de datos no disponible")
+        try {
+            // Crear una copia del usuario con la contraseña hasheada y la fecha de actualización actualizada
+            val userToUpdate = user.copy(
+                password = hashedPassword,
+                updatedAt = LocalDateTime.now()
+            )
 
             // Actualizar el usuario
-            val updateSql = """
-                UPDATE Usuarios 
-                SET username = ?, password = ?, role = ?, updated_at = ? 
-                WHERE id = ?
-            """.trimIndent()
+            val rowsAffected = userDao.update(userToUpdate)
 
-            val preparedStatement = connection.prepareStatement(updateSql)
-            preparedStatement.setString(1, user.username)
-            preparedStatement.setString(2, hashedPassword)
-            preparedStatement.setString(3, user.role.name)
-            preparedStatement.setString(4, LocalDateTime.now().format(dateTimeFormatter))
-            preparedStatement.setInt(5, id)
+            if (rowsAffected > 0) {
+                // Obtener el usuario actualizado
+                val updatedUser = userDao.findById(id)
 
-            preparedStatement.executeUpdate()
+                if (updatedUser != null) {
+                    // Actualizar la caché
+                    users[updatedUser.username] = updatedUser
+                    return updatedUser
+                }
+            }
+
+            return null
+        } catch (e: Exception) {
+            logger.error { "Error al actualizar el usuario: ${e.message}" }
+            return null
         }
-
-        // Obtener el usuario actualizado
-        val updatedUser = getByUsername(user.username)
-        if (updatedUser != null) {
-            // Actualizar la caché
-            users[updatedUser.username] = updatedUser
-        }
-
-        return updatedUser
     }
 
     override fun delete(id: Int): Boolean {
@@ -246,18 +188,9 @@ class UserRepositoryImpl : UserRepository {
             return false
         }
 
-        var success = false
-
-        DataBaseManager.instance.use { db ->
-            val connection = db.connection ?: throw IllegalStateException("Conexión a la base de datos no disponible")
-
-            val sql = "DELETE FROM Usuarios WHERE id = ?"
-
-            val preparedStatement = connection.prepareStatement(sql)
-            preparedStatement.setInt(1, id)
-
-            val rowsAffected = preparedStatement.executeUpdate()
-            success = rowsAffected > 0
+        try {
+            val rowsAffected = userDao.delete(id)
+            val success = rowsAffected > 0
 
             if (success) {
                 // Eliminar de la caché
@@ -266,9 +199,12 @@ class UserRepositoryImpl : UserRepository {
             } else {
                 logger.debug { "No se eliminó ningún usuario con ID: $id" }
             }
-        }
 
-        return success
+            return success
+        } catch (e: Exception) {
+            logger.error { "Error al eliminar el usuario: ${e.message}" }
+            return false
+        }
     }
 
     /**
@@ -287,36 +223,27 @@ class UserRepositoryImpl : UserRepository {
         }
 
         // Si no está en la caché, buscamos en la base de datos
-        var user: User? = null
+        try {
+            val user = userDao.findById(id)
 
-        val sql = "SELECT * FROM Usuarios WHERE id = ?"
-
-        DataBaseManager.instance.use { db ->
-            val preparedStatement = db.connection?.prepareStatement(sql)
-            preparedStatement?.setInt(1, id)
-            val resultSet = preparedStatement?.executeQuery()
-
-            if (resultSet?.next() == true) {
-                user = User(
-                    id = resultSet.getInt("id"),
-                    username = resultSet.getString("username"),
-                    password = resultSet.getString("password"),
-                    role = User.Role.valueOf(resultSet.getString("role")),
-                    createdAt = LocalDateTime.parse(resultSet.getString("created_at"), dateTimeFormatter),
-                    updatedAt = LocalDateTime.parse(resultSet.getString("updated_at"), dateTimeFormatter)
-                )
-
-                // Añadimos el usuario a la caché
-                users[user!!.username] = user!!
+            // Añadimos el usuario a la caché si existe
+            if (user != null) {
+                users[user.username] = user
             }
-        }
 
-        return user
+            return user
+        } catch (e: Exception) {
+            logger.error { "Error al obtener el usuario por ID: ${e.message}" }
+            return null
+        }
     }
 
     private fun initDefaultUsers() {
         logger.debug { "Los usuarios por defecto se inicializan desde data.sql" }
         // Los usuarios por defecto ahora se crean desde el archivo data.sql
         // No es necesario crearlos programáticamente
+
+        // Cargar usuarios existentes en la caché
+        findAll()
     }
 }

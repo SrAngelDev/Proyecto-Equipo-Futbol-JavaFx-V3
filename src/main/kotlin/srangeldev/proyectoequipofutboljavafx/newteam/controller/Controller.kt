@@ -1,10 +1,12 @@
 package srangeldev.proyectoequipofutboljavafx.newteam.controller
 
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import org.lighthousegames.logging.logging
 import srangeldev.proyectoequipofutboljavafx.newteam.config.Config
 import srangeldev.proyectoequipofutboljavafx.newteam.models.Entrenador
 import srangeldev.proyectoequipofutboljavafx.newteam.models.Jugador
-import srangeldev.proyectoequipofutboljavafx.newteam.service.PersonalServiceImpl
+import srangeldev.proyectoequipofutboljavafx.newteam.service.PersonalService
 import srangeldev.proyectoequipofutboljavafx.newteam.storage.FileFormat
 import java.io.File
 import java.nio.file.Paths
@@ -16,9 +18,23 @@ import java.util.Locale.getDefault
 /**
  * Controlador principal para gestionar las operaciones relacionadas con el personal.
  */
-class Controller {
+class Controller : KoinComponent {
     private val logger = logging()
-    var service = PersonalServiceImpl()
+
+    // This allows for dependency injection in tests
+    var service: PersonalService? = null
+        get() {
+            // Only try to get from Koin if not already set (e.g. in tests)
+            if (field == null) {
+                try {
+                    field = getKoin().get<PersonalService>()
+                } catch (e: Exception) {
+                    logger.error { "Error getting PersonalService: ${e.message}" }
+                    throw e
+                }
+            }
+            return field
+        }
 
     init {
         logger.debug { "Inicializando controlador" }
@@ -31,7 +47,7 @@ class Controller {
         val inputFormat = FileFormat.valueOf(normalizedFormat)
 
         try {
-            service.importFromFile(filePath, inputFormat)
+            service!!.importFromFile(filePath, inputFormat)
             logger.debug { "Datos importados correctamente desde: $filePath" }
         } catch (e: Exception) {
             logger.error { "Error al importar datos desde $filePath: ${e.message}" }

@@ -83,7 +83,8 @@ object Session {
      * @return true si hay credenciales recordadas, false en caso contrario.
      */
     fun hasRememberedCredentials(): Boolean {
-        return rememberMe && rememberedUsername != null && rememberedPassword != null
+        return getRememberedUsername()?.isNotEmpty() == true &&
+                getRememberedPassword()?.isNotEmpty() == true
     }
 
     /**

@@ -24,11 +24,11 @@ import srangeldev.proyectoequipofutboljavafx.newteam.models.Personal
 import srangeldev.proyectoequipofutboljavafx.NewTeamApplication
 import srangeldev.proyectoequipofutboljavafx.newteam.models.User
 import srangeldev.proyectoequipofutboljavafx.newteam.repository.ConvocatoriaRepository
-import srangeldev.proyectoequipofutboljavafx.newteam.repository.PersonalRepositoryImpl
-import srangeldev.proyectoequipofutboljavafx.newteam.repository.UserRepositoryImpl
+import srangeldev.proyectoequipofutboljavafx.newteam.repository.PersonalRepository
+import srangeldev.proyectoequipofutboljavafx.newteam.repository.UserRepository
 import srangeldev.proyectoequipofutboljavafx.routes.RoutesManager
+import srangeldev.proyectoequipofutboljavafx.newteam.service.PersonalService
 import srangeldev.proyectoequipofutboljavafx.newteam.session.Session
-import srangeldev.proyectoequipofutboljavafx.newteam.service.PersonalServiceImpl
 import srangeldev.proyectoequipofutboljavafx.newteam.utils.HtmlReportGenerator
 import srangeldev.proyectoequipofutboljavafx.newteam.utils.PdfReportGenerator
 import srangeldev.proyectoequipofutboljavafx.newteam.config.Config
@@ -46,6 +46,9 @@ import java.time.Period
  */
 class VistaNormalController : KoinComponent {
     private val logger = logging()
+    private val userRepository: UserRepository by inject()
+    private val personalRepository: PersonalRepository by inject()
+    private val personalService: PersonalService by inject()
 
     // Panel izquierdo - Tabla de jugadores
     @FXML private lateinit var playersTableView: TableView<Personal>
@@ -205,14 +208,10 @@ class VistaNormalController : KoinComponent {
             logger.debug { "Cargando datos de personal desde la base de datos" }
 
             // Limpiar la caché del repositorio para evitar duplicados
-            val repository = PersonalRepositoryImpl()
-            repository.clearCache()
-
-            // Crear una instancia del servicio
-            val service = PersonalServiceImpl()
+            personalRepository.clearCache()
 
             // Obtener todos los miembros del personal
-            val allPersonal = service.getAll()
+            val allPersonal = personalService.getAll()
 
             // Limpiar la lista actual
             personalList.clear()
@@ -713,7 +712,6 @@ class VistaNormalController : KoinComponent {
 
                 passwordDialog.showAndWait().ifPresent { password ->
                     // Verificar credenciales usando el repositorio de usuarios
-                    val userRepository = UserRepositoryImpl()
                     val user = userRepository.verifyCredentials(username, password)
 
                     if (user != null && user.role == User.Role.ADMIN) {
@@ -863,7 +861,6 @@ class VistaNormalController : KoinComponent {
         descripcionTextArea.text = convocatoria.descripcion
 
         // Mostrar el entrenador
-        val personalRepository = PersonalRepositoryImpl()
         val entrenador = personalRepository.getById(convocatoria.entrenadorId)
         if (entrenador is Entrenador) {
             entrenadorTextField.text = "${entrenador.nombre} ${entrenador.apellidos}"
@@ -885,7 +882,6 @@ class VistaNormalController : KoinComponent {
         }
 
         // Obtener los jugadores por sus IDs
-        val personalRepository = PersonalRepositoryImpl()
         convocatoria.jugadores.forEach { jugadorId ->
             val personal = personalRepository.getById(jugadorId)
             if (personal is Jugador) {

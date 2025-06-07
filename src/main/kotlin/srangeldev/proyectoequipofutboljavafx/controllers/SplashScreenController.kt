@@ -14,7 +14,6 @@ import javafx.scene.text.Text
 import javafx.stage.Stage
 import javafx.util.Duration
 import org.lighthousegames.logging.logging
-import srangeldev.proyectoequipofutboljavafx.newteam.database.DataBaseManager
 import srangeldev.proyectoequipofutboljavafx.routes.RoutesManager
 
 /**
@@ -77,9 +76,6 @@ class SplashScreenController {
                     // Paso 2: Inicializar la base de datos (50%)
                     updateProgress(0.2, 1.0)
                     updateMessage("Conectando a la base de datos...")
-
-                    // Inicializar la base de datos (operación real)
-                    val dbManager = DataBaseManager.instance
 
                     updateProgress(0.5, 1.0)
                     updateMessage("Cargando datos...")

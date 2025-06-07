@@ -8,7 +8,7 @@ import srangeldev.proyectoequipofutboljavafx.newteam.service.PersonalServiceImpl
 import srangeldev.proyectoequipofutboljavafx.newteam.storage.FileFormat
 import java.io.File
 
-internal class ControllerTest {
+class ControllerTest {
 
     /**
      * Test class for the Controller's `cargarDatos` method.
@@ -133,6 +133,8 @@ internal class ControllerTest {
     @Test
     fun `test getService returns the correct service instance`() {
         val controller = Controller()
+        val mockService = mock<PersonalServiceImpl>()
+        controller.service = mockService
         val serviceInstance = controller.service
 
         assertNotNull(serviceInstance, "Service instance should not be null")
@@ -142,6 +144,8 @@ internal class ControllerTest {
     @Test
     fun `test getService does not return a null value`() {
         val controller = Controller()
+        val mockService = mock<PersonalServiceImpl>()
+        controller.service = mockService
         assertNotNull(controller.service, "Service should not be null")
     }
 }

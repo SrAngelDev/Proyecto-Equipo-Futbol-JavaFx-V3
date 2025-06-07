@@ -36,7 +36,7 @@ import srangeldev.proyectoequipofutboljavafx.newteam.config.Config
 import srangeldev.proyectoequipofutboljavafx.routes.RoutesManager
 import srangeldev.proyectoequipofutboljavafx.newteam.repository.ConvocatoriaRepository
 import srangeldev.proyectoequipofutboljavafx.newteam.repository.PersonalRepository
-import srangeldev.proyectoequipofutboljavafx.newteam.repository.PersonalRepositoryImpl
+import srangeldev.proyectoequipofutboljavafx.newteam.service.PersonalService
 import srangeldev.proyectoequipofutboljavafx.newteam.repository.UserRepository
 import srangeldev.proyectoequipofutboljavafx.newteam.repository.UserRepositoryImpl
 import srangeldev.proyectoequipofutboljavafx.newteam.session.Session
@@ -60,7 +60,7 @@ import java.time.Period
  */
 class VistaAdminController : KoinComponent {
     private val logger = logging()
-    private val userRepository: UserRepository = UserRepositoryImpl()
+    private val userRepository: UserRepository by inject()
 
     // Elemento oculto para tamaños de diálogos
     @FXML
@@ -69,6 +69,7 @@ class VistaAdminController : KoinComponent {
     // Inyectar los repositorios usando Koin para la funcionalidad de convocatorias
     private val convocatoriaRepository: ConvocatoriaRepository by inject()
     private val personalRepository: PersonalRepository by inject()
+    private val personalService: PersonalService by inject()
 
     // Lista observable de convocatorias
     private val convocatorias = FXCollections.observableArrayList<Convocatoria>()
@@ -485,11 +486,9 @@ class VistaAdminController : KoinComponent {
                 val result = alert.showAndWait()
                 if (result.isPresent && result.get() == ButtonType.OK) {
                     try {
-                        // Crear una instancia del servicio
-                        val service = PersonalServiceImpl()
-
+                        // Usar el servicio inyectado
                         // Eliminar el jugador/entrenador de la base de datos
-                        service.delete(selected.id)
+                        personalService.delete(selected.id)
 
                         // Eliminar de la lista de UI
                         personalList.remove(selected)
@@ -523,8 +522,7 @@ class VistaAdminController : KoinComponent {
             val result = alert.showAndWait()
             if (result.isPresent && result.get() == ButtonType.OK) {
                 try {
-                    // Crear una instancia del servicio
-                    val service = PersonalServiceImpl()
+                    // Usar el servicio inyectado
 
                     // Obtener una copia de la lista de personal para iterar
                     val personalToDelete = ArrayList(personalList)
@@ -533,7 +531,7 @@ class VistaAdminController : KoinComponent {
                     // Eliminar cada jugador individualmente
                     for (personal in personalToDelete) {
                         try {
-                            service.delete(personal.id)
+                            personalService.delete(personal.id)
                         } catch (e: Exception) {
                             logger.error { "Error al eliminar jugador con ID ${personal.id}: ${e.message}" }
                             success = false
@@ -674,8 +672,7 @@ class VistaAdminController : KoinComponent {
                 return
             }
 
-            // Crear una instancia del servicio
-            val service = PersonalServiceImpl()
+            // Usar el servicio inyectado
 
             // Obtener los datos comunes del formulario
             val nombreCompleto = nombreTextField.text.trim().split(" ", limit = 2)
@@ -752,7 +749,7 @@ class VistaAdminController : KoinComponent {
             }
 
             // Actualizar el personal en la base de datos
-            val updatedResult = service.update(selectedPersonal!!.id, updatedPersonal)
+            val updatedResult = personalService.update(selectedPersonal!!.id, updatedPersonal)
 
             if (updatedResult != null) {
                 // Actualizar la lista de personal
@@ -2209,14 +2206,10 @@ class VistaAdminController : KoinComponent {
             logger.debug { "Cargando datos de personal desde la base de datos" }
 
             // Limpiar la caché del repositorio para evitar duplicados
-            val repository = PersonalRepositoryImpl()
-            repository.clearCache()
-
-            // Crear una instancia del servicio
-            val service = PersonalServiceImpl()
+            personalRepository.clearCache()
 
             // Obtener todos los miembros del personal
-            val allPersonal = service.getAll()
+            val allPersonal = personalService.getAll()
 
             // Limpiar la lista actual
             personalList.clear()
@@ -2281,8 +2274,7 @@ class VistaAdminController : KoinComponent {
                 val selectedFile = fileChooser.showSaveDialog(playerImageView.scene.window as Stage)
 
                 if (selectedFile != null) {
-                    // Crear una instancia del servicio
-                    val service = PersonalServiceImpl()
+                    // Usar el servicio inyectado
 
                     // Determinar si es un archivo ZIP o JSON
                     if (selectedFile.name.endsWith(".zip", ignoreCase = true)) {
@@ -2294,7 +2286,7 @@ class VistaAdminController : KoinComponent {
 
                         // Exportar datos a JSON en el directorio temporal
                         val tempJsonPath = "${tempDir.absolutePath}/personal.json"
-                        service.exportToFile(tempJsonPath, FileFormat.JSON)
+                        personalService.exportToFile(tempJsonPath, FileFormat.JSON)
 
                         // Crear el archivo ZIP
                         ZipFile.createZipFile(
@@ -2311,7 +2303,7 @@ class VistaAdminController : KoinComponent {
                         )
                     } else {
                         // Exportar datos a JSON
-                        service.exportToFile(selectedFile.absolutePath, FileFormat.JSON)
+                        personalService.exportToFile(selectedFile.absolutePath, FileFormat.JSON)
                         showInfoDialog(
                             "Exportar datos",
                             "Datos exportados correctamente a JSON.\n\nRuta: ${selectedFile.absolutePath}"
@@ -2341,8 +2333,7 @@ class VistaAdminController : KoinComponent {
                 val selectedFile = fileChooser.showOpenDialog(playerImageView.scene.window as Stage)
 
                 if (selectedFile != null) {
-                    // Crear una instancia del servicio
-                    val service = PersonalServiceImpl()
+                    // Usar el servicio inyectado
 
                     // Verificar si es un archivo ZIP
                     if (selectedFile.name.endsWith(".zip", ignoreCase = true)) {
@@ -2408,7 +2399,7 @@ class VistaAdminController : KoinComponent {
 
                                 if (fileFormat != null) {
                                     // Importar datos desde el archivo
-                                    service.importFromFile(file.absolutePath, fileFormat)
+                                    personalService.importFromFile(file.absolutePath, fileFormat)
                                     importedAny = true
                                 }
                             } catch (e: Exception) {
@@ -2443,7 +2434,7 @@ class VistaAdminController : KoinComponent {
                         }
 
                         // Importar datos desde el archivo seleccionado
-                        service.importFromFile(selectedFile.absolutePath, fileFormat)
+                        personalService.importFromFile(selectedFile.absolutePath, fileFormat)
 
                         // Actualizar la lista de personal con los datos importados
                         loadPersonalFromDatabase()
