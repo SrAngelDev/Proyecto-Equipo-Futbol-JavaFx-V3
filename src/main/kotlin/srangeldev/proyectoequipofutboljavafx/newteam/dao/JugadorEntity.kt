@@ -37,21 +37,4 @@ data class JugadorEntity(
             imagenUrl = personalEntity.imagenUrl
         )
     }
-    
-    companion object {
-        /**
-         * Crea una entidad a partir de un objeto de dominio Jugador
-         */
-        fun fromJugador(jugador: Jugador): JugadorEntity {
-            return JugadorEntity(
-                id = jugador.id,
-                posicion = jugador.posicion.name,
-                dorsal = jugador.dorsal,
-                altura = jugador.altura,
-                peso = jugador.peso,
-                goles = jugador.goles,
-                partidosJugados = jugador.partidosJugados
-            )
-        }
-    }
 }

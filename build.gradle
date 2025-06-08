@@ -56,8 +56,8 @@ dependencies {
     implementation("org.jdbi:jdbi3-kotlin:3.48.0") // Kotlin extension
     implementation("org.jdbi:jdbi3-kotlin-sqlobject:3.48.0") // Kotlin extension para SQL Object
     implementation("org.jetbrains.kotlin:kotlin-stdlib:1.9.23")
-    // Reflexión de tipos genéricos, las versiones más recientes de JDBI no la incluyen por defecto
-    implementation 'io.leangen.geantyref:geantyref:1.3.0'
+
+
 
 
     // Librería para serialización en JSON
@@ -176,12 +176,20 @@ jacocoTestReport {
                     "**/NewTeamApplication.class",
                     "**/NewTeamApplication\$*.class",
                     "**/NewTeamApplicationKt.class",
+                    "**/NewTeamApplication\$*.class",
+                    "**/NewTeamApplication.class",
+                    "**/NewTeamApplicationKt.class",
                     "**/exceptions/**",
                     "**/services/PersonalService.class",
                     "**/services/PersonalService\$DefaultImpls.class",
                     "**/PersonalService.*",
                     "**/PersonalService\$*",
                     "**/PersonalService\$DefaultImpls*",
+                    "**/dao/PersonaEntity.class",
+                    "**/dao/PersonalEntity.class",
+                    "**/dao/UserEntity.class",
+                    "**/dao/JugadorConvocadoEntity.class",
+                    "**/exceptions/**",
                     "**/*\$DefaultImpls*"
             ])
         }))

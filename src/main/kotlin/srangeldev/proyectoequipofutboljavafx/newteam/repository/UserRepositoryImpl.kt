@@ -2,6 +2,8 @@ package srangeldev.proyectoequipofutboljavafx.newteam.repository
 
 import org.lighthousegames.logging.logging
 import srangeldev.proyectoequipofutboljavafx.newteam.dao.UserDao
+import srangeldev.proyectoequipofutboljavafx.newteam.mapper.toEntity
+import srangeldev.proyectoequipofutboljavafx.newteam.mapper.toModel
 import srangeldev.proyectoequipofutboljavafx.newteam.models.User
 import srangeldev.proyectoequipofutboljavafx.newteam.utils.BCryptUtil
 import java.time.LocalDateTime

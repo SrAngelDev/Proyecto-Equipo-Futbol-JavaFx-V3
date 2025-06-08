@@ -9,7 +9,7 @@ import srangeldev.proyectoequipofutboljavafx.newteam.repository.PersonalReposito
 import srangeldev.proyectoequipofutboljavafx.newteam.storage.FileFormat
 import srangeldev.proyectoequipofutboljavafx.newteam.storage.PersonalStorage
 import srangeldev.proyectoequipofutboljavafx.newteam.storage.PersonalStorageImpl
-import srangeldev.proyectoequipofutboljavafx.newteam.validator.PersonalValidator
+import srangeldev.proyectoequipofutboljavafx.newteam.validator.ValidatorFactory
 import java.io.File
 
 private const val CACHE_SIZE = 5
@@ -20,8 +20,7 @@ private const val CACHE_SIZE = 5
 class PersonalServiceImpl(
     private val storage: PersonalStorage = PersonalStorageImpl(),
     private val repository: PersonalRepository,
-    private val cache: Cache<Int, Personal> = CacheImpl(CACHE_SIZE),
-    private val validator: PersonalValidator = PersonalValidator()
+    private val cache: Cache<Int, Personal> = CacheImpl(CACHE_SIZE)
 ): PersonalService {
     private val logger = logging()
 
@@ -66,13 +65,13 @@ class PersonalServiceImpl(
 
     override fun save(personal: Personal): Personal {
         logger.info { "Guardando personal: $personal" }
-        validator.validate(personal)
+        ValidatorFactory.validate(personal)
         return repository.save(personal)
     }
 
     override fun update(id: Int, personal: Personal): Personal? {
         logger.info { "Actualizando personal con id: $id" }
-        validator.validate(personal)
+        ValidatorFactory.validate(personal)
         return repository.update(id, personal)?.also {
             cache.remove(id)
         } ?: throw PersonalException.PersonalNotFoundException(id)

@@ -2,6 +2,5 @@
 <project version="4">
   <component name="SqlDialectMappings">
     <file url="file://$PROJECT_DIR$/src/main/resources/srangeldev/proyectoequipofutboljavafx/data.sql" dialect="GenericSQL" />
-    <file url="file://$PROJECT_DIR$/src/test/kotlin/srangeldev/proyectoequipofutboljavafx/newteam/dao/ConvocatoriaDaoTest.kt" dialect="GenericSQL" />
   </component>
 </project>

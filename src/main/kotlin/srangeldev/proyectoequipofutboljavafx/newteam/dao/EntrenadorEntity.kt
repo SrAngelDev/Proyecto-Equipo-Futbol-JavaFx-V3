@@ -27,16 +27,4 @@ data class EntrenadorEntity(
             imagenUrl = personalEntity.imagenUrl
         )
     }
-    
-    companion object {
-        /**
-         * Crea una entidad a partir de un objeto de dominio Entrenador
-         */
-        fun fromEntrenador(entrenador: Entrenador): EntrenadorEntity {
-            return EntrenadorEntity(
-                id = entrenador.id,
-                especializacion = entrenador.especializacion.name
-            )
-        }
-    }
 }

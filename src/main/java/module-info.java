@@ -47,7 +47,8 @@ module srangeldev.proyectoequipofutboljavafx {
     opens srangeldev.proyectoequipofutboljavafx to javafx.fxml;
     opens srangeldev.proyectoequipofutboljavafx.controllers to javafx.fxml;
     opens srangeldev.proyectoequipofutboljavafx.newteam.models to javafx.base;
-    opens srangeldev.proyectoequipofutboljavafx.newteam.dao to org.jdbi.v3.core;
+    opens srangeldev.proyectoequipofutboljavafx.newteam.dao;
+    exports srangeldev.proyectoequipofutboljavafx.newteam.dao;
 
     //Logging
     exports srangeldev.proyectoequipofutboljavafx;

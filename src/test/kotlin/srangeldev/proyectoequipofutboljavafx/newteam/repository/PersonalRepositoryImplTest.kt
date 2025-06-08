@@ -29,13 +29,6 @@ class PersonalRepositoryImplTest {
     private lateinit var testDbUrl: String
     private lateinit var connection: Connection
 
-    // Mock objects
-    private lateinit var mockConnection: Connection
-    private lateinit var mockPreparedStatement: PreparedStatement
-    private lateinit var mockResultSet: ResultSet
-    private lateinit var mockGeneratedKeys: ResultSet
-    private lateinit var mockJdbiManager: JdbiManager
-
     @TempDir
     lateinit var tempDir: Path
 

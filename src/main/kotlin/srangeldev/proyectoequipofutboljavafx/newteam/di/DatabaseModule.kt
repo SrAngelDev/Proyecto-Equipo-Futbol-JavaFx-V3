@@ -16,7 +16,6 @@ val databaseModule: Module = module {
 
     // DAOs
     single { provideUserDao(get()) }
-    single { provideEquipoDao(get()) }
     single { providePersonalDao(get()) }
     single { provideEntrenadorDao(get()) }
     single { provideJugadorDao(get()) }
@@ -26,7 +25,6 @@ val databaseModule: Module = module {
     // Repositorios
     single<UserRepository> { UserRepositoryImpl(get()) }
     single<ConvocatoriaRepository> { ConvocatoriaRepositoryImpl(get(), get(), get()) }
-    single<EquipoRepository> { EquipoRepositoryImpl(get()) }
     single<PersonalRepository> { PersonalRepositoryImpl(get(), get(), get()) }
     // Los demás repositorios se actualizarán a medida que se vayan migrando
 }

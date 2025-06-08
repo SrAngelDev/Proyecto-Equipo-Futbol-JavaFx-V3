@@ -18,7 +18,7 @@ private val isoDateFormatter = DateTimeFormatter.ISO_LOCAL_DATE
 private val dashDateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 
 // Function to safely parse dates with multiple formatters
-private fun parseDate(dateString: String): LocalDate {
+fun parseDate(dateString: String): LocalDate {
     return try {
         // Primero se intenta el formato ISO
         LocalDate.parse(dateString, isoDateFormatter)
@@ -140,7 +140,7 @@ fun Jugador.toXmlDto(): PersonalXmlDto {
 }
 
 fun PersonalCsvDto.toEntrenador(): Entrenador {
-    val especializacion = if (this.especializacion.isNullOrEmpty()) {
+    val especializacion = if (this.especializacion.isEmpty()) {
         Entrenador.Especializacion.ENTRENADOR_PRINCIPAL
     } else {
         try {

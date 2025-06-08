@@ -32,8 +32,7 @@ class PersonalValidatorTest {
             partidosJugados = 0
         )
         assertDoesNotThrow { validator.validate(validPersonal) }
-
-        // Test invalid id
+       // Test invalid id
         val invalidIdPersonal = Jugador(
             id = -1,
             nombre = "John",

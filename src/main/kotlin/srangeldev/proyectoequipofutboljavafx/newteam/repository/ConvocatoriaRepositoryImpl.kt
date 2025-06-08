@@ -5,6 +5,8 @@ import srangeldev.proyectoequipofutboljavafx.newteam.dao.ConvocatoriaDao
 import srangeldev.proyectoequipofutboljavafx.newteam.dao.ConvocatoriaEntity
 import srangeldev.proyectoequipofutboljavafx.newteam.dao.JugadorConvocadoDao
 import srangeldev.proyectoequipofutboljavafx.newteam.dao.JugadorConvocadoEntity
+import srangeldev.proyectoequipofutboljavafx.newteam.mapper.toEntity
+import srangeldev.proyectoequipofutboljavafx.newteam.mapper.toModel
 import srangeldev.proyectoequipofutboljavafx.newteam.models.Convocatoria
 import srangeldev.proyectoequipofutboljavafx.newteam.models.Jugador
 import java.time.LocalDate
@@ -45,7 +47,7 @@ class ConvocatoriaRepositoryImpl(
                 val jugadoresTitulares = jugadorConvocadoDao.getTitularesIdsByConvocatoriaId(convocatoriaEntity.id)
 
                 // Crear el objeto convocatoria con los jugadores y titulares
-                val convocatoria = convocatoriaEntity.toConvocatoria(jugadoresConvocados, jugadoresTitulares)
+                val convocatoria = convocatoriaEntity.toModel(jugadoresConvocados, jugadoresTitulares)
 
                 // Actualizar la caché
                 convocatorias[convocatoria.id] = convocatoria
@@ -79,7 +81,7 @@ class ConvocatoriaRepositoryImpl(
             val jugadoresTitulares = jugadorConvocadoDao.getTitularesIdsByConvocatoriaId(id)
 
             // Crear el objeto convocatoria con los jugadores y titulares
-            val convocatoria = convocatoriaEntity.toConvocatoria(jugadoresConvocados, jugadoresTitulares)
+            val convocatoria = convocatoriaEntity.toModel(jugadoresConvocados, jugadoresTitulares)
 
             // Actualizar la caché
             convocatorias[convocatoria.id] = convocatoria
@@ -108,7 +110,7 @@ class ConvocatoriaRepositoryImpl(
             try {
                 // Crear nueva convocatoria
                 // Convertir a entidad
-                val convocatoriaEntity = ConvocatoriaEntity.fromConvocatoria(convocatoria)
+                val convocatoriaEntity = convocatoria.toEntity()
 
                 // Guardar la convocatoria y obtener el ID generado
                 val convocatoriaId = convocatoriaDao.save(convocatoriaEntity)
@@ -145,7 +147,7 @@ class ConvocatoriaRepositoryImpl(
 
         try {
             // Convertir a entidad
-            val convocatoriaEntity = ConvocatoriaEntity.fromConvocatoria(entidad.copy(id = id))
+            val convocatoriaEntity = entidad.copy(id = id).toEntity()
 
             // Actualizar la convocatoria
             val rowsAffected = convocatoriaDao.update(convocatoriaEntity)

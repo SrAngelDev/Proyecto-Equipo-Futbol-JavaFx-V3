@@ -58,12 +58,12 @@ class PersonalServiceImplTest {
         val filePath = "test.json"
         val format = FileFormat.JSON
         val personalList = listOf(jugador)
-        
+
         whenever(storage.readFromFile(any(), eq(format))).thenReturn(personalList)
-        
+
         // When
         service.importFromFile(filePath, format)
-        
+
         // Then
         verify(storage).readFromFile(any(), eq(format))
         verify(repository).save(jugador)
@@ -75,12 +75,12 @@ class PersonalServiceImplTest {
         val filePath = "test.json"
         val format = FileFormat.JSON
         val personalList = listOf(jugador)
-        
+
         whenever(repository.getAll()).thenReturn(personalList)
-        
+
         // When
         service.exportToFile(filePath, format)
-        
+
         // Then
         verify(repository).getAll()
         verify(storage).writeToFile(any(), eq(format), eq(personalList))
@@ -91,10 +91,10 @@ class PersonalServiceImplTest {
         // Given
         val personalList = listOf(jugador)
         whenever(repository.getAll()).thenReturn(personalList)
-        
+
         // When
         val result = service.getAll()
-        
+
         // Then
         assertEquals(personalList, result)
         verify(repository).getAll()
@@ -104,10 +104,10 @@ class PersonalServiceImplTest {
     fun `getById should return personal from cache if available`() {
         // Given
         whenever(cache.get(1)).thenReturn(jugador)
-        
+
         // When
         val result = service.getById(1)
-        
+
         // Then
         assertEquals(jugador, result)
         verify(cache).get(1)
@@ -119,10 +119,10 @@ class PersonalServiceImplTest {
         // Given
         whenever(cache.get(1)).thenReturn(null)
         whenever(repository.getById(1)).thenReturn(jugador)
-        
+
         // When
         val result = service.getById(1)
-        
+
         // Then
         assertEquals(jugador, result)
         verify(cache).get(1)
@@ -135,12 +135,12 @@ class PersonalServiceImplTest {
         // Given
         whenever(cache.get(1)).thenReturn(null)
         whenever(repository.getById(1)).thenReturn(null)
-        
+
         // When/Then
         assertThrows<PersonalException.PersonalNotFoundException> {
             service.getById(1)
         }
-        
+
         verify(cache).get(1)
         verify(repository).getById(1)
         verify(cache, never()).put(any(), any())
@@ -150,10 +150,10 @@ class PersonalServiceImplTest {
     fun `save should validate and save personal to repository`() {
         // Given
         whenever(repository.save(jugador)).thenReturn(jugador)
-        
+
         // When
         val result = service.save(jugador)
-        
+
         // Then
         assertEquals(jugador, result)
         verify(repository).save(jugador)
@@ -163,10 +163,10 @@ class PersonalServiceImplTest {
     fun `update should validate, update personal in repository and remove from cache`() {
         // Given
         whenever(repository.update(1, jugador)).thenReturn(jugador)
-        
+
         // When
         val result = service.update(1, jugador)
-        
+
         // Then
         assertEquals(jugador, result)
         verify(repository).update(1, jugador)
@@ -177,12 +177,12 @@ class PersonalServiceImplTest {
     fun `update should throw PersonalNotFoundException if not found`() {
         // Given
         whenever(repository.update(1, jugador)).thenReturn(null)
-        
+
         // When/Then
         assertThrows<PersonalException.PersonalNotFoundException> {
             service.update(1, jugador)
         }
-        
+
         verify(repository).update(1, jugador)
         verify(cache, never()).remove(any())
     }
@@ -191,10 +191,10 @@ class PersonalServiceImplTest {
     fun `delete should delete personal from repository and remove from cache`() {
         // Given
         whenever(repository.delete(1)).thenReturn(jugador)
-        
+
         // When
         val result = service.delete(1)
-        
+
         // Then
         assertEquals(jugador, result)
         verify(repository).delete(1)
@@ -205,12 +205,12 @@ class PersonalServiceImplTest {
     fun `delete should throw PersonalNotFoundException if not found`() {
         // Given
         whenever(repository.delete(1)).thenReturn(null)
-        
+
         // When/Then
         assertThrows<PersonalException.PersonalNotFoundException> {
             service.delete(1)
         }
-        
+
         verify(repository).delete(1)
         verify(cache, never()).remove(any())
     }

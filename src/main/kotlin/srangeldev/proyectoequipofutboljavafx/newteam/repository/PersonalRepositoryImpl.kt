@@ -2,6 +2,10 @@ package srangeldev.proyectoequipofutboljavafx.newteam.repository
 
 import org.lighthousegames.logging.logging
 import srangeldev.proyectoequipofutboljavafx.newteam.dao.*
+import srangeldev.proyectoequipofutboljavafx.newteam.mapper.toEntrenadorEntity
+import srangeldev.proyectoequipofutboljavafx.newteam.mapper.toJugadorEntity
+import srangeldev.proyectoequipofutboljavafx.newteam.mapper.toModel
+import srangeldev.proyectoequipofutboljavafx.newteam.mapper.toPersonalEntity
 import srangeldev.proyectoequipofutboljavafx.newteam.models.Entrenador
 import srangeldev.proyectoequipofutboljavafx.newteam.models.Jugador
 import srangeldev.proyectoequipofutboljavafx.newteam.models.Personal
@@ -44,7 +48,7 @@ class PersonalRepositoryImpl(
             // Buscar la entidad personal correspondiente
             val personalEntity = personalEntities.find { it.id == entrenadorEntity.id }
             if (personalEntity != null) {
-                val entrenador = entrenadorEntity.toEntrenador(personalEntity)
+                val entrenador = entrenadorEntity.toModel(personalEntity)
                 personal[entrenador.id] = entrenador
                 entrenadores.add(entrenador)
                 logger.debug { "Entrenador encontrado: ID=${entrenador.id}, Nombre=${entrenador.nombre}, Apellidos=${entrenador.apellidos}, Especialización=${entrenador.especializacion}" }
@@ -73,7 +77,7 @@ class PersonalRepositoryImpl(
             // Buscar la entidad personal correspondiente
             val personalEntity = personalEntities.find { it.id == jugadorEntity.id }
             if (personalEntity != null) {
-                val jugador = jugadorEntity.toJugador(personalEntity)
+                val jugador = jugadorEntity.toModel(personalEntity)
                 personal[jugador.id] = jugador
                 jugadores.add(jugador)
                 logger.debug { "Jugador encontrado: ID=${jugador.id}, Nombre=${jugador.nombre}, Apellidos=${jugador.apellidos}, Posición=${jugador.posicion}" }
@@ -114,14 +118,14 @@ class PersonalRepositoryImpl(
             if (personalEntity.tipo == "ENTRENADOR") {
                 val entrenadorEntity = entrenadorDao.findById(id)
                 if (entrenadorEntity != null) {
-                    val entrenador = entrenadorEntity.toEntrenador(personalEntity)
+                    val entrenador = entrenadorEntity.toModel(personalEntity)
                     personal[entrenador.id] = entrenador
                     return entrenador
                 }
             } else if (personalEntity.tipo == "JUGADOR") {
                 val jugadorEntity = jugadorDao.findById(id)
                 if (jugadorEntity != null) {
-                    val jugador = jugadorEntity.toJugador(personalEntity)
+                    val jugador = jugadorEntity.toModel(personalEntity)
                     personal[jugador.id] = jugador
                     return jugador
                 }
@@ -142,19 +146,11 @@ class PersonalRepositoryImpl(
         val timeStamp = LocalDateTime.now()
 
         // Crear la entidad personal
-        val personalEntity = PersonalEntity(
-            id = 0, // El ID será generado por la base de datos
-            nombre = entidad.nombre,
-            apellidos = entidad.apellidos,
-            fechaNacimiento = entidad.fechaNacimiento,
-            fechaIncorporacion = entidad.fechaIncorporacion,
-            salario = entidad.salario,
-            paisOrigen = entidad.paisOrigen,
-            tipo = if (entidad is Jugador) "JUGADOR" else "ENTRENADOR",
-            imagenUrl = entidad.imagenUrl,
-            createdAt = timeStamp,
-            updatedAt = timeStamp
-        )
+        val personalEntity = when (entidad) {
+            is Jugador -> entidad.toPersonalEntity().copy(id = 0, createdAt = timeStamp, updatedAt = timeStamp)
+            is Entrenador -> entidad.toPersonalEntity().copy(id = 0, createdAt = timeStamp, updatedAt = timeStamp)
+            else -> throw IllegalArgumentException("Tipo desconocido de Personal")
+        }
 
         // Guardar la entidad personal y obtener el ID generado
         val generatedId = personalDao.save(personalEntity)
@@ -163,15 +159,7 @@ class PersonalRepositoryImpl(
         val result = when (entidad) {
             is Jugador -> {
                 // Crear la entidad jugador
-                val jugadorEntity = JugadorEntity(
-                    id = generatedId,
-                    posicion = entidad.posicion.name,
-                    dorsal = entidad.dorsal,
-                    altura = entidad.altura,
-                    peso = entidad.peso,
-                    goles = entidad.goles,
-                    partidosJugados = entidad.partidosJugados
-                )
+                val jugadorEntity = entidad.toJugadorEntity().copy(id = generatedId)
 
                 // Guardar la entidad jugador
                 jugadorDao.save(jugadorEntity)
@@ -203,10 +191,7 @@ class PersonalRepositoryImpl(
 
             is Entrenador -> {
                 // Crear la entidad entrenador
-                val entrenadorEntity = EntrenadorEntity(
-                    id = generatedId,
-                    especializacion = entidad.especializacion.name
-                )
+                val entrenadorEntity = entidad.toEntrenadorEntity().copy(id = generatedId)
 
                 // Guardar la entidad entrenador
                 entrenadorDao.save(entrenadorEntity)
@@ -252,19 +237,11 @@ class PersonalRepositoryImpl(
 
         if (existingPersonal != null) {
             // Crear la entidad personal actualizada
-            val personalEntity = PersonalEntity(
-                id = id,
-                nombre = entidad.nombre,
-                apellidos = entidad.apellidos,
-                fechaNacimiento = entidad.fechaNacimiento,
-                fechaIncorporacion = entidad.fechaIncorporacion,
-                salario = entidad.salario,
-                paisOrigen = entidad.paisOrigen,
-                tipo = if (entidad is Jugador) "JUGADOR" else "ENTRENADOR",
-                imagenUrl = entidad.imagenUrl,
-                createdAt = existingPersonal.createdAt,
-                updatedAt = timeStamp
-            )
+            val personalEntity = when (entidad) {
+                is Jugador -> entidad.toPersonalEntity().copy(id = id, createdAt = existingPersonal.createdAt, updatedAt = timeStamp)
+                is Entrenador -> entidad.toPersonalEntity().copy(id = id, createdAt = existingPersonal.createdAt, updatedAt = timeStamp)
+                else -> throw IllegalArgumentException("Tipo desconocido de Personal")
+            }
 
             // Actualizar la entidad personal
             val updated = personalDao.update(personalEntity)
@@ -274,15 +251,7 @@ class PersonalRepositoryImpl(
                 when (entidad) {
                     is Jugador -> {
                         // Crear la entidad jugador actualizada
-                        val jugadorEntity = JugadorEntity(
-                            id = id,
-                            posicion = entidad.posicion.name,
-                            dorsal = entidad.dorsal,
-                            altura = entidad.altura,
-                            peso = entidad.peso,
-                            goles = entidad.goles,
-                            partidosJugados = entidad.partidosJugados
-                        )
+                        val jugadorEntity = entidad.toJugadorEntity().copy(id = id)
 
                         // Actualizar la entidad jugador
                         jugadorDao.update(jugadorEntity)
@@ -314,10 +283,7 @@ class PersonalRepositoryImpl(
 
                     is Entrenador -> {
                         // Crear la entidad entrenador actualizada
-                        val entrenadorEntity = EntrenadorEntity(
-                            id = id,
-                            especializacion = entidad.especializacion.name
-                        )
+                        val entrenadorEntity = entidad.toEntrenadorEntity().copy(id = id)
 
                         // Actualizar la entidad entrenador
                         entrenadorDao.update(entrenadorEntity)
