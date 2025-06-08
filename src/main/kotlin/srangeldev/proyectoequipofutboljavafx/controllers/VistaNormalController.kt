@@ -8,22 +8,29 @@ import javafx.fxml.FXML
 import javafx.fxml.FXMLLoader
 import javafx.scene.Scene
 import javafx.scene.control.*
+import javafx.scene.layout.*
 import javafx.stage.Stage
 import javafx.scene.image.Image
 import javafx.scene.image.ImageView
+import javafx.geometry.Insets
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import org.lighthousegames.logging.logging
 import srangeldev.proyectoequipofutboljavafx.newteam.controller.Controller
+import srangeldev.proyectoequipofutboljavafx.newteam.models.Convocatoria
 import srangeldev.proyectoequipofutboljavafx.newteam.models.Entrenador
 import srangeldev.proyectoequipofutboljavafx.newteam.models.Jugador
 import srangeldev.proyectoequipofutboljavafx.newteam.models.Personal
 import srangeldev.proyectoequipofutboljavafx.NewTeamApplication
 import srangeldev.proyectoequipofutboljavafx.newteam.models.User
-import srangeldev.proyectoequipofutboljavafx.newteam.repository.PersonalRepositoryImpl
-import srangeldev.proyectoequipofutboljavafx.newteam.repository.UserRepositoryImpl
+import srangeldev.proyectoequipofutboljavafx.newteam.repository.ConvocatoriaRepository
+import srangeldev.proyectoequipofutboljavafx.newteam.repository.PersonalRepository
+import srangeldev.proyectoequipofutboljavafx.newteam.repository.UserRepository
 import srangeldev.proyectoequipofutboljavafx.routes.RoutesManager
+import srangeldev.proyectoequipofutboljavafx.newteam.service.PersonalService
 import srangeldev.proyectoequipofutboljavafx.newteam.session.Session
-import srangeldev.proyectoequipofutboljavafx.newteam.service.PersonalServiceImpl
 import srangeldev.proyectoequipofutboljavafx.newteam.utils.HtmlReportGenerator
+import srangeldev.proyectoequipofutboljavafx.newteam.utils.PdfReportGenerator
 import srangeldev.proyectoequipofutboljavafx.newteam.config.Config
 import java.awt.Desktop
 import java.io.File
@@ -37,8 +44,11 @@ import java.time.Period
  * Los usuarios normales tienen acceso restringido a ciertas funcionalidades
  * que están disponibles solo para administradores.
  */
-class VistaNormalController {
+class VistaNormalController : KoinComponent {
     private val logger = logging()
+    private val userRepository: UserRepository by inject()
+    private val personalRepository: PersonalRepository by inject()
+    private val personalService: PersonalService by inject()
 
     // Panel izquierdo - Tabla de jugadores
     @FXML private lateinit var playersTableView: TableView<Personal>
@@ -49,7 +59,6 @@ class VistaNormalController {
     @FXML private lateinit var allToggleButton: ToggleButton
     @FXML private lateinit var playerToggleButton: ToggleButton
     @FXML private lateinit var coachToggleButton: ToggleButton
-    @FXML private lateinit var avgMinutosLabel: Label
     @FXML private lateinit var avgGolesLabel: Label
 
     // Panel derecho - Detalles del jugador
@@ -68,8 +77,6 @@ class VistaNormalController {
     @FXML private lateinit var partidosTextField: TextField
     @FXML private lateinit var golesLabel: Label
     @FXML private lateinit var golesTextField: TextField
-    @FXML private lateinit var minutosLabel: Label
-    @FXML private lateinit var minutosTextField: TextField
     @FXML private lateinit var cancelButton: Button
 
     // Menú
@@ -77,9 +84,35 @@ class VistaNormalController {
     @FXML private lateinit var exportDataMenuItem: MenuItem
     @FXML private lateinit var importDataMenuItem: MenuItem
     @FXML private lateinit var printHtmlMenuItem: MenuItem
+    @FXML private lateinit var printPdfMenuItem: MenuItem
     @FXML private lateinit var convocatoriasMenuItem: MenuItem
     @FXML private lateinit var closeMenuItem: MenuItem
     @FXML private lateinit var aboutMenuItem: MenuItem
+
+    // Paneles principales
+    @FXML private lateinit var jugadoresPane: SplitPane
+    @FXML private lateinit var convocatoriasPane: SplitPane
+
+    // Elementos de la vista de convocatorias
+    @FXML private lateinit var searchConvocatoriaField: TextField
+    @FXML private lateinit var convocatoriasTableView: TableView<Convocatoria>
+    @FXML private lateinit var idConvocatoriaColumn: TableColumn<Convocatoria, Int>
+    @FXML private lateinit var fechaConvocatoriaColumn: TableColumn<Convocatoria, String>
+    @FXML private lateinit var descripcionConvocatoriaColumn: TableColumn<Convocatoria, String>
+    @FXML private lateinit var jugadoresConvocatoriaColumn: TableColumn<Convocatoria, Int>
+    @FXML private lateinit var titularesConvocatoriaColumn: TableColumn<Convocatoria, Int>
+    @FXML private lateinit var fechaConvocatoriaPicker: DatePicker
+    @FXML private lateinit var entrenadorTextField: TextField
+    @FXML private lateinit var descripcionTextArea: TextArea
+    @FXML private lateinit var jugadoresConvocadosTableView: TableView<Jugador>
+    @FXML private lateinit var idJugadorColumn: TableColumn<Jugador, Int>
+    @FXML private lateinit var nombreJugadorColumn: TableColumn<Jugador, String>
+    @FXML private lateinit var posicionJugadorColumn: TableColumn<Jugador, String>
+    @FXML private lateinit var dorsalJugadorColumn: TableColumn<Jugador, Int>
+    @FXML private lateinit var titularColumn: TableColumn<Jugador, Boolean>
+    @FXML private lateinit var printConvocatoriaButton: Button
+    @FXML private lateinit var backToPlayersButton: Button
+    @FXML private lateinit var cancelConvocatoriaButton: Button
 
     // Datos
     private val personalList = FXCollections.observableArrayList<Personal>()
@@ -87,6 +120,12 @@ class VistaNormalController {
     private var currentPersonal: Personal? = null
     private var isAdmin = false
     private var dataLoaded = false
+
+    // Datos de convocatorias
+    private val convocatoriaRepository: ConvocatoriaRepository by inject()
+    private val convocatorias = FXCollections.observableArrayList<Convocatoria>()
+    private val jugadoresConvocados = FXCollections.observableArrayList<Jugador>()
+    private var currentConvocatoria: Convocatoria? = null
 
     /**
      * Método de inicialización llamado automáticamente por JavaFX.
@@ -169,14 +208,10 @@ class VistaNormalController {
             logger.debug { "Cargando datos de personal desde la base de datos" }
 
             // Limpiar la caché del repositorio para evitar duplicados
-            val repository = PersonalRepositoryImpl()
-            repository.clearCache()
-
-            // Crear una instancia del servicio
-            val service = PersonalServiceImpl()
+            personalRepository.clearCache()
 
             // Obtener todos los miembros del personal
-            val allPersonal = service.getAll()
+            val allPersonal = personalService.getAll()
 
             // Limpiar la lista actual
             personalList.clear()
@@ -306,33 +341,49 @@ class VistaNormalController {
         // Configurar el evento del menú Imprimir HTML
         printHtmlMenuItem.setOnAction {
             try {
-                // Obtener el directorio de informes desde la configuración
-                val reportsDir = Config.configProperties.reportsDir
-                val reportsDirFile = File(reportsDir)
-                if (!reportsDirFile.exists()) {
-                    reportsDirFile.mkdirs()
-                }
+                // Crear un FileChooser para seleccionar dónde guardar el HTML
+                val fileChooser = javafx.stage.FileChooser()
+                fileChooser.title = "Guardar informe HTML"
+
+                // Configurar filtros para archivos HTML
+                fileChooser.extensionFilters.add(
+                    javafx.stage.FileChooser.ExtensionFilter("Archivos HTML", "*.html")
+                )
 
                 // Generar nombre de archivo con timestamp
                 val timestamp = LocalDateTime.now().toString().replace(":", "-").replace(".", "-")
-                val outputPath = "$reportsDir/plantilla_${timestamp}.html"
+                fileChooser.initialFileName = "plantilla_${timestamp}.html"
 
-                // Generar el informe HTML
-                val reportPath = HtmlReportGenerator.generateReport(personalList, outputPath)
+                // Mostrar el diálogo de selección de archivo
+                val selectedFile = fileChooser.showSaveDialog(playerImageView.scene.window as Stage)
 
-                // Abrir el informe en el navegador predeterminado
-                val file = File(reportPath)
-                try {
-                    if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
-                        Desktop.getDesktop().browse(file.toURI())
-                        showInfoDialog("Informe HTML generado", "El informe HTML ha sido generado y abierto en su navegador predeterminado.\n\nRuta: $reportPath")
-                    } else {
-                        logger.error { "No se puede abrir el navegador predeterminado" }
-                        showInfoDialog("Informe HTML generado", "El informe HTML ha sido generado pero no se pudo abrir automáticamente.\n\nRuta: $reportPath")
+                if (selectedFile != null) {
+                    // Generar el informe HTML en la ubicación seleccionada
+                    val reportPath = HtmlReportGenerator.generateReport(personalList, selectedFile.absolutePath)
+
+                    // Abrir el informe en el navegador predeterminado
+                    val file = File(reportPath)
+                    try {
+                        if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+                            Desktop.getDesktop().browse(file.toURI())
+                            showInfoDialog(
+                                "Informe HTML generado",
+                                "El informe HTML ha sido generado y abierto en su navegador predeterminado.\n\nRuta: $reportPath"
+                            )
+                        } else {
+                            logger.error { "No se puede abrir el navegador predeterminado" }
+                            showInfoDialog(
+                                "Informe HTML generado",
+                                "El informe HTML ha sido generado pero no se pudo abrir automáticamente.\n\nRuta: $reportPath"
+                            )
+                        }
+                    } catch (e: Exception) {
+                        logger.error { "No se puede abrir el navegador predeterminado: ${e.message}" }
+                        showInfoDialog(
+                            "Informe HTML generado",
+                            "El informe HTML ha sido generado pero no se pudo abrir automáticamente.\n\nRuta: $reportPath"
+                        )
                     }
-                } catch (e: Exception) {
-                    logger.error { "No se puede abrir el navegador predeterminado: ${e.message}" }
-                    showInfoDialog("Informe HTML generado", "El informe HTML ha sido generado pero no se pudo abrir automáticamente.\n\nRuta: $reportPath")
                 }
             } catch (e: Exception) {
                 logger.error { "Error al generar el informe HTML: ${e.message}" }
@@ -340,20 +391,88 @@ class VistaNormalController {
             }
         }
 
+        // Configurar el evento del menú Imprimir PDF
+        printPdfMenuItem.setOnAction {
+            try {
+                // Crear un FileChooser para seleccionar dónde guardar el PDF
+                val fileChooser = javafx.stage.FileChooser()
+                fileChooser.title = "Guardar informe PDF"
+
+                // Configurar filtros para archivos PDF
+                fileChooser.extensionFilters.add(
+                    javafx.stage.FileChooser.ExtensionFilter("Archivos PDF", "*.pdf")
+                )
+
+                // Generar nombre de archivo con timestamp
+                val timestamp = LocalDateTime.now().toString().replace(":", "-").replace(".", "-")
+                fileChooser.initialFileName = "plantilla_${timestamp}.pdf"
+
+                // Mostrar el diálogo de selección de archivo
+                val selectedFile = fileChooser.showSaveDialog(playerImageView.scene.window as Stage)
+
+                if (selectedFile != null) {
+                    // Generar el informe PDF en la ubicación seleccionada
+                    val reportPath = PdfReportGenerator.generateReport(personalList, selectedFile.absolutePath)
+
+                    // Abrir el informe en el visor de PDF predeterminado
+                    val file = File(reportPath)
+                    try {
+                        if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.OPEN)) {
+                            Desktop.getDesktop().open(file)
+                            showInfoDialog(
+                                "Informe PDF generado",
+                                "El informe PDF ha sido generado y abierto en su visor de PDF predeterminado.\n\nRuta: $reportPath"
+                            )
+                        } else {
+                            logger.error { "No se puede abrir el visor de PDF predeterminado" }
+                            showInfoDialog(
+                                "Informe PDF generado",
+                                "El informe PDF ha sido generado pero no se pudo abrir automáticamente.\n\nRuta: $reportPath"
+                            )
+                        }
+                    } catch (e: Exception) {
+                        logger.error { "No se puede abrir el visor de PDF predeterminado: ${e.message}" }
+                        showInfoDialog(
+                            "Informe PDF generado",
+                            "El informe PDF ha sido generado pero no se pudo abrir automáticamente.\n\nRuta: $reportPath"
+                        )
+                    }
+                }
+            } catch (e: Exception) {
+                logger.error { "Error al generar el informe PDF: ${e.message}" }
+                showErrorDialog("Error", "No se pudo generar el informe PDF: ${e.message}")
+            }
+        }
+
         // Configurar el evento del menú Ver convocatorias
         convocatoriasMenuItem.setOnAction {
             try {
-                logger.debug { "Abriendo vista de convocatorias" }
-                val fxmlLoader = FXMLLoader(RoutesManager.getResource("views/newTeam/convocatoria-normal.fxml"))
-                val stage = Stage()
-                stage.title = "Convocatorias"
-                stage.scene = Scene(fxmlLoader.load(), 1280.0, 720.0)
-                stage.show()
+                logger.debug { "Mostrando vista de convocatorias integrada" }
+                // Ocultar la vista de jugadores y mostrar la vista de convocatorias
+                jugadoresPane.isVisible = false
+                convocatoriasPane.isVisible = true
+
+                // Cargar los datos de convocatorias si es necesario
+                loadConvocatorias()
             } catch (e: Exception) {
-                logger.error { "Error al abrir la vista de convocatorias: ${e.message}" }
+                logger.error { "Error al mostrar la vista de convocatorias: ${e.message}" }
                 logger.error { "Stack trace: ${e.stackTraceToString()}" }
-                showErrorDialog("Error", "No se pudo abrir la vista de convocatorias: ${e.message}")
+                showErrorDialog("Error", "No se pudo mostrar la vista de convocatorias: ${e.message}")
             }
+        }
+
+        // Configurar el botón para volver a la vista de jugadores
+        backToPlayersButton.setOnAction {
+            logger.debug { "Volviendo a la vista de jugadores" }
+            convocatoriasPane.isVisible = false
+            jugadoresPane.isVisible = true
+        }
+
+        // Configurar el botón cancelar de la vista de convocatorias
+        cancelConvocatoriaButton.setOnAction {
+            logger.debug { "Volviendo a la vista de jugadores desde cancelar" }
+            convocatoriasPane.isVisible = false
+            jugadoresPane.isVisible = true
         }
 
         // Configurar el evento del menú Cerrar
@@ -441,17 +560,13 @@ class VistaNormalController {
                 partidosTextField.isVisible = true
                 golesLabel.isVisible = true
                 golesTextField.isVisible = true
-                minutosLabel.isVisible = true
-                minutosTextField.isVisible = true
 
                 // Cargar datos específicos de jugador
                 logger.debug { "Posición del jugador: ${personal.posicion.toString()}" }
                 logger.debug { "Posición del jugador (name): ${personal.posicion.name}" }
                 posicionComboBox.value = personal.posicion.name
                 dorsalTextField.text = personal.dorsal.toString()
-                partidosTextField.text = personal.partidosJugados.toString()
                 golesTextField.text = personal.goles.toString()
-                //minutosTextField.text = personal.minutosJugados.toString()
             }
             is Entrenador -> {
                 // Mostrar campos de entrenador
@@ -468,8 +583,6 @@ class VistaNormalController {
                 partidosTextField.isVisible = false
                 golesLabel.isVisible = false
                 golesTextField.isVisible = false
-                minutosLabel.isVisible = false
-                minutosTextField.isVisible = false
 
                 // Cargar datos específicos de entrenador
                 logger.debug { "Especialización del entrenador: ${personal.especializacion.toString()}" }
@@ -553,7 +666,6 @@ class VistaNormalController {
         fechaIncorporacionPicker.value = LocalDate.now()
         partidosTextField.clear()
         golesTextField.clear()
-        minutosTextField.clear()
         loadDefaultImage()
     }
 
@@ -567,7 +679,6 @@ class VistaNormalController {
         fechaIncorporacionPicker.isDisable = !editable
         partidosTextField.isEditable = editable
         golesTextField.isEditable = editable
-        minutosTextField.isEditable = editable
     }
 
     private fun updateStatistics() {
@@ -575,13 +686,10 @@ class VistaNormalController {
         val jugadores = personalList.filterIsInstance<Jugador>()
 
         if (jugadores.isNotEmpty()) {
-            //val avgMinutos = jugadores.map { it.minutosJugados }.average()
             val avgGoles = jugadores.map { it.goles }.average()
 
-            //avgMinutosLabel.text = String.format("%.2f", avgMinutos)
             avgGolesLabel.text = String.format("%.2f", avgGoles)
         } else {
-            avgMinutosLabel.text = "0"
             avgGolesLabel.text = "0"
         }
     }
@@ -604,7 +712,6 @@ class VistaNormalController {
 
                 passwordDialog.showAndWait().ifPresent { password ->
                     // Verificar credenciales usando el repositorio de usuarios
-                    val userRepository = UserRepositoryImpl()
                     val user = userRepository.verifyCredentials(username, password)
 
                     if (user != null && user.role == User.Role.ADMIN) {
@@ -638,13 +745,203 @@ class VistaNormalController {
     }
 
     private fun showAboutDialog() {
-        Alert(Alert.AlertType.INFORMATION).apply {
-            title = "Acerca De"
-            headerText = "Gestor de Jugadores de Fútbol"
-            contentText = "Versión 1.0\n" +
-                    "Desarrolladores:\n" +
-                    "- Ángel Sánchez Gasanz\n" +
-                    "- Jorge Morgado Jimenez"
-        }.showAndWait()
+        try {
+            // Load the FXML file
+            val loader = FXMLLoader(javaClass.getResource("/srangeldev/proyectoequipofutboljavafx/views/newTeam/about-dialog.fxml"))
+            val root = loader.load<StackPane>()
+
+            // Create a new scene with the loaded FXML
+            val scene = Scene(root, 600.0, 450.0)
+
+            // Create a new stage
+            val stage = Stage()
+            stage.title = "Acerca De"
+            stage.scene = scene
+            stage.isResizable = false
+
+            // Make the stage modal so it blocks input to other windows
+            stage.initModality(javafx.stage.Modality.APPLICATION_MODAL)
+
+            // Show the stage and wait for it to close
+            stage.showAndWait()
+        } catch (e: Exception) {
+            logger.error { "Error loading about dialog: ${e.message}" }
+            showErrorDialog("Error", "No se pudo cargar la ventana de acerca de: ${e.message}")
+        }
+    }
+
+    /**
+     * Carga las convocatorias desde el repositorio.
+     */
+    private fun loadConvocatorias() {
+        try {
+            logger.debug { "Cargando convocatorias" }
+            convocatorias.clear()
+            convocatorias.addAll(convocatoriaRepository.getAll())
+
+            // Configurar las columnas de la tabla si no se ha hecho antes
+            if (idConvocatoriaColumn.cellValueFactory == null) {
+                initializeConvocatoriasTable()
+            }
+
+            // Asignar la lista observable a la tabla
+            convocatoriasTableView.items = convocatorias
+        } catch (e: Exception) {
+            logger.error { "Error al cargar las convocatorias: ${e.message}" }
+            showErrorDialog("Error", "Error al cargar las convocatorias: ${e.message}")
+        }
+    }
+
+    /**
+     * Inicializa la tabla de convocatorias.
+     */
+    private fun initializeConvocatoriasTable() {
+        // Configurar las columnas de la tabla
+        idConvocatoriaColumn.cellValueFactory = javafx.scene.control.cell.PropertyValueFactory("id")
+
+        fechaConvocatoriaColumn.setCellValueFactory { cellData ->
+            SimpleStringProperty(cellData.value.fecha.toString())
+        }
+
+        descripcionConvocatoriaColumn.setCellValueFactory { cellData ->
+            SimpleStringProperty(cellData.value.descripcion)
+        }
+
+        jugadoresConvocatoriaColumn.setCellValueFactory { cellData ->
+            SimpleIntegerProperty(cellData.value.jugadores.size).asObject()
+        }
+
+        titularesConvocatoriaColumn.setCellValueFactory { cellData ->
+            SimpleIntegerProperty(cellData.value.titulares.size).asObject()
+        }
+
+        // Configurar el evento de selección de la tabla
+        convocatoriasTableView.selectionModel.selectedItemProperty().addListener { _, _, newValue ->
+            if (newValue != null) {
+                logger.debug { "Convocatoria seleccionada: ${newValue.id}" }
+                showConvocatoriaDetails(newValue)
+                printConvocatoriaButton.isDisable = false
+            } else {
+                clearConvocatoriaDetailsPanel()
+                printConvocatoriaButton.isDisable = true
+            }
+        }
+
+        // Configurar el campo de búsqueda
+        searchConvocatoriaField.textProperty().addListener { _, _, newValue ->
+            filterConvocatorias(newValue)
+        }
+    }
+
+    /**
+     * Filtra las convocatorias según el texto de búsqueda.
+     */
+    private fun filterConvocatorias(searchText: String) {
+        if (searchText.isEmpty()) {
+            convocatoriasTableView.items = convocatorias
+            return
+        }
+
+        val filteredList = convocatorias.filtered { convocatoria ->
+            convocatoria.descripcion.contains(searchText, ignoreCase = true) ||
+            convocatoria.fecha.toString().contains(searchText, ignoreCase = true)
+        }
+
+        convocatoriasTableView.items = filteredList
+    }
+
+    /**
+     * Muestra los detalles de una convocatoria.
+     */
+    private fun showConvocatoriaDetails(convocatoria: Convocatoria) {
+        currentConvocatoria = convocatoria
+
+        // Mostrar los datos de la convocatoria
+        fechaConvocatoriaPicker.value = convocatoria.fecha
+        descripcionTextArea.text = convocatoria.descripcion
+
+        // Mostrar el entrenador
+        val entrenador = personalRepository.getById(convocatoria.entrenadorId)
+        if (entrenador is Entrenador) {
+            entrenadorTextField.text = "${entrenador.nombre} ${entrenador.apellidos}"
+        }
+
+        // Cargar los jugadores convocados
+        loadJugadoresConvocados(convocatoria)
+    }
+
+    /**
+     * Carga los jugadores convocados para una convocatoria.
+     */
+    private fun loadJugadoresConvocados(convocatoria: Convocatoria) {
+        jugadoresConvocados.clear()
+
+        // Inicializar la tabla de jugadores convocados si no se ha hecho antes
+        if (idJugadorColumn.cellValueFactory == null) {
+            initializeJugadoresConvocadosTable()
+        }
+
+        // Obtener los jugadores por sus IDs
+        convocatoria.jugadores.forEach { jugadorId ->
+            val personal = personalRepository.getById(jugadorId)
+            if (personal is Jugador) {
+                jugadoresConvocados.add(personal)
+            }
+        }
+
+        // Actualizar la tabla
+        jugadoresConvocadosTableView.refresh()
+    }
+
+    /**
+     * Inicializa la tabla de jugadores convocados.
+     */
+    private fun initializeJugadoresConvocadosTable() {
+        // Configurar las columnas de la tabla
+        idJugadorColumn.cellValueFactory = javafx.scene.control.cell.PropertyValueFactory("id")
+
+        nombreJugadorColumn.setCellValueFactory { cellData ->
+            SimpleStringProperty("${cellData.value.nombre} ${cellData.value.apellidos}")
+        }
+
+        posicionJugadorColumn.setCellValueFactory { cellData ->
+            SimpleStringProperty(cellData.value.posicion.toString())
+        }
+
+        dorsalJugadorColumn.setCellValueFactory { cellData ->
+            SimpleIntegerProperty(cellData.value.dorsal).asObject()
+        }
+
+        titularColumn.setCellValueFactory { cellData ->
+            val jugador = cellData.value
+            val esTitular = currentConvocatoria?.titulares?.contains(jugador.id) ?: false
+            javafx.beans.property.SimpleBooleanProperty(esTitular)
+        }
+
+        // Configurar el cell factory para mostrar "Sí" o "No" en lugar de true/false
+        titularColumn.setCellFactory { column ->
+            val cell = TableCell<Jugador, Boolean>()
+            cell.textProperty().bind(
+                javafx.beans.binding.Bindings.createStringBinding(
+                    { if (cell.item == true) "Sí" else "No" },
+                    cell.itemProperty()
+                )
+            )
+            cell
+        }
+
+        // Asignar la lista observable a la tabla
+        jugadoresConvocadosTableView.items = jugadoresConvocados
+    }
+
+    /**
+     * Limpia el panel de detalles de la convocatoria.
+     */
+    private fun clearConvocatoriaDetailsPanel() {
+        currentConvocatoria = null
+        fechaConvocatoriaPicker.value = null
+        entrenadorTextField.text = ""
+        descripcionTextArea.text = ""
+        jugadoresConvocados.clear()
     }
 }

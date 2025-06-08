@@ -1,5 +1,6 @@
 package srangeldev.proyectoequipofutboljavafx.newteam.models
 
+import org.jdbi.v3.core.mapper.reflect.ColumnName
 import java.time.LocalDateTime
 
 /**
@@ -8,9 +9,12 @@ import java.time.LocalDateTime
 data class User(
     val id: Int = 0,
     val username: String,
-    val password: String, // Contraseña cifrada con bcrypt
+    val password: String,
+    @ColumnName("role")
     val role: Role,
+    @ColumnName("created_at")
     val createdAt: LocalDateTime = LocalDateTime.now(),
+    @ColumnName("updated_at")
     val updatedAt: LocalDateTime = LocalDateTime.now()
 ) {
     override fun toString(): String {

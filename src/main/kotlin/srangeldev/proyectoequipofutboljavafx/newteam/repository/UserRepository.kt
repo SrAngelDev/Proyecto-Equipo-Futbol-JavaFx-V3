@@ -49,11 +49,6 @@ interface UserRepository {
     fun delete(id: Int): Boolean
 
     /**
-     * Inicializa la tabla de usuarios con datos por defecto si está vacía.
-     */
-    fun initDefaultUsers()
-
-    /**
      * Obtiene todos los usuarios.
      *
      * @return Una lista con todos los usuarios.

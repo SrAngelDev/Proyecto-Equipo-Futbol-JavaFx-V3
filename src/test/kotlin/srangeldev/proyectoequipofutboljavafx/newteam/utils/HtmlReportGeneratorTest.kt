@@ -150,4 +150,49 @@ class HtmlReportGeneratorTest {
             updatedAt = LocalDateTime.now()
         )
     }
+
+    @Test
+    fun `test promedio de goles con lista vacía`() {
+        // Arrange
+        val outputPath = tempDir.resolve("report-empty.html").toString()
+        val personal = emptyList<Personal>()
+
+        // Act
+        val result = HtmlReportGenerator.generateReport(personal, outputPath)
+
+        // Assert
+        val file = File(result)
+        val content = file.readText()
+        assertTrue(content.contains("Promedio de goles: 0"))
+    }
+
+    @Test
+    fun `test convocatoria sin entrenadores`() {
+        // Arrange
+        val outputPath = tempDir.resolve("convocatoria-sin-entrenadores.html").toString()
+        val convocatoria = Convocatoria(
+            id = 1,
+            fecha = LocalDate.of(2023, 5, 15),
+            descripcion = "Partido amistoso",
+            equipoId = 1,
+            entrenadorId = 1,
+            jugadores = listOf(1),
+            titulares = listOf(1),
+            createdAt = LocalDateTime.now(),
+            updatedAt = LocalDateTime.now()
+        )
+        val jugadores = listOf(
+            createJugador(1, "Lionel", "Messi", Jugador.Posicion.DELANTERO, 10)
+        )
+        val entrenadores = emptyList<Entrenador>()
+
+        // Act
+        val result = HtmlReportGenerator.generateConvocatoriaReport(convocatoria, jugadores, entrenadores, outputPath)
+
+        // Assert
+        val content = File(result).readText()
+        assertFalse(content.contains("Entrenador Principal"))
+        assertFalse(content.contains("Entrenador Asistente"))
+        assertFalse(content.contains("Entrenador de Porteros"))
+    }
 }

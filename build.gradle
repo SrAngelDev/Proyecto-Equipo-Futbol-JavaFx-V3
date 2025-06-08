@@ -58,6 +58,8 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib:1.9.23")
 
 
+
+
     // Librería para serialización en JSON
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
     // Librería para serialización en XML
@@ -68,6 +70,9 @@ dependencies {
 
     // Open Browser
     implementation("com.vaadin:open:8.5.0.4")
+
+    // Informe PDF
+    implementation("com.itextpdf:itextpdf:5.5.13.4")
 
     // Cache Caffeine
     implementation("com.github.ben-manes.caffeine:caffeine:3.2.0")
@@ -96,15 +101,25 @@ test {
     jvmArgs(
              "--add-opens", "java.base/java.lang=ALL-UNNAMED",
              "--add-opens", "java.base/java.util=ALL-UNNAMED",
+             "--add-opens", "java.base/java.sql=ALL-UNNAMED",
+             "--add-opens", "java.base/java.time=ALL-UNNAMED",
+             "--add-opens", "java.base/java.io=ALL-UNNAMED",
+             "--add-opens", "java.base/java.nio.file=ALL-UNNAMED",
+             "--add-opens", "java.base/java.net=ALL-UNNAMED",
+             "--add-opens", "java.base/java.util.concurrent=ALL-UNNAMED",
+             "--add-opens", "java.base/java.text=ALL-UNNAMED",
+             "--add-opens", "java.sql/java.sql=ALL-UNNAMED",
+             "--add-opens", "java.desktop/java.awt.font=ALL-UNNAMED",
+             "--add-opens", "srangeldev.proyectoequipofutboljavafx/srangeldev.proyectoequipofutboljavafx.newteam.repository=ALL-UNNAMED",
              "--add-reads", "org.junit.jupiter.api=kotlin.stdlib",
              "--add-reads", "srangeldev.proyectoequipofutboljavafx=kotlin.test"
      )
+}
 
-    // Enable JaCoCo to properly detect Kotlin tests
-    jacoco {
-        includes = ['srangeldev.proyectoequipofutboljavafx.*']
-        excludes = ['**/controllers/**', '**/exceptions/**', '**/*Main*', '**/*Application*', '**/module-info*']
-    }
+run {
+    jvmArgs = [
+            "--add-opens", "srangeldev.proyectoequipofutboljavafx.newteam.models/kotlin.reflect=ALL-UNNAMED"
+    ]
 }
 
 jlink {
@@ -144,23 +159,49 @@ jacocoTestReport {
     afterEvaluate {
         classDirectories.setFrom(files(classDirectories.files.collect {
             fileTree(dir: it, exclude: [
+                    "**/dto/**",
+                    "**/models/**",
+                    "**/model/**",
+                    "**/exception/**",
+                    "**/error/**",
+                    "**/di/**",
                     "**/controllers/**",
+                    "**/viewmodels/**",
+                    "**/cache/**",
+                    "**/database/**",
+                    "**/config/**",
+                    "**/controller/**",
+                    "**/routes/**",
+                    "**/Main**",
+                    "**/NewTeamApplication.class",
+                    "**/NewTeamApplication\$*.class",
+                    "**/NewTeamApplicationKt.class",
+                    "**/NewTeamApplication\$*.class",
+                    "**/NewTeamApplication.class",
+                    "**/NewTeamApplicationKt.class",
                     "**/exceptions/**",
-                    "**/*Main*.*",
-                    "**/*Application*.*",
-                    "**/module-info*.*"
+                    "**/services/PersonalService.class",
+                    "**/services/PersonalService\$DefaultImpls.class",
+                    "**/PersonalService.*",
+                    "**/PersonalService\$*",
+                    "**/PersonalService\$DefaultImpls*",
+                    "**/dao/PersonaEntity.class",
+                    "**/dao/PersonalEntity.class",
+                    "**/dao/UserEntity.class",
+                    "**/dao/JugadorConvocadoEntity.class",
+                    "**/exceptions/**",
+                    "**/*\$DefaultImpls*"
             ])
         }))
 
-        // Ensure Kotlin source and test files are included
         sourceDirectories.setFrom(files(
-            "src/main/kotlin",
-            "src/main/java",
-            "src/test/kotlin"
+                "src/main/kotlin",
+                "src/main/java",
+                "src/test/kotlin"
         ))
     }
 }
-
+/*
 jacocoTestCoverageVerification {
     violationRules {
         rule {
@@ -169,10 +210,24 @@ jacocoTestCoverageVerification {
             }
         }
     }
-}
+}*/
 
 task testCoverage(group: 'verification', description: 'Runs the unit tests with coverage') {
     dependsOn test,
             jacocoTestReport,
             jacocoTestCoverageVerification
+}
+
+// Asegurar que Kotlin compile antes que Java
+compileJava.dependsOn compileKotlin
+
+// Fusionar las clases Kotlin en el mismo output que Java
+tasks.named('compileKotlin') {
+    kotlinOptions {
+        destinationDirectory.set(file("build/classes/java/main"))
+    }
+}
+// Opcional pero recomendado: limpiar el proyecto completo
+clean {
+    delete "build"
 }

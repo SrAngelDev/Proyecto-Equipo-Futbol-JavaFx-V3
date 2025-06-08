@@ -1,24 +1,26 @@
 package srangeldev.proyectoequipofutboljavafx.newteam.repository
 
 import org.lighthousegames.logging.logging
-import srangeldev.proyectoequipofutboljavafx.newteam.database.DataBaseManager
+import srangeldev.proyectoequipofutboljavafx.newteam.dao.*
+import srangeldev.proyectoequipofutboljavafx.newteam.mapper.toEntrenadorEntity
+import srangeldev.proyectoequipofutboljavafx.newteam.mapper.toJugadorEntity
+import srangeldev.proyectoequipofutboljavafx.newteam.mapper.toModel
+import srangeldev.proyectoequipofutboljavafx.newteam.mapper.toPersonalEntity
 import srangeldev.proyectoequipofutboljavafx.newteam.models.Entrenador
 import srangeldev.proyectoequipofutboljavafx.newteam.models.Jugador
 import srangeldev.proyectoequipofutboljavafx.newteam.models.Personal
-import java.sql.Statement
 import java.time.LocalDateTime
-// import java.time.format.DateTimeFormatter (no longer needed)
 
 /**
  * Implementación del repositorio de personal.
  */
-class PersonalRepositoryImpl : PersonalRepository {
+class PersonalRepositoryImpl(
+    private val personalDao: PersonalDao,
+    private val entrenadorDao: EntrenadorDao,
+    private val jugadorDao: JugadorDao
+) : PersonalRepository {
     private val logger = logging()
     private val personal = mutableMapOf<Int, Personal>()
-    // SQLite stores timestamps in the format "YYYY-MM-DD HH:MM:SS"
-    // No longer needed as we're using getTimestamp instead of getString for datetime fields
-    // private val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
-
     init {
         logger.debug { "Inicializando repositorio de personal" }
     }
@@ -35,82 +37,55 @@ class PersonalRepositoryImpl : PersonalRepository {
         val entrenadoresToRemove = personal.values.filterIsInstance<Entrenador>().map { it.id }
         entrenadoresToRemove.forEach { personal.remove(it) }
 
-        val sql = """
-            SELECT p.*, e.especializacion 
-            FROM Personal p
-            INNER JOIN Entrenadores e ON p.id = e.id
-            WHERE p.tipo = 'ENTRENADOR'
-        """.trimIndent()
-
         val entrenadores = mutableListOf<Entrenador>()
 
-        DataBaseManager.instance.use { db ->
-            logger.debug { "Ejecutando consulta SQL para obtener entrenadores" }
-            val res = db.connection?.prepareStatement(sql)!!.executeQuery()
-            var count = 0
-            while (res.next()) {
-                count++
-                val id = res.getInt("id")
-                val nombre = res.getString("nombre")
-                val apellidos = res.getString("apellidos")
-                val especializacion = res.getString("especializacion")
+        // Obtener todos los entrenadores usando los DAOs
+        val entrenadorEntities = entrenadorDao.findAll()
+        val personalEntities = personalDao.findByTipo("ENTRENADOR")
 
-                logger.debug { "Entrenador encontrado: ID=$id, Nombre=$nombre, Apellidos=$apellidos, Especialización=$especializacion" }
-
-                val entrenador = Entrenador(
-                    id = id,
-                    nombre = nombre,
-                    apellidos = apellidos,
-                    fechaNacimiento = res.getDate("fecha_nacimiento").toLocalDate(),
-                    fechaIncorporacion = res.getDate("fecha_incorporacion").toLocalDate(),
-                    salario = res.getDouble("salario"),
-                    paisOrigen = res.getString("pais_origen"),
-                    especializacion = Entrenador.Especializacion.valueOf(especializacion),
-                    createdAt = res.getTimestamp("created_at")?.toLocalDateTime() ?: LocalDateTime.now(),
-                    updatedAt = res.getTimestamp("updated_at")?.toLocalDateTime() ?: LocalDateTime.now(),
-                    imagenUrl = res.getString("imagen_url") ?: ""
-                )
+        // Mapear las entidades a objetos de dominio
+        entrenadorEntities.forEach { entrenadorEntity ->
+            // Buscar la entidad personal correspondiente
+            val personalEntity = personalEntities.find { it.id == entrenadorEntity.id }
+            if (personalEntity != null) {
+                val entrenador = entrenadorEntity.toModel(personalEntity)
                 personal[entrenador.id] = entrenador
                 entrenadores.add(entrenador)
+                logger.debug { "Entrenador encontrado: ID=${entrenador.id}, Nombre=${entrenador.nombre}, Apellidos=${entrenador.apellidos}, Especialización=${entrenador.especializacion}" }
             }
-            logger.debug { "Total de entrenadores encontrados: $count" }
         }
 
+        logger.debug { "Total de entrenadores encontrados: ${entrenadores.size}" }
         return entrenadores
     }
 
     private fun getJugadores(): List<Jugador> {
-        val sql = """
-            SELECT p.*, j.posicion, j.dorsal, j.altura, j.peso, j.goles, j.partidos_jugados 
-            FROM Personal p
-            INNER JOIN Jugadores j ON p.id = j.id
-            WHERE p.tipo = 'JUGADOR'
-        """.trimIndent()
+        logger.debug { "Obteniendo jugadores de la base de datos" }
 
-        DataBaseManager.instance.use { db ->
-            val res = db.connection?.prepareStatement(sql)!!.executeQuery()
-            while (res.next()) {
-                val jugador = Jugador(
-                    id = res.getInt("id"),
-                    nombre = res.getString("nombre"),
-                    apellidos = res.getString("apellidos"),
-                    fechaNacimiento = res.getDate("fecha_nacimiento").toLocalDate(),
-                    fechaIncorporacion = res.getDate("fecha_incorporacion").toLocalDate(),
-                    salario = res.getDouble("salario"),
-                    paisOrigen = res.getString("pais_origen"),
-                    posicion = Jugador.Posicion.valueOf(res.getString("posicion")),
-                    dorsal = res.getInt("dorsal"),
-                    altura = res.getDouble("altura"),
-                    peso = res.getDouble("peso"),
-                    goles = res.getInt("goles"),
-                    partidosJugados = res.getInt("partidos_jugados"),
-                    createdAt = res.getTimestamp("created_at")?.toLocalDateTime() ?: LocalDateTime.now(),
-                    updatedAt = res.getTimestamp("updated_at")?.toLocalDateTime() ?: LocalDateTime.now()
-                )
+        // Eliminar jugadores existentes del mapa personal
+        val jugadoresToRemove = personal.values.filterIsInstance<Jugador>().map { it.id }
+        jugadoresToRemove.forEach { personal.remove(it) }
+
+        val jugadores = mutableListOf<Jugador>()
+
+        // Obtener todos los jugadores usando los DAOs
+        val jugadorEntities = jugadorDao.findAll()
+        val personalEntities = personalDao.findByTipo("JUGADOR")
+
+        // Mapear las entidades a objetos de dominio
+        jugadorEntities.forEach { jugadorEntity ->
+            // Buscar la entidad personal correspondiente
+            val personalEntity = personalEntities.find { it.id == jugadorEntity.id }
+            if (personalEntity != null) {
+                val jugador = jugadorEntity.toModel(personalEntity)
                 personal[jugador.id] = jugador
+                jugadores.add(jugador)
+                logger.debug { "Jugador encontrado: ID=${jugador.id}, Nombre=${jugador.nombre}, Apellidos=${jugador.apellidos}, Posición=${jugador.posicion}" }
             }
         }
-        return personal.values.filterIsInstance<Jugador>()
+
+        logger.debug { "Total de jugadores encontrados: ${jugadores.size}" }
+        return jugadores
     }
 
     override fun getAll(): List<Personal> {
@@ -132,78 +107,32 @@ class PersonalRepositoryImpl : PersonalRepository {
     override fun getById(id: Int): Personal? {
         logger.debug { "Obteniendo personal por ID: $id" }
 
-        // First try to find an Entrenador
-        val sqlEntrenador = """
-            SELECT p.*, e.especializacion 
-            FROM Personal p
-            INNER JOIN Entrenadores e ON p.id = e.id
-            WHERE p.id = ?
-        """.trimIndent()
+        // Primero verificamos si ya está en la caché
+        if (personal.containsKey(id)) {
+            return personal[id]
+        }
 
-        var entrenador: Entrenador? = null
-        DataBaseManager.instance.use { db ->
-            val preparedStatement = db.connection?.prepareStatement(sqlEntrenador)
-            preparedStatement?.setInt(1, id)
-            val res = preparedStatement?.executeQuery()
-
-            if (res?.next() == true) {
-                entrenador = Entrenador(
-                    id = res.getInt("id"),
-                    nombre = res.getString("nombre"),
-                    apellidos = res.getString("apellidos"),
-                    fechaNacimiento = res.getDate("fecha_nacimiento").toLocalDate(),
-                    fechaIncorporacion = res.getDate("fecha_incorporacion").toLocalDate(),
-                    salario = res.getDouble("salario"),
-                    paisOrigen = res.getString("pais_origen"),
-                    especializacion = Entrenador.Especializacion.valueOf(res.getString("especializacion")),
-                    createdAt = res.getTimestamp("created_at")?.toLocalDateTime() ?: LocalDateTime.now(),
-                    updatedAt = res.getTimestamp("updated_at")?.toLocalDateTime() ?: LocalDateTime.now(),
-                    imagenUrl = res.getString("imagen_url") ?: ""
-                )
+        // Intentamos obtener un entrenador
+        val personalEntity = personalDao.findById(id)
+        if (personalEntity != null) {
+            if (personalEntity.tipo == "ENTRENADOR") {
+                val entrenadorEntity = entrenadorDao.findById(id)
+                if (entrenadorEntity != null) {
+                    val entrenador = entrenadorEntity.toModel(personalEntity)
+                    personal[entrenador.id] = entrenador
+                    return entrenador
+                }
+            } else if (personalEntity.tipo == "JUGADOR") {
+                val jugadorEntity = jugadorDao.findById(id)
+                if (jugadorEntity != null) {
+                    val jugador = jugadorEntity.toModel(personalEntity)
+                    personal[jugador.id] = jugador
+                    return jugador
+                }
             }
         }
 
-        if (entrenador != null) {
-            return entrenador
-        }
-
-        // If not found, try to find a Jugador
-        val sqlJugador = """
-            SELECT p.*, j.posicion, j.dorsal, j.altura, j.peso, j.goles, j.partidos_jugados 
-            FROM Personal p
-            INNER JOIN Jugadores j ON p.id = j.id
-            WHERE p.id = ?
-        """.trimIndent()
-
-        var jugador: Jugador? = null
-        DataBaseManager.instance.use { db ->
-            val preparedStatement = db.connection?.prepareStatement(sqlJugador)
-            preparedStatement?.setInt(1, id)
-            val res = preparedStatement?.executeQuery()
-
-            if (res?.next() == true) {
-                jugador = Jugador(
-                    id = res.getInt("id"),
-                    nombre = res.getString("nombre"),
-                    apellidos = res.getString("apellidos"),
-                    fechaNacimiento = res.getDate("fecha_nacimiento").toLocalDate(),
-                    fechaIncorporacion = res.getDate("fecha_incorporacion").toLocalDate(),
-                    salario = res.getDouble("salario"),
-                    paisOrigen = res.getString("pais_origen"),
-                    posicion = Jugador.Posicion.valueOf(res.getString("posicion")),
-                    dorsal = res.getInt("dorsal"),
-                    altura = res.getDouble("altura"),
-                    peso = res.getDouble("peso"),
-                    goles = res.getInt("goles"),
-                    partidosJugados = res.getInt("partidos_jugados"),
-                    createdAt = res.getTimestamp("created_at")?.toLocalDateTime() ?: LocalDateTime.now(),
-                    updatedAt = res.getTimestamp("updated_at")?.toLocalDateTime() ?: LocalDateTime.now(),
-                    imagenUrl = res.getString("imagen_url") ?: ""
-                )
-            }
-        }
-
-        return jugador
+        return null
     }
 
     /**
@@ -216,102 +145,81 @@ class PersonalRepositoryImpl : PersonalRepository {
         logger.debug { "Guardando personal: $entidad" }
         val timeStamp = LocalDateTime.now()
 
-        DataBaseManager.instance.use { db ->
-            val connection = db.connection ?: throw IllegalStateException("Conexión a la base de datos no disponible")
-
-            // Primero insertamos en la tabla Personal
-            val sqlPersonal = """
-                                INSERT INTO Personal (nombre, apellidos, fecha_nacimiento, fecha_incorporacion, 
-                                salario, pais_origen, tipo, imagen_url, created_at, updated_at) 
-                                VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-                            """.trimIndent()
-
-            val preparedStatementPersonal = connection.prepareStatement(sqlPersonal, Statement.RETURN_GENERATED_KEYS)
-            preparedStatementPersonal.apply {
-                setString(1, entidad.nombre)
-                setString(2, entidad.apellidos)
-                setDate(3, java.sql.Date.valueOf(entidad.fechaNacimiento))
-                setDate(4, java.sql.Date.valueOf(entidad.fechaIncorporacion))
-                setDouble(5, entidad.salario)
-                setString(6, entidad.paisOrigen)
-                setString(7, if (entidad is Jugador) "JUGADOR" else "ENTRENADOR")
-                setString(8, entidad.imagenUrl)
-            }
-            preparedStatementPersonal.executeUpdate()
-
-            val generatedId = preparedStatementPersonal.generatedKeys.let {
-                it.next()
-                it.getInt(1)
-            }
-
-            // Luego insertamos en la tabla específica
-            when (entidad) {
-                is Jugador -> {
-                    val sqlJugador = """
-                                        INSERT INTO Jugadores (id, posicion, dorsal, altura, peso, goles, partidos_jugados) 
-                                        VALUES (?, ?, ?, ?, ?, ?, ?)
-                                    """.trimIndent()
-
-                    connection.prepareStatement(sqlJugador).apply {
-                        setInt(1, generatedId)
-                        setString(2, entidad.posicion.name)
-                        setInt(3, entidad.dorsal)
-                        setDouble(4, entidad.altura)
-                        setDouble(5, entidad.peso)
-                        setInt(6, entidad.goles)
-                        setInt(7, entidad.partidosJugados)
-                        executeUpdate()
-                    }
-
-                    Jugador(
-                        id = generatedId,
-                        nombre = entidad.nombre,
-                        apellidos = entidad.apellidos,
-                        fechaNacimiento = entidad.fechaNacimiento,
-                        fechaIncorporacion = entidad.fechaIncorporacion,
-                        salario = entidad.salario,
-                        paisOrigen = entidad.paisOrigen,
-                        posicion = entidad.posicion,
-                        dorsal = entidad.dorsal,
-                        altura = entidad.altura,
-                        peso = entidad.peso,
-                        goles = entidad.goles,
-                        partidosJugados = entidad.partidosJugados,
-                        createdAt = timeStamp,
-                        updatedAt = timeStamp,
-                        imagenUrl = entidad.imagenUrl
-                    )
-                }
-
-                is Entrenador -> {
-                    val sqlEntrenador = "INSERT INTO Entrenadores (id, especializacion) VALUES (?, ?)"
-
-                    connection.prepareStatement(sqlEntrenador).apply {
-                        setInt(1, generatedId)
-                        setString(2, entidad.especializacion.name)
-                        executeUpdate()
-                    }
-
-                    Entrenador(
-                        id = generatedId,
-                        nombre = entidad.nombre,
-                        apellidos = entidad.apellidos,
-                        fechaNacimiento = entidad.fechaNacimiento,
-                        fechaIncorporacion = entidad.fechaIncorporacion,
-                        salario = entidad.salario,
-                        paisOrigen = entidad.paisOrigen,
-                        especializacion = entidad.especializacion,
-                        createdAt = timeStamp,
-                        updatedAt = timeStamp,
-                        imagenUrl = entidad.imagenUrl
-                    )
-                }
-
-                else -> throw IllegalArgumentException("Tipo desconocido de Personal")
-            }
+        // Crear la entidad personal
+        val personalEntity = when (entidad) {
+            is Jugador -> entidad.toPersonalEntity().copy(id = 0, createdAt = timeStamp, updatedAt = timeStamp)
+            is Entrenador -> entidad.toPersonalEntity().copy(id = 0, createdAt = timeStamp, updatedAt = timeStamp)
+            else -> throw IllegalArgumentException("Tipo desconocido de Personal")
         }
-        // Devolvemos el objeto personal guardado
-        return entidad
+
+        // Guardar la entidad personal y obtener el ID generado
+        val generatedId = personalDao.save(personalEntity)
+
+        // Guardar la entidad específica según el tipo
+        val result = when (entidad) {
+            is Jugador -> {
+                // Crear la entidad jugador
+                val jugadorEntity = entidad.toJugadorEntity().copy(id = generatedId)
+
+                // Guardar la entidad jugador
+                jugadorDao.save(jugadorEntity)
+
+                // Crear un nuevo objeto jugador con el ID generado
+                val jugador = Jugador(
+                    id = generatedId,
+                    nombre = entidad.nombre,
+                    apellidos = entidad.apellidos,
+                    fechaNacimiento = entidad.fechaNacimiento,
+                    fechaIncorporacion = entidad.fechaIncorporacion,
+                    salario = entidad.salario,
+                    paisOrigen = entidad.paisOrigen,
+                    posicion = entidad.posicion,
+                    dorsal = entidad.dorsal,
+                    altura = entidad.altura,
+                    peso = entidad.peso,
+                    goles = entidad.goles,
+                    partidosJugados = entidad.partidosJugados,
+                    createdAt = timeStamp,
+                    updatedAt = timeStamp,
+                    imagenUrl = entidad.imagenUrl
+                )
+
+                // Guardar en la caché
+                personal[jugador.id] = jugador
+                jugador
+            }
+
+            is Entrenador -> {
+                // Crear la entidad entrenador
+                val entrenadorEntity = entidad.toEntrenadorEntity().copy(id = generatedId)
+
+                // Guardar la entidad entrenador
+                entrenadorDao.save(entrenadorEntity)
+
+                // Crear un nuevo objeto entrenador con el ID generado
+                val entrenador = Entrenador(
+                    id = generatedId,
+                    nombre = entidad.nombre,
+                    apellidos = entidad.apellidos,
+                    fechaNacimiento = entidad.fechaNacimiento,
+                    fechaIncorporacion = entidad.fechaIncorporacion,
+                    salario = entidad.salario,
+                    paisOrigen = entidad.paisOrigen,
+                    especializacion = entidad.especializacion,
+                    createdAt = timeStamp,
+                    updatedAt = timeStamp,
+                    imagenUrl = entidad.imagenUrl
+                )
+
+                // Guardar en la caché
+                personal[entrenador.id] = entrenador
+                entrenador
+            }
+
+            else -> throw IllegalArgumentException("Tipo desconocido de Personal")
+        }
+
+        return result
     }
 
     /**
@@ -323,70 +231,90 @@ class PersonalRepositoryImpl : PersonalRepository {
      */
     override fun update(id: Int, entidad: Personal): Personal? {
         logger.debug { "Actualizando personal con ID: $id" }
-        // Aqui nos pasa lo mismo que en el save, tenemos que diferenciar entre si es un jugador o un entrenador
-        val personal: Personal? = this.getById(id)
+        // Verificar si existe el personal a actualizar
+        val existingPersonal = this.getById(id)
         val timeStamp = LocalDateTime.now()
 
-        if (personal != null) {
-            // First update the Personal table
-            val sqlPersonal = """
-                UPDATE Personal 
-                SET nombre = ?, apellidos = ?, fecha_nacimiento = ?, fecha_incorporacion = ?, 
-                    salario = ?, pais_origen = ?, imagen_url = ?, updated_at = CURRENT_TIMESTAMP
-                WHERE id = ?
-            """.trimIndent()
-
-            DataBaseManager.instance.use { db ->
-                val preparedStatement = db.connection?.prepareStatement(sqlPersonal)!!
-                preparedStatement.setString(1, entidad.nombre)
-                preparedStatement.setString(2, entidad.apellidos)
-                preparedStatement.setDate(3, java.sql.Date.valueOf(entidad.fechaNacimiento))
-                preparedStatement.setDate(4, java.sql.Date.valueOf(entidad.fechaIncorporacion))
-                preparedStatement.setDouble(5, entidad.salario)
-                preparedStatement.setString(6, entidad.paisOrigen)
-                preparedStatement.setString(7, entidad.imagenUrl)
-                preparedStatement.setInt(8, id)
-                preparedStatement.executeUpdate()
-            }
-
-            // Then update the specific table
-            val sql = when (entidad) {
-                is Jugador -> """
-                    UPDATE Jugadores 
-                    SET posicion = ?, dorsal = ?, altura = ?, peso = ?, goles = ?, partidos_jugados = ? 
-                    WHERE id = ?
-                """.trimIndent()
-                is Entrenador -> """
-                    UPDATE Entrenadores 
-                    SET especializacion = ? 
-                    WHERE id = ?
-                """.trimIndent()
+        if (existingPersonal != null) {
+            // Crear la entidad personal actualizada
+            val personalEntity = when (entidad) {
+                is Jugador -> entidad.toPersonalEntity().copy(id = id, createdAt = existingPersonal.createdAt, updatedAt = timeStamp)
+                is Entrenador -> entidad.toPersonalEntity().copy(id = id, createdAt = existingPersonal.createdAt, updatedAt = timeStamp)
                 else -> throw IllegalArgumentException("Tipo desconocido de Personal")
             }
 
-            DataBaseManager.instance.use { db ->
-                val preparedStatement = db.connection?.prepareStatement(sql)!!
+            // Actualizar la entidad personal
+            val updated = personalDao.update(personalEntity)
 
-                if (entidad is Jugador) {
-                    preparedStatement.setString(1, entidad.posicion.name)
-                    preparedStatement.setInt(2, entidad.dorsal)
-                    preparedStatement.setDouble(3, entidad.altura)
-                    preparedStatement.setDouble(4, entidad.peso)
-                    preparedStatement.setInt(5, entidad.goles)
-                    preparedStatement.setInt(6, entidad.partidosJugados)
-                    preparedStatement.setInt(7, id)
-                } else if (entidad is Entrenador) {
-                    preparedStatement.setString(1, entidad.especializacion.name)
-                    preparedStatement.setInt(2, id)
+            if (updated > 0) {
+                // Actualizar la entidad específica según el tipo
+                when (entidad) {
+                    is Jugador -> {
+                        // Crear la entidad jugador actualizada
+                        val jugadorEntity = entidad.toJugadorEntity().copy(id = id)
+
+                        // Actualizar la entidad jugador
+                        jugadorDao.update(jugadorEntity)
+
+                        // Crear un nuevo objeto jugador con los datos actualizados
+                        val jugador = Jugador(
+                            id = id,
+                            nombre = entidad.nombre,
+                            apellidos = entidad.apellidos,
+                            fechaNacimiento = entidad.fechaNacimiento,
+                            fechaIncorporacion = entidad.fechaIncorporacion,
+                            salario = entidad.salario,
+                            paisOrigen = entidad.paisOrigen,
+                            posicion = entidad.posicion,
+                            dorsal = entidad.dorsal,
+                            altura = entidad.altura,
+                            peso = entidad.peso,
+                            goles = entidad.goles,
+                            partidosJugados = entidad.partidosJugados,
+                            createdAt = existingPersonal.createdAt,
+                            updatedAt = timeStamp,
+                            imagenUrl = entidad.imagenUrl
+                        )
+
+                        // Actualizar en la caché
+                        personal[id] = jugador
+                        return jugador
+                    }
+
+                    is Entrenador -> {
+                        // Crear la entidad entrenador actualizada
+                        val entrenadorEntity = entidad.toEntrenadorEntity().copy(id = id)
+
+                        // Actualizar la entidad entrenador
+                        entrenadorDao.update(entrenadorEntity)
+
+                        // Crear un nuevo objeto entrenador con los datos actualizados
+                        val entrenador = Entrenador(
+                            id = id,
+                            nombre = entidad.nombre,
+                            apellidos = entidad.apellidos,
+                            fechaNacimiento = entidad.fechaNacimiento,
+                            fechaIncorporacion = entidad.fechaIncorporacion,
+                            salario = entidad.salario,
+                            paisOrigen = entidad.paisOrigen,
+                            especializacion = entidad.especializacion,
+                            createdAt = existingPersonal.createdAt,
+                            updatedAt = timeStamp,
+                            imagenUrl = entidad.imagenUrl
+                        )
+
+                        // Actualizar en la caché
+                        personal[id] = entrenador
+                        return entrenador
+                    }
+
+                    else -> throw IllegalArgumentException("Tipo desconocido de Personal")
                 }
-
-                preparedStatement.executeUpdate()
             }
-            return entidad
-        } else {
-            logger.debug { "No se encontró el personal con ID: $id" }
-            return null
         }
+
+        logger.debug { "No se encontró el personal con ID: $id" }
+        return null
     }
 
     /**
@@ -397,20 +325,24 @@ class PersonalRepositoryImpl : PersonalRepository {
      */
     override fun delete(id: Int): Personal? {
         logger.debug { "Eliminando personal con ID: $id" }
-        // Aqui hay que eliminar la id tanto de la tabla de personal como la propia de jugador o entrenador
-        val personal: Personal? = this.getById(id)
-        if (personal != null) {
-            val sql = when (personal) {
-                is Jugador -> "DELETE FROM Jugadores WHERE id = ?"
-                is Entrenador -> "DELETE FROM Entrenadores WHERE id = ?"
+        // Obtener el personal antes de eliminarlo
+        val personalToDelete = this.getById(id)
+
+        if (personalToDelete != null) {
+            // Primero eliminar de la tabla específica según el tipo
+            when (personalToDelete) {
+                is Jugador -> jugadorDao.delete(id)
+                is Entrenador -> entrenadorDao.delete(id)
                 else -> throw IllegalArgumentException("Tipo desconocido de Personal")
             }
-            DataBaseManager.instance.use { db ->
-                val preparedStatement = db.connection?.prepareStatement(sql)!!
-                preparedStatement.setInt(1, id)
-                preparedStatement.executeUpdate()
-            }
-            return personal
+
+            // Luego eliminar de la tabla Personal
+            personalDao.delete(id)
+
+            // Eliminar de la caché
+            personal.remove(id)
+
+            return personalToDelete
         } else {
             logger.debug { "No se encontró el personal con ID: $id" }
             return null

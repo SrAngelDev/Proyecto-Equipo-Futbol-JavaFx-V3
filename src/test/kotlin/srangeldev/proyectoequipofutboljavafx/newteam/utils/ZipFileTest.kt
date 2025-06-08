@@ -1,132 +1,115 @@
 package srangeldev.proyectoequipofutboljavafx.newteam.utils
 
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.api.io.TempDir
 import java.io.File
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
+import java.io.FileOutputStream
+import java.nio.file.Path
+import java.util.zip.ZipEntry
+import java.util.zip.ZipOutputStream
 
 class ZipFileTest {
 
-    private val testDir = "test-zip-dir"
-    private val extractDir = "test-extract-dir"
-    private val zipFilePath = "test-file.zip"
-    private val testFileName1 = "test-file1.txt"
-    private val testFileName2 = "test-file2.txt"
-    private val testContent1 = "This is test content 1"
-    private val testContent2 = "This is test content 2"
-    
-    @BeforeEach
-    fun setUp() {
-        // Create test directory and files
-        val dir = File(testDir)
-        dir.mkdirs()
-        
-        File(dir, testFileName1).writeText(testContent1)
-        File(dir, testFileName2).writeText(testContent2)
-        
-        // Create extract directory
-        File(extractDir).mkdirs()
-    }
-    
-    @AfterEach
-    fun tearDown() {
-        // Clean up test files and directories
-        File(testDir).deleteRecursively()
-        File(extractDir).deleteRecursively()
-        File(zipFilePath).delete()
-    }
-    
     @Test
-    fun `createZipFile should create a zip file from a directory`() {
-        // When
-        ZipFile.createZipFile(testDir, zipFilePath)
-        
-        // Then
-        val zipFile = File(zipFilePath)
-        assertTrue(zipFile.exists())
-        assertTrue(zipFile.length() > 0)
-    }
-    
-    @Test
-    fun `createZipFile should throw IllegalArgumentException for non-existent directory`() {
-        // Given
-        val nonExistentDir = "non-existent-dir"
-        
-        // When/Then
-        assertThrows<IllegalArgumentException> {
-            ZipFile.createZipFile(nonExistentDir, zipFilePath)
+    fun `extractFileToPath lanza excepcion si el ZIP no existe`(@TempDir tmp: Path) {
+        val ex = assertThrows(IllegalArgumentException::class.java) {
+            ZipFile.extractFileToPath(tmp.resolve("no.zip").toString(),
+                tmp.resolve("out").toString())
         }
+        assertTrue(ex.message!!.contains("no existe"))
     }
-    
+
     @Test
-    fun `extractFileToPath should extract files from a zip file`() {
-        // Given
-        ZipFile.createZipFile(testDir, zipFilePath)
-        
-        // When
-        ZipFile.extractFileToPath(zipFilePath, extractDir)
-        
-        // Then
-        val extractedFile1 = File(extractDir, testFileName1)
-        val extractedFile2 = File(extractDir, testFileName2)
-        
-        assertTrue(extractedFile1.exists())
-        assertTrue(extractedFile2.exists())
-        assertEquals(testContent1, extractedFile1.readText())
-        assertEquals(testContent2, extractedFile2.readText())
-    }
-    
-    @Test
-    fun `extractFileToPath should create destination directory if it doesn't exist`() {
-        // Given
-        ZipFile.createZipFile(testDir, zipFilePath)
-        val newExtractDir = "new-extract-dir"
-        
-        try {
-            // When
-            ZipFile.extractFileToPath(zipFilePath, newExtractDir)
-            
-            // Then
-            val extractDir = File(newExtractDir)
-            assertTrue(extractDir.exists())
-            assertTrue(extractDir.isDirectory)
-            
-            val extractedFile1 = File(newExtractDir, testFileName1)
-            val extractedFile2 = File(newExtractDir, testFileName2)
-            
-            assertTrue(extractedFile1.exists())
-            assertTrue(extractedFile2.exists())
-            assertEquals(testContent1, extractedFile1.readText())
-            assertEquals(testContent2, extractedFile2.readText())
-        } finally {
-            // Clean up
-            File(newExtractDir).deleteRecursively()
+    fun `createZipFile lanza excepcion si el origen no existe`(@TempDir tmp: Path) {
+        val ex = assertThrows(IllegalArgumentException::class.java) {
+            ZipFile.createZipFile(tmp.resolve("nada").toString(),
+                tmp.resolve("dest.zip").toString())
         }
+        assertTrue(ex.message!!.contains("no existe"))
     }
-    
+
     @Test
-    fun `createZipFile and extractFileToPath should work with nested directories`() {
-        // Given
-        val nestedDir = File(testDir, "nested")
-        nestedDir.mkdirs()
-        val nestedFileName = "nested-file.txt"
-        val nestedContent = "This is nested content"
-        File(nestedDir, nestedFileName).writeText(nestedContent)
-        
-        // When
-        ZipFile.createZipFile(testDir, zipFilePath)
-        ZipFile.extractFileToPath(zipFilePath, extractDir)
-        
-        // Then
-        val extractedNestedDir = File(extractDir, "nested")
-        val extractedNestedFile = File(extractedNestedDir, nestedFileName)
-        
-        assertTrue(extractedNestedDir.exists())
-        assertTrue(extractedNestedDir.isDirectory)
-        assertTrue(extractedNestedFile.exists())
-        assertEquals(nestedContent, extractedNestedFile.readText())
+    fun `extrae archivo plano creando destino si es necesario`(@TempDir tmp: Path) {
+        val zip = tmp.resolve("simple.zip").toFile()
+        ZipOutputStream(FileOutputStream(zip)).use { z ->
+            z.putNextEntry(ZipEntry("hola.txt"))
+            z.write("hola".toByteArray())
+            z.closeEntry()
+        }
+
+        val out = tmp.resolve("out").toFile()         // NO existe todavía
+        ZipFile.extractFileToPath(zip.path, out.path)
+
+        assertEquals("hola", File(out, "hola.txt").readText())
     }
+
+    @Test
+    fun `extrae cuando el directorio destino YA existe y contiene dir vacio`(@TempDir tmp: Path) {
+
+        // 1. ZIP con un directorio vacío y un fichero anidado
+        val zip = tmp.resolve("mixto.zip").toFile()
+        ZipOutputStream(FileOutputStream(zip)).use { z ->
+            z.putNextEntry(ZipEntry("yaExiste/"))          // directorio
+            z.closeEntry()
+            z.putNextEntry(ZipEntry("carp/padre/f.txt"))   // fichero anidado
+            z.write("x".toByteArray())
+            z.closeEntry()
+        }
+
+        // 2. Creamos manualmente el destino y las carpetas que DEBEN existir
+        val out = tmp.resolve("out").toFile()
+        out.mkdirs()                                                // destDir ya existe
+        File(out, "yaExiste").mkdirs()                              // dir yaExiste/ ya existe
+        File(out, "carp/padre").mkdirs()                            // parent ya existe
+
+        // 3. Extraemos
+        ZipFile.extractFileToPath(zip.path, out.path)
+
+        // 4. Asserts
+        assertTrue(File(out, "yaExiste").isDirectory)               // se mantuvo
+        assertEquals("x", File(out, "carp/padre/f.txt").readText()) // fichero escrito
+    }
+
+    @Test
+    fun `crea ZIP que incluye directorios vacios`(@TempDir tmp: Path) {
+        // 1. Arbol fuente con dir vacío y archivo normal
+        val src       = tmp.resolve("src").toFile()
+        val vacioDir  = File(src, "vacio")
+        val normalDir = File(src, "normal")
+        vacioDir.mkdirs()
+        normalDir.mkdirs()
+        File(normalDir, "dato.txt").writeText("dato")
+
+        // 2. Comprimir
+        val zip = tmp.resolve("todo.zip").toFile()
+        ZipFile.createZipFile(src.path, zip.path)
+
+        // 3. Extraer para comprobar que el directorio vacío también va
+        val out = tmp.resolve("out").toFile()
+        ZipFile.extractFileToPath(zip.path, out.path)
+
+        assertTrue(File(out, "vacio").isDirectory)                  // dir vacío presente
+        assertEquals("dato", File(out, "normal/dato.txt").readText())
+    }
+
+    @Test
+    fun `extrae archivo anidado creando su carpeta padre`(@TempDir tmp: Path) {
+        val zip = tmp.resolve("anidado.zip").toFile()
+        ZipOutputStream(FileOutputStream(zip)).use { z ->
+            z.putNextEntry(ZipEntry("subdir/archivo.txt"))
+            z.write("contenido".toByteArray())
+            z.closeEntry()
+        }
+
+        val out = tmp.resolve("out").toFile()
+        // NO creamos "subdir", debe hacerlo el método (parent.mkdirs())
+
+        ZipFile.extractFileToPath(zip.path, out.path)
+
+        val extraido = File(out, "subdir/archivo.txt")
+        assertTrue(extraido.exists())
+        assertEquals("contenido", extraido.readText())
+    }
+
 }

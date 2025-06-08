@@ -4,6 +4,7 @@ import java.io.File
 import java.io.FileOutputStream
 import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
+import java.util.zip.ZipOutputStream
 
 /**
  * Utilidad para trabajar con archivos ZIP.
@@ -77,7 +78,7 @@ object ZipFile {
             throw IllegalArgumentException("El directorio de origen no existe: $sourceDirPath")
         }
 
-        java.util.zip.ZipOutputStream(FileOutputStream(zipFile)).use { zipOut ->
+        ZipOutputStream(FileOutputStream(zipFile)).use { zipOut ->
             sourceDir.walkTopDown().forEach { file ->
                 // Skip the source directory itself
                 if (file == sourceDir) return@forEach

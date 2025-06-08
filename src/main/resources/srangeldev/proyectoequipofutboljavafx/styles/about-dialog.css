@@ -1,0 +1,116 @@
+/* Styles for about-dialog.fxml */
+
+/* Import base colors from vista-admin.css */
+* {
+    -primary-color: #1E8449; /* New Team Green - Darker */
+    -primary-light: #27AE60; /* New Team Green - Lighter */
+    -primary-dark: #196F3D; /* New Team Green - Darkest */
+    -accent-color: #F1C40F; /* New Team Yellow - Primary */
+    -accent-dark: #D4AC0D; /* New Team Yellow - Darker */
+    -accent-light: #F4D03F; /* New Team Yellow - Lighter */
+    -text-primary: #000000; /* New Team Black */
+    -text-secondary: #555555; /* Dark Gray */
+    -text-on-primary: white; /* New Team White */
+    -background-light: #F8F9F9; /* Very light gray with slight green tint */
+    -background-white: white; /* New Team White */
+    -border-color: #D5DBDB; /* Light gray with slight green tint */
+    -error-color: #C0392B; /* Dark red */
+    -shadow-color: rgba(0,0,0,0.25); /* Slightly stronger shadow */
+
+    /* Dark theme colors - Adjusted to complement New Team colors */
+    -dark-background: #0B0B0B; /* Deeper black */
+    -dark-surface: #0F1A14; /* Very dark green-tinted black */
+    -dark-surface-light: #1A2E22; /* Dark green-tinted surface */
+    -dark-text-primary: white; /* New Team White */
+    -dark-text-secondary: #CCCCCC; /* Lighter gray for better contrast */
+    -dark-accent: #F1C40F; /* New Team Yellow as accent */
+    -dark-border: #2C3C33; /* Dark green-tinted border */
+    -glow-yellow: rgba(241, 196, 15, 0.6); /* Yellow glow color */
+    -glow-green: rgba(39, 174, 96, 0.6); /* Green glow color */
+}
+
+/* Main dialog styling */
+#aboutDialogPane {
+    -fx-background-color: linear-gradient(to bottom right, #0B0B0B, #0F1A14);
+    -fx-background-radius: 0;
+    -fx-border-radius: 0;
+    -fx-border-color: linear-gradient(to bottom right, rgba(39, 174, 96, 0.5), rgba(241, 196, 15, 0.5));
+    -fx-border-width: 2;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.8), 20, 0, 0, 0);
+    -fx-padding: 25;
+}
+
+/* Version label styling */
+.version-label {
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -dark-text-primary;
+    -fx-effect: dropshadow(gaussian, -glow-green, 10, 0, 0, 0);
+    -fx-padding: 0 0 15 0;
+}
+
+/* Developer image styling */
+.developer-image {
+    -fx-background-radius: 50%;
+    -fx-border-radius: 50%;
+    -fx-border-color: linear-gradient(to bottom right, #27AE60, #F1C40F);
+    -fx-border-width: 3;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.7), 10, 0, 0, 0),
+               innershadow(gaussian, -glow-green, 10, 0.5, 0, 0),
+               glow(rgba(241, 196, 15, 0.4), 10);
+    /* Clip the image to make it circular */
+    -fx-clip: "M 0 70 a 70 70 0 1 0 140 0 a 70 70 0 1 0 -140 0";
+}
+
+/* Developer info panel styling */
+.developer-info {
+    -fx-background-color: rgba(15, 26, 20, 0.7);
+    -fx-background-radius: 0;
+    -fx-padding: 15;
+    -fx-spacing: 10;
+    -fx-border-radius: 0;
+    -fx-border-color: linear-gradient(to bottom right, rgba(39, 174, 96, 0.3), rgba(241, 196, 15, 0.3));
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.5), 10, 0, 0, 0);
+}
+
+/* Developer name styling */
+.developer-name {
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -dark-text-primary;
+    -fx-effect: dropshadow(gaussian, -glow-yellow, 5, 0, 0, 0);
+}
+
+/* Developer position styling */
+.developer-position {
+    -fx-font-size: 14px;
+    -fx-text-fill: -dark-text-secondary;
+}
+
+.developer-cargo {
+    -fx-font-size: 14px;
+    -fx-text-fill: -dark-text-secondary;
+}
+
+/* GitHub link styling */
+.github-link {
+    -fx-font-size: 14px;
+    -fx-text-fill: -accent-color;
+    -fx-underline: false;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.github-link:hover {
+    -fx-text-fill: -accent-light;
+    -fx-underline: true;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, -glow-yellow, 10, 0, 0, 0);
+}
+
+/* Team logo styling */
+.team-logo {
+    -fx-opacity: 0.2;
+    -fx-effect: dropshadow(gaussian, -glow-green, 15, 0, 0, 0);
+}

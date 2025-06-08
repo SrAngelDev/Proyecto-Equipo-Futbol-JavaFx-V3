@@ -4,13 +4,11 @@ import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleIntegerProperty
 import javafx.beans.property.SimpleStringProperty
 import javafx.collections.FXCollections
-import javafx.collections.ObservableList
 import javafx.fxml.FXML
 import javafx.scene.control.*
 import javafx.scene.control.cell.CheckBoxTableCell
 import javafx.scene.control.cell.PropertyValueFactory
 import javafx.scene.layout.VBox
-import javafx.util.StringConverter
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.lighthousegames.logging.logging
@@ -20,7 +18,6 @@ import srangeldev.proyectoequipofutboljavafx.newteam.models.Entrenador
 import srangeldev.proyectoequipofutboljavafx.newteam.models.Jugador
 import srangeldev.proyectoequipofutboljavafx.newteam.repository.ConvocatoriaRepository
 import srangeldev.proyectoequipofutboljavafx.newteam.repository.PersonalRepository
-import srangeldev.proyectoequipofutboljavafx.newteam.repository.PersonalRepositoryImpl
 import srangeldev.proyectoequipofutboljavafx.newteam.utils.HtmlReportGenerator
 import java.awt.Desktop
 import java.io.File
@@ -32,6 +29,10 @@ import java.time.LocalDateTime
  */
 class ConvocatoriaController : KoinComponent {
     private val logger = logging()
+
+    // Elemento oculto para tamaños de diálogos
+    @FXML
+    private lateinit var dialogTableSizes: TableView<*>
 
     // Inyectar los repositorios usando Koin
     private val convocatoriaRepository: ConvocatoriaRepository by inject()
@@ -236,11 +237,11 @@ class ConvocatoriaController : KoinComponent {
         titularColumn.setCellValueFactory { cellData ->
             val jugador = cellData.value
             val esTitular = currentConvocatoria?.titulares?.contains(jugador.id) ?: false
-            javafx.beans.property.SimpleBooleanProperty(esTitular)
+            SimpleBooleanProperty(esTitular)
         }
 
         // Configurar el cell factory para mostrar "Sí" o "No" en lugar de true/false
-        titularColumn.setCellFactory { column ->
+        titularColumn.setCellFactory { _ ->
             val cell = TableCell<Jugador, Boolean>()
             cell.textProperty().bind(
                 javafx.beans.binding.Bindings.createStringBinding(
@@ -369,8 +370,6 @@ class ConvocatoriaController : KoinComponent {
     private fun selectEntrenadores() {
         logger.debug { "Seleccionando entrenadores para la convocatoria" }
 
-        val convocatoria = currentConvocatoria ?: return
-
         // Limpiar la caché del repositorio para asegurar datos actualizados
         personalRepository.clearCache()
         logger.debug { "Caché de personal limpiada para obtener datos frescos" }
@@ -396,8 +395,9 @@ class ConvocatoriaController : KoinComponent {
 
         // Crear la tabla de entrenadores
         val tableView = TableView<Entrenador>()
-        tableView.prefWidth = 600.0
-        tableView.prefHeight = 400.0
+        tableView.prefWidth = dialogTableSizes.prefWidth
+        tableView.prefHeight = dialogTableSizes.prefHeight
+        tableView.styleClass.add("styled-table-view")
 
         // Columnas
         val idColumn = TableColumn<Entrenador, Int>("ID")
@@ -419,7 +419,7 @@ class ConvocatoriaController : KoinComponent {
             cell.setSelectedStateCallback { index -> 
                 val entrenador = tableView.items[index]
                 val isSelected = selectedEntrenadores.containsKey(entrenador.id)
-                javafx.beans.property.SimpleBooleanProperty(isSelected)
+                SimpleBooleanProperty(isSelected)
             }
             cell
         }
@@ -636,7 +636,7 @@ class ConvocatoriaController : KoinComponent {
     private fun loadJugadoresConvocados(convocatoria: Convocatoria) {
         jugadoresConvocados.clear()
 
-        // Obtener los jugadores por sus IDs
+        // Obtener los jugadores por sus ID
         convocatoria.jugadores.forEach { jugadorId ->
             val personal = personalRepository.getById(jugadorId)
             if (personal is Jugador) {
@@ -859,6 +859,7 @@ class ConvocatoriaController : KoinComponent {
         val tableView = TableView<Jugador>()
         tableView.prefWidth = 600.0
         tableView.prefHeight = 400.0
+        tableView.styleClass.add("styled-table-view")
 
         // Columnas
         val idColumn = TableColumn<Jugador, Int>("ID")
@@ -883,7 +884,7 @@ class ConvocatoriaController : KoinComponent {
             cell.setSelectedStateCallback { index -> 
                 val jugador = tableView.items[index]
                 val isSelected = selectedJugadores.containsKey(jugador.id)
-                javafx.beans.property.SimpleBooleanProperty(isSelected)
+                SimpleBooleanProperty(isSelected)
             }
             cell
         }
@@ -1022,6 +1023,7 @@ class ConvocatoriaController : KoinComponent {
         val tableView = TableView<Jugador>()
         tableView.prefWidth = 600.0
         tableView.prefHeight = 400.0
+        tableView.styleClass.add("styled-table-view")
 
         // Columnas
         val idColumn = TableColumn<Jugador, Int>("ID")
@@ -1198,8 +1200,8 @@ class ConvocatoriaController : KoinComponent {
                             salario = entrenadorPrincipal.salario,
                             paisOrigen = entrenadorPrincipal.paisOrigen,
                             especializacion = entrenadorPrincipal.especializacion,
-                            createdAt = java.time.LocalDateTime.now(),
-                            updatedAt = java.time.LocalDateTime.now()
+                            createdAt = LocalDateTime.now(),
+                            updatedAt = LocalDateTime.now()
                         )
                     )
 

@@ -109,7 +109,6 @@ object HtmlReportGenerator {
                                 <td>${jugador.posicion}</td>
                                 <td>${jugador.dorsal}</td>
                                 <td>${jugador.goles}</td>
-                                <td>${jugador.partidosJugados}</td>
                             </tr>
                             """.trimIndent()
                         }}

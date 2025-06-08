@@ -36,19 +36,6 @@ CREATE TABLE IF NOT EXISTS Jugadores (
     FOREIGN KEY (id) REFERENCES Personal(id) ON DELETE CASCADE
 );
 
--- Tabla para Equipos
-CREATE TABLE IF NOT EXISTS Equipos (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    nombre TEXT NOT NULL,
-    fecha_fundacion DATE NOT NULL,
-    escudo_url TEXT DEFAULT '',
-    ciudad TEXT NOT NULL,
-    estadio TEXT NOT NULL,
-    pais TEXT NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-);
-
 -- Tabla para Convocatorias
 CREATE TABLE IF NOT EXISTS Convocatorias (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -58,7 +45,6 @@ CREATE TABLE IF NOT EXISTS Convocatorias (
     entrenador_id INTEGER NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (equipo_id) REFERENCES Equipos(id) ON DELETE CASCADE,
     FOREIGN KEY (entrenador_id) REFERENCES Personal(id) ON DELETE CASCADE
 );
 
@@ -78,6 +64,6 @@ CREATE TABLE IF NOT EXISTS Usuarios (
     username TEXT NOT NULL UNIQUE,
     password TEXT NOT NULL,
     role TEXT NOT NULL,
-    created_at TEXT NOT NULL,
-    updated_at TEXT NOT NULL
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );

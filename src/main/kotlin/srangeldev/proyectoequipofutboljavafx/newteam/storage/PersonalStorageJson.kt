@@ -22,7 +22,6 @@ class PersonalStorageJson: PersonalStorageFile {
     }
 
     private fun validateFileForReading(file: File) {
-        // Validación básica del archivo
         if (!file.exists()) {
             // Intentar con extensiones de diferentes casos
             val parentDir = file.parentFile
@@ -36,7 +35,7 @@ class PersonalStorageJson: PersonalStorageFile {
             throw PersonalException.PersonalStorageException("El fichero no existe: $file")
         }
 
-        if (!file.isFile()) {
+        if (!file.isFile) {
             throw PersonalException.PersonalStorageException("No es un fichero: $file")
         }
 

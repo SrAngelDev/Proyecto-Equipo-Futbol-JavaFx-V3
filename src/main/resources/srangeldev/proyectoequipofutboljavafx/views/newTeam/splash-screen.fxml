@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import java.net.URL?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.ProgressBar?>
-<?import javafx.scene.effect.DropShadow?>
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
@@ -11,7 +11,6 @@
 <?import javafx.scene.shape.Rectangle?>
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
-<?import java.net.URL?>
 
 <StackPane prefHeight="500.0" prefWidth="800.0" styleClass="main-container" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="srangeldev.proyectoequipofutboljavafx.controllers.SplashScreenController">
     <stylesheets>
@@ -59,6 +58,9 @@
                                             <font>
                                                 <Font size="18.0" />
                                             </font>
+                                 <VBox.margin>
+                                    <Insets top="5.0" />
+                                 </VBox.margin>
                                         </Text>
                                     </children>
                                     <VBox.margin>
@@ -69,7 +71,7 @@
                         </VBox>
 
                         <!-- Copyright text -->
-                        <Text layoutX="40.0" layoutY="330.0" strokeType="OUTSIDE" strokeWidth="0.0" styleClass="copyright-text" text="© 2025 NewTeam - v1.0" textAlignment="LEFT">
+                        <Text layoutX="40.0" layoutY="342.0" strokeType="OUTSIDE" strokeWidth="0.0" styleClass="copyright-text" text="© 2025 NewTeam - v3.0" textAlignment="LEFT">
                             <font>
                                 <Font size="12.0" />
                             </font>

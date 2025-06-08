@@ -6,11 +6,10 @@ import srangeldev.proyectoequipofutboljavafx.newteam.cache.CacheImpl
 import srangeldev.proyectoequipofutboljavafx.newteam.exceptions.PersonalException
 import srangeldev.proyectoequipofutboljavafx.newteam.models.Personal
 import srangeldev.proyectoequipofutboljavafx.newteam.repository.PersonalRepository
-import srangeldev.proyectoequipofutboljavafx.newteam.repository.PersonalRepositoryImpl
 import srangeldev.proyectoequipofutboljavafx.newteam.storage.FileFormat
 import srangeldev.proyectoequipofutboljavafx.newteam.storage.PersonalStorage
 import srangeldev.proyectoequipofutboljavafx.newteam.storage.PersonalStorageImpl
-import srangeldev.validator.validate
+import srangeldev.proyectoequipofutboljavafx.newteam.validator.ValidatorFactory
 import java.io.File
 
 private const val CACHE_SIZE = 5
@@ -20,7 +19,7 @@ private const val CACHE_SIZE = 5
  */
 class PersonalServiceImpl(
     private val storage: PersonalStorage = PersonalStorageImpl(),
-    private val repository: PersonalRepository = PersonalRepositoryImpl(),
+    private val repository: PersonalRepository,
     private val cache: Cache<Int, Personal> = CacheImpl(CACHE_SIZE)
 ): PersonalService {
     private val logger = logging()
@@ -66,13 +65,13 @@ class PersonalServiceImpl(
 
     override fun save(personal: Personal): Personal {
         logger.info { "Guardando personal: $personal" }
-        personal.validate()
+        ValidatorFactory.validate(personal)
         return repository.save(personal)
     }
 
     override fun update(id: Int, personal: Personal): Personal? {
         logger.info { "Actualizando personal con id: $id" }
-        personal.validate()
+        ValidatorFactory.validate(personal)
         return repository.update(id, personal)?.also {
             cache.remove(id)
         } ?: throw PersonalException.PersonalNotFoundException(id)

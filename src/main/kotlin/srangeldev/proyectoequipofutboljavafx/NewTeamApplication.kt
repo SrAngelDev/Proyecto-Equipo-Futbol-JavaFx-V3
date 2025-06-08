@@ -5,9 +5,8 @@ import javafx.stage.Stage
 import org.koin.core.component.KoinComponent
 import org.koin.core.context.startKoin
 import org.koin.core.logger.Level
-import org.koin.dsl.module
 import srangeldev.proyectoequipofutboljavafx.di.appModule
-import srangeldev.proyectoequipofutboljavafx.newteam.database.DataBaseManager
+import srangeldev.proyectoequipofutboljavafx.newteam.database.JdbiManager
 import srangeldev.proyectoequipofutboljavafx.routes.RoutesManager
 import java.time.LocalDateTime
 
@@ -47,8 +46,8 @@ class NewTeamApplication : Application(), KoinComponent {
     override fun stop() {
         println("Cerrando la aplicación y eliminando la base de datos")
         try {
-            // Eliminar la base de datos (esto también cierra la conexión)
-            DataBaseManager.instance.deleteDatabase()
+            // Eliminar la base de datos
+            JdbiManager.getInstance().deleteDatabase()
             println("Base de datos eliminada correctamente")
         } catch (e: Exception) {
             println("Error al eliminar la base de datos: ${e.message}")
