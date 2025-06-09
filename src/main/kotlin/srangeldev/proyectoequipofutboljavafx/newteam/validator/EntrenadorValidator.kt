@@ -9,7 +9,7 @@ import srangeldev.proyectoequipofutboljavafx.newteam.models.Entrenador
  */
 class EntrenadorValidator : Validator<Entrenador> {
     private val personalValidator = PersonalValidator()
-    
+
     /**
      * Valida los datos del entrenador.
      * @param entrenador El objeto Entrenador a validar
@@ -19,8 +19,7 @@ class EntrenadorValidator : Validator<Entrenador> {
     override fun validate(entrenador: Entrenador) {
         // Validar primero como Personal
         personalValidator.validate(entrenador)
-        
-        // No hay validaciones específicas adicionales para Entrenador en este momento
-        // pero se podría añadir en el futuro si fuera necesario
+
+        // No es necesario validar especializacion ya que es un enum y no puede ser nulo
     }
 }

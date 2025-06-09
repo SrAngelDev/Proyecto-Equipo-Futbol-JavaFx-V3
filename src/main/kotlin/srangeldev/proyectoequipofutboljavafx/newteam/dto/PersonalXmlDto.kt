@@ -11,7 +11,7 @@ data class PersonalXmlDto(
     val id: Int,
     @SerialName("tipo")
     @XmlElement(true)
-    val tipo: String = "",
+    var tipo: String = "",
     @SerialName("nombre")
     @XmlElement(true)
     val nombre: String = "",
@@ -32,25 +32,25 @@ data class PersonalXmlDto(
     val pais: String = "",
     @SerialName("especialidad")
     @XmlElement(true)
-    val especialidad: String = "",
+    var especialidad: String = "",
     @SerialName("posicion")
     @XmlElement(true)
-    val posicion: String = "",
+    var posicion: String = "",
     @SerialName("dorsal")
     @XmlElement(true)
-    val dorsal: String = "",
+    var dorsal: String = "",
     @SerialName("altura")
     @XmlElement(true)
-    val altura: String = "",
+    var altura: String = "",
     @SerialName("peso")
     @XmlElement(true)
-    val peso: String = "",
+    var peso: String = "",
     @SerialName("goles")
     @XmlElement(true)
-    val goles: String = "",
+    var goles: String = "",
     @SerialName("partidosJugados")
     @XmlElement(true)
-    val partidosJugados: String = "",
+    var partidosJugados: String = "",
     @SerialName("imagenUrl")
     @XmlElement(true)
     val imagenUrl: String = ""

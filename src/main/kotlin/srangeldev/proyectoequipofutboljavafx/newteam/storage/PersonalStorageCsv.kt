@@ -9,6 +9,7 @@ import srangeldev.proyectoequipofutboljavafx.newteam.mapper.toJugador
 import srangeldev.proyectoequipofutboljavafx.newteam.models.Entrenador
 import srangeldev.proyectoequipofutboljavafx.newteam.models.Jugador
 import srangeldev.proyectoequipofutboljavafx.newteam.models.Personal
+import srangeldev.proyectoequipofutboljavafx.newteam.validator.ValidatorFactory
 import java.io.File
 
 class PersonalStorageCsv : PersonalStorageFile {
@@ -23,39 +24,11 @@ class PersonalStorageCsv : PersonalStorageFile {
         logger.debug { "Inicializando almacenamiento de personal en formato CSV" }
     }
 
-    private fun validateFileForReading(file: File) {
-        if (!file.exists() || !file.isFile || !file.canRead() || file.length() == 0L || !file.name.endsWith(
-                ".csv",
-                true
-            )
-        ) {
-            logger.error { "El fichero no existe, o no es un fichero o no se puede leer: $file" }
-            throw PersonalException.PersonalStorageException("El fichero no existe, o no es un fichero o no se puede leer: $file")
-        }
-
-        // Check if the file has a valid CSV format (at least has a header line)
-        try {
-            val lines = file.readLines()
-            if (lines.isEmpty()) {
-                throw PersonalException.PersonalStorageException("El archivo CSV está vacío")
-            }
-
-            // Check if the header line has the expected format
-            val header = lines[0].split(",")
-            if (header.size < 8) { // At least id, nombre, apellidos, etc.
-                throw PersonalException.PersonalStorageException("El formato del archivo CSV no es válido: faltan columnas en el encabezado")
-            }
-        } catch (e: Exception) {
-            if (e is PersonalException.PersonalStorageException) {
-                throw e
-            }
-            throw PersonalException.PersonalStorageException("Error al validar el archivo CSV: ${e.message}")
-        }
-    }
 
     override fun readFromFile(file: File): List<Personal> {
         logger.debug { "Leyendo personal de fichero CSV: $file" }
-        validateFileForReading(file)
+        
+        ValidatorFactory.validate(file)
 
         try {
             return file.readLines()
@@ -71,12 +44,12 @@ class PersonalStorageCsv : PersonalStorageFile {
 
                     try {
                         val dto = PersonalCsvDto(
-                            id = paddedValues[0].toIntOrNull() ?: 0,
+                            id = paddedValues[0].toInt(), // Cambiado de toIntOrNull()
                             nombre = paddedValues[1],
                             apellidos = paddedValues[2],
                             fechaNacimiento = paddedValues[3],
                             fechaIncorporacion = paddedValues[4],
-                            salario = paddedValues[5].toDoubleOrNull() ?: 0.0,
+                            salario = paddedValues[5].toDouble(), // Cambiado de toDoubleOrNull()
                             paisOrigen = paddedValues[6],
                             rol = paddedValues[7],
                             especializacion = paddedValues[8],
@@ -108,14 +81,14 @@ class PersonalStorageCsv : PersonalStorageFile {
     override fun writeToFile(file: File, personalList: List<Personal>) {
         logger.debug { "Escribiendo personal en fichero CSV: $file" }
 
-        if (!file.parentFile.exists()) {
-            file.parentFile.mkdirs()
-        }
-
+        // Primero validamos la extensión XML
         if (!file.name.endsWith(".csv", ignoreCase = true)) {
             logger.error { "El fichero no tiene extensión CSV: $file" }
             throw PersonalException.PersonalStorageException("El fichero no tiene extensión CSV: $file")
         }
+
+        // Luego creamos el directorio si es necesario
+        file.parentFile?.mkdirs()
 
         file.writeText(CSV_HEADER)
 
@@ -146,6 +119,8 @@ class PersonalStorageCsv : PersonalStorageFile {
             ).joinToString(",")
 
             file.appendText("$data\n")
+
+            ValidatorFactory.validate(file)
         }
         logger.debug { "Personal guardado en fichero CSV: $file" }
     }

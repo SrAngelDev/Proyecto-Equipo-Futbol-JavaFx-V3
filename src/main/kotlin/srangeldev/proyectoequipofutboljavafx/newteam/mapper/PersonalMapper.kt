@@ -4,6 +4,7 @@ import org.lighthousegames.logging.logging
 import srangeldev.proyectoequipofutboljavafx.newteam.dto.PersonalCsvDto
 import srangeldev.proyectoequipofutboljavafx.newteam.dto.PersonalJsonDto
 import srangeldev.proyectoequipofutboljavafx.newteam.dto.PersonalXmlDto
+import srangeldev.proyectoequipofutboljavafx.newteam.exceptions.PersonalException
 import srangeldev.proyectoequipofutboljavafx.newteam.models.Entrenador
 import srangeldev.proyectoequipofutboljavafx.newteam.models.Jugador
 import java.time.LocalDate
@@ -260,6 +261,10 @@ fun PersonalXmlDto.toEntrenador(): Entrenador {
 }
 
 fun PersonalXmlDto.toJugador(): Jugador {
+    if (this.tipo != "Jugador") {
+        throw PersonalException.PersonalStorageException("Error en el almacenamiento: Tipo de Personal desconocido: ${this.tipo}")
+    }
+
     return Jugador(
         id = this.id,
         nombre = this.nombre,

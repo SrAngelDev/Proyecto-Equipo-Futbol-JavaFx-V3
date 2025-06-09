@@ -17,7 +17,6 @@ class UserRepositoryImpl(private val userDao: UserDao) : UserRepository {
 
     init {
         logger.debug { "Inicializando repositorio de usuarios" }
-        initDefaultUsers()
     }
 
     override fun findAll(): List<User> {
@@ -215,7 +214,7 @@ class UserRepositoryImpl(private val userDao: UserDao) : UserRepository {
      * @param id El ID del usuario.
      * @return El usuario con el ID especificado, o null si no se encuentra.
      */
-    private fun getById(id: Int): User? {
+    fun getById(id: Int): User? {
         logger.debug { "Obteniendo usuario por ID: $id" }
 
         // Buscar en la caché
@@ -238,14 +237,5 @@ class UserRepositoryImpl(private val userDao: UserDao) : UserRepository {
             logger.error { "Error al obtener el usuario por ID: ${e.message}" }
             return null
         }
-    }
-
-    private fun initDefaultUsers() {
-        logger.debug { "Los usuarios por defecto se inicializan desde data.sql" }
-        // Los usuarios por defecto ahora se crean desde el archivo data.sql
-        // No es necesario crearlos programáticamente
-
-        // Cargar usuarios existentes en la caché
-        findAll()
     }
 }

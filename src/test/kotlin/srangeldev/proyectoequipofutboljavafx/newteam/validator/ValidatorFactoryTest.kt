@@ -4,6 +4,7 @@ import srangeldev.proyectoequipofutboljavafx.newteam.models.*
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 import org.junit.jupiter.api.Test
+import java.io.File
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -34,15 +35,6 @@ class ValidatorFactoryTest {
     }
 
     @Test
-    fun `should return PersonalValidator when type is Personal`() {
-        // Act
-        val validator = ValidatorFactory.getValidator(Personal::class.java)
-
-        // Assert
-        assertTrue(validator is PersonalValidator)
-    }
-
-    @Test
     fun `should return UserValidator when type is User`() {
         // Act
         val validator = ValidatorFactory.getValidator(User::class.java)
@@ -69,6 +61,27 @@ class ValidatorFactoryTest {
         assertFailsWith<IllegalArgumentException>("No hay un validador disponible para el tipo: srangeldev.proyectoequipofutboljavafx.newteam.validator.ValidatorFactoryTest\$1UnknownType") {
             ValidatorFactory.getValidator(UnknownType::class.java)
         }
+    }
+
+    @Test
+    fun `should return FileValidator when type is File`() {
+        // Act
+        val validator = ValidatorFactory.getValidator(File::class.java)
+
+        // Assert
+        assertTrue(validator is FileValidator)
+    }
+
+    @Test
+    fun `should return FileValidator when instance is File`() {
+        // Arrange
+        val instance = File("dummy.txt")
+
+        // Act
+        val validator = ValidatorFactory.getValidator(instance)
+
+        // Assert
+        assertTrue(validator is FileValidator)
     }
 
     @Test
@@ -146,7 +159,7 @@ class ValidatorFactoryTest {
         // Arrange
         // Arrange
         val instance = Convocatoria(
-            fecha = LocalDate.parse("2023-01-01") ,
+            fecha = LocalDate.parse("2023-01-01"),
             descripcion = "Test convocatoria",
             equipoId = 1,
             entrenadorId = 1

@@ -10,6 +10,7 @@ import srangeldev.proyectoequipofutboljavafx.newteam.config.Config
 import srangeldev.proyectoequipofutboljavafx.newteam.dao.UserDao
 import srangeldev.proyectoequipofutboljavafx.newteam.database.JdbiManager
 import srangeldev.proyectoequipofutboljavafx.newteam.models.User
+import srangeldev.proyectoequipofutboljavafx.newteam.utils.BCryptUtil
 import java.nio.file.Path
 import java.sql.Connection
 import java.sql.DriverManager
@@ -276,64 +277,208 @@ class UserRepositoryImplTest {
     }
 
     @Test
-    fun `delete debería eliminar usuario existente`() {
-        // Create test user
-        val userToDelete = User(1, "todelete", "pass", User.Role.USER, LocalDateTime.now(), LocalDateTime.now())
-
-        // Set up mock behavior for first call to getById
-        whenever(userDao.findById(1)).thenReturn(userToDelete)
-
-        // Set up mock behavior for delete
-        whenever(userDao.delete(1)).thenReturn(1) // Return 1 row affected
-
-        // Set up mock behavior for findByUsername - first call returns user, second call returns null
-        val findByUsernameMock = whenever(userDao.findByUsername("todelete"))
-        findByUsernameMock.thenReturn(userToDelete) // First call
-        findByUsernameMock.thenReturn(null) // Second call after deletion
-
-        // Execute delete
-        val result = repository.delete(userToDelete.id)
-
-        // Verify result
-        assertTrue(result)
-
-        // Verify user is no longer found
-        assertNull(repository.getByUsername("todelete"))
-    }
-
-    @Test
     fun `delete debería devolver false para usuario no existente`() {
         val result = repository.delete(-1)
         assertFalse(result)
     }
 
     @Test
+    fun `delete debería devolver true para usuario existente`() {
+        // Arrange
+        val user = User(1, "user1", "pass", User.Role.USER, LocalDateTime.now(), LocalDateTime.now())
+        whenever(userDao.findById(1)).thenReturn(user)
+        whenever(userDao.delete(1)).thenReturn(1)
+
+        // Act
+        val result = repository.delete(1)
+
+        // Assert
+        assertTrue(result)
+        verify(userDao).delete(1)
+    }
+
+    @Test
+    fun `delete debería actualizar correctamente la caché tras eliminar`() {
+        // Arrange
+        val user = User(2, "user2", "pass", User.Role.USER, LocalDateTime.now(), LocalDateTime.now())
+        repository.findAll() // Fill cache
+        whenever(userDao.findById(2)).thenReturn(user)
+        whenever(userDao.delete(2)).thenReturn(1)
+
+        // Act
+        repository.delete(2)
+
+        // Assert
+        assertNull(repository.getByUsername("user2"))
+    }
+
+    @Test
     fun `delete debería mantener otros usuarios`() {
-        // Create test users
         val user1 = User(1, "user1", "pass", User.Role.USER, LocalDateTime.now(), LocalDateTime.now())
         val user2 = User(2, "user2", "pass", User.Role.USER, LocalDateTime.now(), LocalDateTime.now())
 
-        // Set up mock behavior for getById
         whenever(userDao.findById(1)).thenReturn(user1)
-
-        // Set up mock behavior for delete
-        whenever(userDao.delete(1)).thenReturn(1) // Return 1 row affected
-
-        // Set up mock behavior for findByUsername for user1 - first call returns user, second call returns null
-        val findByUsername1Mock = whenever(userDao.findByUsername("user1"))
-        findByUsername1Mock.thenReturn(user1) // First call
-        findByUsername1Mock.thenReturn(null) // Second call after deletion
-
-        // Set up mock behavior for findByUsername for user2 - always returns user2
+        whenever(userDao.findByUsername("user1")).thenReturn(null)
         whenever(userDao.findByUsername("user2")).thenReturn(user2)
+        whenever(userDao.delete(1)).thenReturn(1)
 
-        // Execute delete
         repository.delete(user1.id)
 
-        // Verify user1 is deleted
         assertNull(repository.getByUsername("user1"))
-
-        // Verify user2 still exists
         assertNotNull(repository.getByUsername("user2"))
+    }
+
+    @Test
+    fun `findAll should throw RuntimeException when database error occurs`() {
+        // Given
+        val mockUserDao = mock<UserDao> {
+            on { findAll() } doThrow RuntimeException("Error de base de datos")
+        }
+        val repository = UserRepositoryImpl(mockUserDao)
+
+        // When/Then
+        val exception = assertThrows<RuntimeException> {
+            repository.findAll()
+        }
+        assertTrue(exception.message?.contains("Error al obtener los usuarios") ?: false)
+    }
+
+    @Test
+    fun `getByUsername should return null when database error occurs`() {
+        // Given
+        val mockUserDao = mock<UserDao> {
+            on { findByUsername(any()) } doThrow RuntimeException("Error de base de datos")
+        }
+        val repository = UserRepositoryImpl(mockUserDao)
+
+        // When
+        val result = repository.getByUsername("testuser")
+
+        // Then
+        assertNull(result)
+    }
+
+    @Test
+    fun `verifyCredentials should return null when password does not match`() {
+        // Given
+        val hashedPassword = BCryptUtil.hashPassword("password123")
+        val user = User(1, "testuser", hashedPassword, User.Role.USER, LocalDateTime.now(), LocalDateTime.now())
+        val mockUserDao = mock<UserDao> {
+            on { findByUsername("testuser") } doReturn user
+        }
+        val repository = UserRepositoryImpl(mockUserDao)
+
+        // When
+        val result = repository.verifyCredentials("testuser", "wrongpassword")
+
+        // Then
+        assertNull(result)
+    }
+
+    @Test
+    fun `save should handle existing user with unchanged password`() {
+        // Given
+        val existingUser =
+            User(1, "testuser", "hashedpassword", User.Role.USER, LocalDateTime.now(), LocalDateTime.now())
+        val mockUserDao = mock<UserDao> {
+            on { findById(1) } doReturn existingUser
+            on { update(any()) } doReturn 1
+        }
+        val repository = UserRepositoryImpl(mockUserDao)
+
+        // When
+        val result = repository.save(existingUser)
+
+        // Then
+        assertNotNull(result)
+        assertEquals(existingUser.password, result.password)
+    }
+
+    @Test
+    fun `update should hash new password when password changes`() {
+        // Given
+        val existingUser =
+            User(1, "testuser", "oldhashedpassword", User.Role.USER, LocalDateTime.now(), LocalDateTime.now())
+        val updatedUser = existingUser.copy(password = "newpassword")
+        val mockUserDao = mock<UserDao> {
+            on { findById(1) } doReturn existingUser
+            on { update(any()) } doReturn 1
+        }
+        val repository = UserRepositoryImpl(mockUserDao)
+
+        // When
+        val result = repository.update(1, updatedUser)
+
+        // Then
+        assertNotNull(result)
+        verify(mockUserDao).update(argThat { password != "oldhashedpassword" })
+    }
+
+    @Test
+    fun `update should return null when database error occurs`() {
+        // Given
+        val user = User(1, "testuser", "password", User.Role.USER, LocalDateTime.now(), LocalDateTime.now())
+        val mockUserDao = mock<UserDao> {
+            on { findById(1) } doReturn user
+            on { update(any()) } doThrow RuntimeException("Error de base de datos")
+        }
+        val repository = UserRepositoryImpl(mockUserDao)
+
+        // When
+        val result = repository.update(1, user)
+
+        // Then
+        assertNull(result)
+    }
+
+    @Test
+    fun `delete should handle database error`() {
+        // Given
+        val user = User(1, "testuser", "password", User.Role.USER, LocalDateTime.now(), LocalDateTime.now())
+        val mockUserDao = mock<UserDao> {
+            on { findById(1) } doReturn user
+            on { delete(1) } doThrow RuntimeException("Error de base de datos")
+        }
+        val repository = UserRepositoryImpl(mockUserDao)
+
+        // When
+        val result = repository.delete(1)
+
+        // Then
+        assertFalse(result)
+    }
+
+    @Test
+    fun `getById should return cached user when available`() {
+        // Given
+        val user = User(1, "testuser", "password", User.Role.USER, LocalDateTime.now(), LocalDateTime.now())
+        val mockUserDao = mock<UserDao> {
+            on { findAll() } doReturn listOf(user)
+        }
+        val repository = UserRepositoryImpl(mockUserDao)
+        repository.findAll() // Populate cache
+
+        // When
+        val result = repository.getById(1)
+
+        // Then
+        assertNotNull(result)
+        assertEquals(user, result)
+        verify(mockUserDao, never()).findById(1) // Should not hit database
+    }
+
+    @Test
+    fun `getById should return null when database error occurs`() {
+        // Given
+        val mockUserDao = mock<UserDao> {
+            on { findById(any()) } doThrow RuntimeException("Error de base de datos")
+        }
+        val repository = UserRepositoryImpl(mockUserDao)
+
+        // When
+        val result = repository.getById(1)
+
+        // Then
+        assertNull(result)
     }
 }

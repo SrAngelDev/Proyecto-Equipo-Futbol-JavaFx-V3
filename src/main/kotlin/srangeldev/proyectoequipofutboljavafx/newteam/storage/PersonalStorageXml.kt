@@ -11,6 +11,7 @@ import srangeldev.proyectoequipofutboljavafx.newteam.mapper.toXmlDto
 import srangeldev.proyectoequipofutboljavafx.newteam.models.Entrenador
 import srangeldev.proyectoequipofutboljavafx.newteam.models.Jugador
 import srangeldev.proyectoequipofutboljavafx.newteam.models.Personal
+import srangeldev.proyectoequipofutboljavafx.newteam.validator.ValidatorFactory
 import java.io.File
 
 /**
@@ -34,25 +35,8 @@ class PersonalStorageXml : PersonalStorageFile {
      * @throws PersonalException.PersonalStorageException Si el archivo no existe, no es legible, o no es un archivo XML válido.
      */
     override fun readFromFile(file: File): List<Personal> {
-        if (!file.exists()) {
-            throw PersonalException.PersonalStorageException("El fichero no existe: $file")
-        }
-
-        if (!file.isFile) {
-            throw PersonalException.PersonalStorageException("No es un fichero válido: $file")
-        }
-
-        if (!file.canRead()) {
-            throw PersonalException.PersonalStorageException("El fichero no se puede leer: $file")
-        }
-
-        if (file.length() == 0L) {
-            throw PersonalException.PersonalStorageException("El fichero está vacío: $file")
-        }
-
-        if (!file.name.endsWith(".xml", true)) {
-            throw PersonalException.PersonalStorageException("El fichero no tiene extensión XML: $file")
-        }
+        // Validate file using external validator
+        ValidatorFactory.validate(file)
 
         try {
             // Use a custom XML parser to handle the specific XML structure in the test
@@ -112,6 +96,9 @@ class PersonalStorageXml : PersonalStorageFile {
                             partidosJugados = partidosJugados
                         )
 
+                        // Validar campos requeridos
+                        validateRequiredFields(dto)
+
                         // Convert to model
                         val personal = when (tipo) {
                             "Entrenador" -> dto.toEntrenador()
@@ -165,6 +152,9 @@ class PersonalStorageXml : PersonalStorageFile {
                     partidosJugados = partidosJugados
                 )
 
+                // Validar campos requeridos
+                validateRequiredFields(dto)
+
                 // Convert to model
                 val personal = when (tipo) {
                     "Entrenador" -> dto.toEntrenador()
@@ -197,14 +187,14 @@ class PersonalStorageXml : PersonalStorageFile {
     override fun writeToFile(file: File, personalList: List<Personal>) {
         logger.debug { "Escribiendo personal en formato de fichero XML: $file" }
 
-        if (!file.parentFile.exists()) {
-            file.parentFile.mkdirs()
-        }
-
+        // Primero validamos la extensión XML
         if (!file.name.endsWith(".xml", ignoreCase = true)) {
             logger.error { "El fichero no tiene extensión XML: $file" }
             throw PersonalException.PersonalStorageException("El fichero no tiene extensión XML: $file")
         }
+
+        // Luego creamos el directorio si es necesario
+        file.parentFile?.mkdirs()
 
         try {
             // Create XML manually to match the expected format
@@ -257,11 +247,32 @@ class PersonalStorageXml : PersonalStorageFile {
             xmlBuilder.append("</equipo>")
 
             file.writeText(xmlBuilder.toString())
+
+            ValidatorFactory.validate(file)
         } catch (e: PersonalException.PersonalStorageException) {
             throw e
         } catch (e: Exception) {
             logger.error { "Error al escribir el archivo XML: ${e.message}" }
             throw PersonalException.PersonalStorageException("Error al escribir el archivo XML: ${e.message}")
+        }
+    }
+}
+
+private fun validateRequiredFields(dto: PersonalXmlDto) {
+    when (dto.tipo) {
+        "Jugador" -> {
+            if (dto.id == 0 || dto.nombre.isEmpty() || dto.posicion.isEmpty()) {
+                throw PersonalException.PersonalStorageException(
+                    "Error en el almacenamiento: Falta información requerida en el elemento personal"
+                )
+            }
+        }
+        "Entrenador" -> {
+            if (dto.id == 0 || dto.nombre.isEmpty() || dto.especialidad.isEmpty()) {
+                throw PersonalException.PersonalStorageException(
+                    "Error en el almacenamiento: Falta información requerida en el elemento personal"
+                )
+            }
         }
     }
 }

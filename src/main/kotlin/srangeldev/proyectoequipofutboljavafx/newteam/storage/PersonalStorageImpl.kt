@@ -16,37 +16,28 @@ class PersonalStorageImpl(
     private val storageJson: PersonalStorageFile = PersonalStorageJson(),
     private val storageCsv: PersonalStorageFile = PersonalStorageCsv(),
     private val storageXml: PersonalStorageFile = PersonalStorageXml(),
-): PersonalStorage {
+) : PersonalStorage {
 
     private val logger = logging()
+
 
     /**
      * Lee una lista de objetos Personal desde un archivo en el formato especificado.
      *
      * @param file El archivo desde el cual leer los datos.
-     * @param fileFormat El formato del archivo (JSON, CSV, XML, BIN, DEFAULT).
+     * @param fileFormat El formato del archivo (JSON, CSV, XML).
      * @return Una lista de objetos Personal leídos desde el archivo.
      */
-    override fun readFromFile(file: File, fileFormat: FileFormat): List<Personal> {
-        logger.debug { "Leyendo personal de fichero: $file" }
-
-        // Determinar el formato a partir de la extensión del archivo si es DEFAULT
-        val effectiveFormat = if (fileFormat == FileFormat.DEFAULT) {
-            when (file.extension.lowercase()) {
-                "json" -> FileFormat.JSON
-                "csv" -> FileFormat.CSV
-                "xml" -> FileFormat.XML
-                else -> FileFormat.JSON
-            }
-        } else {
-            fileFormat
+    override fun readFromFile(file: File, format: FileFormat): List<Personal> {
+        if (!file.exists()) {
+            throw IllegalArgumentException("El archivo no existe: ${file.name}")
         }
 
-        return when (effectiveFormat) {
+        // Usar el formato deducido en lugar del formato explícito
+        return when(format) {
             FileFormat.JSON -> storageJson.readFromFile(file)
             FileFormat.CSV -> storageCsv.readFromFile(file)
             FileFormat.XML -> storageXml.readFromFile(file)
-            FileFormat.DEFAULT -> storageJson.readFromFile(file)
         }
     }
 
@@ -63,7 +54,6 @@ class PersonalStorageImpl(
             FileFormat.JSON -> storageJson.writeToFile(file, personalList)
             FileFormat.CSV -> storageCsv.writeToFile(file, personalList)
             FileFormat.XML -> storageXml.writeToFile(file, personalList)
-            FileFormat.DEFAULT -> storageJson.writeToFile(file, personalList) // Por defecto se asume JSON
         }
     }
 }

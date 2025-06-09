@@ -97,5 +97,48 @@ class PersonalValidatorTest {
         assertThrows<PersonalException.PersonalStorageException> {
             validator.validate(emptySurnamePersonal)
         }
+        // Test negative salary
+        val negativeSalaryPersonal = Jugador(
+            id = 1,
+            nombre = "John",
+            apellidos = "Doe",
+            fechaNacimiento = LocalDate.of(1990, 1, 1),
+            fechaIncorporacion = LocalDate.of(2023, 1, 1),
+            salario = -1000.0,
+            paisOrigen = "USA",
+            createdAt = LocalDateTime.now(),
+            updatedAt = LocalDateTime.now(),
+            posicion = Jugador.Posicion.DELANTERO,
+            dorsal = 10,
+            altura = 1.8,
+            peso = 75.0,
+            goles = 0,
+            partidosJugados = 0
+        )
+        assertThrows<PersonalException.PersonalStorageException> {
+            validator.validate(negativeSalaryPersonal)
+        }
+
+        // Test empty paisOrigen
+        val emptyPaisOrigenPersonal = Jugador(
+            id = 1,
+            nombre = "John",
+            apellidos = "Doe",
+            fechaNacimiento = LocalDate.of(1990, 1, 1),
+            fechaIncorporacion = LocalDate.of(2023, 1, 1),
+            salario = 1000.0,
+            paisOrigen = "",
+            createdAt = LocalDateTime.now(),
+            updatedAt = LocalDateTime.now(),
+            posicion = Jugador.Posicion.DELANTERO,
+            dorsal = 10,
+            altura = 1.8,
+            peso = 75.0,
+            goles = 0,
+            partidosJugados = 0
+        )
+        assertThrows<PersonalException.PersonalStorageException> {
+            validator.validate(emptyPaisOrigenPersonal)
+        }
     }
 }

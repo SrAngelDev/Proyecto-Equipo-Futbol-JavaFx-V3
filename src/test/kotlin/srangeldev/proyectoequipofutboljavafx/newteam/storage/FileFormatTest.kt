@@ -9,11 +9,10 @@ class FileFormatTest {
     @Test
     fun `FileFormat enum should have expected values`() {
         // Then
-        assertEquals(4, FileFormat.values().size)
+        assertEquals(3, FileFormat.entries.size)
         assertNotNull(FileFormat.valueOf("JSON"))
         assertNotNull(FileFormat.valueOf("CSV"))
         assertNotNull(FileFormat.valueOf("XML"))
-        assertNotNull(FileFormat.valueOf("DEFAULT"))
     }
     
     @Test
@@ -32,11 +31,5 @@ class FileFormatTest {
     fun `FileFormat XML should be accessible`() {
         // Then
         assertEquals(FileFormat.XML, FileFormat.valueOf("XML"))
-    }
-    
-    @Test
-    fun `FileFormat DEFAULT should be accessible`() {
-        // Then
-        assertEquals(FileFormat.DEFAULT, FileFormat.valueOf("DEFAULT"))
     }
 }
