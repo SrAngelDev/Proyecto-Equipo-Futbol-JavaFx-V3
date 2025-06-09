@@ -53,7 +53,7 @@ class PersonalServiceImplTest {
     }
 
     @Test
-    fun `importFromFile should read from file and save to repository`() {
+    fun `importFromFile should read from file, validate and save valid objects to repository`() {
         // Given
         val filePath = "test.json"
         val format = FileFormat.JSON
@@ -67,6 +67,89 @@ class PersonalServiceImplTest {
         // Then
         verify(storage).readFromFile(any(), eq(format))
         verify(repository).save(jugador)
+    }
+
+    @Test
+    fun `importFromFile should skip invalid objects and continue with valid ones`() {
+        // Given
+        val filePath = "test.json"
+        val format = FileFormat.JSON
+
+        // Create an invalid jugador (missing required fields)
+        val invalidJugador = Jugador(
+            id = 2,
+            nombre = "", // Invalid: empty name
+            apellidos = "García",
+            fechaNacimiento = LocalDate.of(1995, 5, 5),
+            fechaIncorporacion = LocalDate.of(2021, 1, 1),
+            salario = -1000.0, // Invalid: negative salary
+            paisOrigen = "España",
+            createdAt = now,
+            updatedAt = now,
+            posicion = Jugador.Posicion.DEFENSA,
+            dorsal = 4,
+            altura = 1.85,
+            peso = 80.0,
+            goles = 2,
+            partidosJugados = 15
+        )
+
+        val personalList = listOf(jugador, invalidJugador)
+
+        whenever(storage.readFromFile(any(), eq(format))).thenReturn(personalList)
+
+        // When
+        service.importFromFile(filePath, format)
+
+        // Then
+        verify(storage).readFromFile(any(), eq(format))
+        verify(repository).save(jugador)
+        verify(repository, never()).save(invalidJugador)
+    }
+
+    @Test
+    fun `readFromFile should validate objects and filter out invalid ones`() {
+        // Given
+        val filePath = "test.json"
+        val format = FileFormat.JSON
+
+        // Create an invalid jugador (missing required fields)
+        val invalidJugador = Jugador(
+            id = 2,
+            nombre = "", // Invalid: empty name
+            apellidos = "García",
+            fechaNacimiento = LocalDate.of(1995, 5, 5),
+            fechaIncorporacion = LocalDate.of(2021, 1, 1),
+            salario = -1000.0, // Invalid: negative salary
+            paisOrigen = "España",
+            createdAt = now,
+            updatedAt = now,
+            posicion = Jugador.Posicion.DEFENSA,
+            dorsal = 4,
+            altura = 1.85,
+            peso = 80.0,
+            goles = 2,
+            partidosJugados = 15
+        )
+
+        val personalList = listOf(jugador, invalidJugador)
+
+        whenever(storage.readFromFile(any(), eq(format))).thenReturn(personalList)
+
+        // When
+        service.importFromFile(filePath, format)
+
+        // Then
+        // Verify that readFromFile was called with the correct parameters
+        verify(storage).readFromFile(any(), eq(format))
+
+        // Verify that only valid objects were saved to the repository
+        verify(repository).save(jugador)
+        verify(repository, never()).save(invalidJugador)
+
+        // This test indirectly verifies that readFromFile is validating objects
+        // since importFromFile uses readFromFile and we're verifying that only
+        // valid objects are being processed
     }
 
     @Test

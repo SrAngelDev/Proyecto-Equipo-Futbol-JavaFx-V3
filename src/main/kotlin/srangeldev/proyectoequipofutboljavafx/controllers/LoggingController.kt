@@ -131,6 +131,17 @@ class LoggingController : KoinComponent {
                 viewModel.clearPassword()
             }
             PersonalViewModel.LoginResult.ADMIN_LOGIN -> {
+                // Obtener el usuario autenticado
+                val user = userRepository.verifyCredentials(viewModel.username.get(), viewModel.password.get())
+
+                // Establecer el usuario en la sesión
+                if (user != null) {
+                    Session.setCurrentUser(user)
+                    logger.debug { "Usuario administrador establecido en la sesión: ${user.username}" }
+                } else {
+                    logger.error { "No se pudo obtener el usuario administrador para establecer en la sesión" }
+                }
+
                 showAlert(
                     Alert.AlertType.INFORMATION,
                     "Login exitoso",
@@ -140,6 +151,17 @@ class LoggingController : KoinComponent {
                 viewModel.clearPassword()
             }
             PersonalViewModel.LoginResult.USER_LOGIN -> {
+                // Obtener el usuario autenticado
+                val user = userRepository.verifyCredentials(viewModel.username.get(), viewModel.password.get())
+
+                // Establecer el usuario en la sesión
+                if (user != null) {
+                    Session.setCurrentUser(user)
+                    logger.debug { "Usuario normal establecido en la sesión: ${user.username}" }
+                } else {
+                    logger.error { "No se pudo obtener el usuario normal para establecer en la sesión" }
+                }
+
                 showAlert(
                     Alert.AlertType.INFORMATION,
                     "Login exitoso",

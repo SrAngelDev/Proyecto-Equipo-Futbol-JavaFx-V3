@@ -252,8 +252,8 @@ class PersonalStorageXml : PersonalStorageFile {
         } catch (e: PersonalException.PersonalStorageException) {
             throw e
         } catch (e: Exception) {
-            logger.error { "Error al escribir el archivo XML: ${e.message}" }
-            throw PersonalException.PersonalStorageException("Error al escribir el archivo XML: ${e.message}")
+            logger.error { "Tipo de Personal desconocido" }
+            throw PersonalException.PersonalStorageException("Tipo de Personal desconocido")
         }
     }
 }

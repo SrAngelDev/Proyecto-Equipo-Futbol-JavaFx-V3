@@ -30,7 +30,23 @@ class PersonalServiceImpl(
 
     private fun readFromFile(filePath: String, fileFormat: FileFormat): List<Personal> {
         logger.debug { "Leyendo personal de fichero: $filePath" }
-        return storage.readFromFile(File(filePath), fileFormat)
+        val rawPersonalList = storage.readFromFile(File(filePath), fileFormat)
+        val validPersonal = mutableListOf<Personal>()
+
+        rawPersonalList.forEach { personal ->
+            try {
+                // Validar cada objeto antes de añadirlo a la lista
+                ValidatorFactory.validate(personal)
+                validPersonal.add(personal)
+                logger.debug { "Personal válido leído: $personal" }
+            } catch (e: Exception) {
+                // Registrar error para objetos inválidos pero continuar con el resto
+                logger.error { "Error al validar personal: $personal. Error: ${e.message}" }
+            }
+        }
+
+        logger.info { "Personal leído: ${validPersonal.size} válidos de ${rawPersonalList.size} totales" }
+        return validPersonal
     }
 
     private fun writeToFile(filePath: String, fileFormat: FileFormat, personalList: List<Personal>) {
@@ -41,7 +57,22 @@ class PersonalServiceImpl(
     override fun importFromFile(filePath: String, format: FileFormat) {
         logger.info { "Importando personal de fichero: $filePath" }
         val personalList = readFromFile(filePath, format)
-        personalList.forEach { repository.save(it) }
+        val validPersonal = mutableListOf<Personal>()
+
+        personalList.forEach { personal ->
+            try {
+                // Validar cada objeto antes de guardarlo
+                ValidatorFactory.validate(personal)
+                validPersonal.add(personal)
+                repository.save(personal)
+                logger.debug { "Personal válido guardado: $personal" }
+            } catch (e: Exception) {
+                // Registrar error para objetos inválidos pero continuar con el resto
+                logger.error { "Error al validar personal: $personal. Error: ${e.message}" }
+            }
+        }
+
+        logger.info { "Personal importado: ${validPersonal.size} válidos de ${personalList.size} totales" }
         logger.debug { "Personal guardado en repository: ${repository.getAll()}" }
     }
 

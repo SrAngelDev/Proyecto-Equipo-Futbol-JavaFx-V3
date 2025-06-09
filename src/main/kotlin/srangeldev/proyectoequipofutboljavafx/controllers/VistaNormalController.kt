@@ -827,6 +827,12 @@ class VistaNormalController : KoinComponent {
             }
         }
 
+        // Configurar el evento del botón de imprimir convocatoria
+        printConvocatoriaButton.setOnAction {
+            logger.debug { "Botón de imprimir convocatoria presionado" }
+            printConvocatoria()
+        }
+
         // Configurar el campo de búsqueda
         searchConvocatoriaField.textProperty().addListener { _, _, newValue ->
             filterConvocatorias(newValue)
@@ -943,5 +949,76 @@ class VistaNormalController : KoinComponent {
         entrenadorTextField.text = ""
         descripcionTextArea.text = ""
         jugadoresConvocados.clear()
+    }
+
+    /**
+     * Imprime una convocatoria.
+     */
+    private fun printConvocatoria() {
+        logger.debug { "Imprimiendo convocatoria" }
+
+        val convocatoria = currentConvocatoria ?: return
+
+        try {
+            // Obtener el entrenador
+            val entrenador = personalRepository.getById(convocatoria.entrenadorId)
+            if (entrenador !is Entrenador) {
+                throw IllegalStateException("No se encontró el entrenador para la convocatoria")
+            }
+
+            // Crear una lista con el entrenador principal
+            val entrenadores = listOf(entrenador)
+
+            // Obtener los jugadores convocados
+            val jugadoresConvocados = convocatoria.jugadores.mapNotNull { jugadorId ->
+                personalRepository.getById(jugadorId) as? Jugador
+            }
+
+            // Obtener el directorio de informes desde la configuración
+            val reportsDir = Config.configProperties.reportsDir
+            val reportsDirFile = File(reportsDir)
+            if (!reportsDirFile.exists()) {
+                reportsDirFile.mkdirs()
+            }
+
+            // Generar nombre de archivo con timestamp
+            val timestamp = LocalDateTime.now().toString().replace(":", "-").replace(".", "-")
+            val outputPath = "$reportsDir/convocatoria_${timestamp}.html"
+
+            // Generar el informe HTML
+            val reportPath = HtmlReportGenerator.generateConvocatoriaReport(
+                convocatoria = convocatoria,
+                jugadores = jugadoresConvocados,
+                entrenadores = entrenadores,
+                outputPath = outputPath
+            )
+
+            // Abrir el informe en el navegador predeterminado
+            val file = File(reportPath)
+            try {
+                if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+                    Desktop.getDesktop().browse(file.toURI())
+                    showInfoDialog(
+                        "Informe HTML generado", 
+                        "El informe HTML ha sido generado y abierto en su navegador predeterminado.\n\nRuta: $reportPath"
+                    )
+                } else {
+                    logger.error { "No se puede abrir el navegador predeterminado" }
+                    showInfoDialog(
+                        "Informe HTML generado", 
+                        "El informe HTML ha sido generado pero no se pudo abrir automáticamente.\n\nRuta: $reportPath"
+                    )
+                }
+            } catch (e: Exception) {
+                logger.error { "No se puede abrir el navegador predeterminado: ${e.message}" }
+                showInfoDialog(
+                    "Informe HTML generado", 
+                    "El informe HTML ha sido generado pero no se pudo abrir automáticamente.\n\nRuta: $reportPath"
+                )
+            }
+        } catch (e: Exception) {
+            logger.error { "Error al generar el informe HTML: ${e.message}" }
+            showErrorDialog("Error", "No se pudo generar el informe HTML: ${e.message}")
+        }
     }
 }

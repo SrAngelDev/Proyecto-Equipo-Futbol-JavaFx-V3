@@ -3,6 +3,7 @@ package srangeldev.proyectoequipofutboljavafx.newteam.storage
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 import srangeldev.proyectoequipofutboljavafx.newteam.dto.PersonalXmlDto
@@ -16,6 +17,9 @@ import java.io.File
 import java.nio.file.Files
 import java.time.LocalDate
 import java.time.LocalDateTime
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.doThrow
+import org.mockito.kotlin.verify
 
 class PersonalStorageXmlTest {
 
@@ -755,6 +759,35 @@ class PersonalStorageXmlTest {
         assertEquals("Error en el almacenamiento: Error en el almacenamiento: Tipo de Personal desconocido: Arbitro", exception.message)
     }
 
+    @Test
+    fun `should throw PersonalStorageException with correct message when file is corrupted`() {
+        // Arrange
+        val xmlCorrupto = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <personal>
+            <persona>
+                <!-- XML mal formado intencionalmente -->
+                <id>1</id>
+                <nombre>Test</nombre>
+            </persona>
+        </personal>
+    """.trimIndent()
+
+        val tempFile = createTempFile(suffix = ".xml")
+        tempFile.writeText(xmlCorrupto)
+
+        // Act & Assert
+        val exception = assertThrows<PersonalException.PersonalStorageException> {
+            PersonalStorageXml().readFromFile(tempFile)
+        }
+        println(exception.message)
+
+        // Verificaciones
+        assertTrue(exception.message?.startsWith("Error en el almacenamiento: Tipo de Personal desconocido") ?: false)
+
+        // Limpieza
+        tempFile.delete()
+    }
     
 
 }
