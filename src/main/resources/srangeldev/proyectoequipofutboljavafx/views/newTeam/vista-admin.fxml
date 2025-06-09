@@ -31,7 +31,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane prefHeight="900.0" prefWidth="1600.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="srangeldev.proyectoequipofutboljavafx.controllers.VistaAdminController">
+<AnchorPane prefHeight="900.0" prefWidth="1600.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="srangeldev.proyectoequipofutboljavafx.controllers.VistaAdminController">
    <stylesheets>
       <URL value="@../../styles/vista-admin.css" />
    </stylesheets>
@@ -116,6 +116,8 @@
                                   <Label text="Promedio goles anotados:" />
                                   <Label fx:id="avgGolesLabel" text="0" />
                                   <Button fx:id="addPlayerButton" mnemonicParsing="false" prefHeight="30.0" prefWidth="150.0" styleClass="green-button" text="Crear miembro">
+                                  </Button>
+                                  <Button fx:id="editPlayerButton" mnemonicParsing="false" prefHeight="30.0" prefWidth="120.0" styleClass="blue-button" text="Editar">
                                   </Button>
                                   <Button fx:id="deletePlayerButton" mnemonicParsing="false" prefHeight="30.0" prefWidth="120.0" styleClass="red-button" text="Eliminar">
                                   </Button>

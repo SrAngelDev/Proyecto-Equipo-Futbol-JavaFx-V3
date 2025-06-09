@@ -112,4 +112,27 @@ class ZipFileTest {
         assertEquals("contenido", extraido.readText())
     }
 
+    @Test
+    fun `crea ZIP en directorio que no existe`(@TempDir tmp: Path) {
+        // 1. Arbol fuente con archivo normal
+        val src = tmp.resolve("src").toFile()
+        src.mkdirs()
+        File(src, "dato.txt").writeText("dato")
+
+        // 2. Comprimir en un directorio que no existe
+        val nonExistentDir = tmp.resolve("nonexistent").toFile()
+        val zip = File(nonExistentDir, "test.zip")
+
+        // 3. Crear el ZIP - esto debería crear el directorio nonexistent
+        ZipFile.createZipFile(src.path, zip.path)
+
+        // 4. Verificar que el ZIP se creó correctamente
+        assertTrue(zip.exists())
+
+        // 5. Extraer para comprobar el contenido
+        val out = tmp.resolve("out").toFile()
+        ZipFile.extractFileToPath(zip.path, out.path)
+
+        assertEquals("dato", File(out, "dato.txt").readText())
+    }
 }

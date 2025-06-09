@@ -11,7 +11,7 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<StackPane xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="srangeldev.proyectoequipofutboljavafx.controllers.AboutDialogController">
+<StackPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="srangeldev.proyectoequipofutboljavafx.controllers.AboutDialogController">
 
     <!-- Background logo (watermark) -->
     <ImageView fitWidth="400" opacity="0.1" preserveRatio="true" styleClass="team-logo">

@@ -147,6 +147,8 @@ class VistaAdminController : KoinComponent {
     @FXML
     private lateinit var addPlayerButton: Button
     @FXML
+    private lateinit var editPlayerButton: Button
+    @FXML
     private lateinit var deletePlayerButton: Button
     @FXML
     private lateinit var deleteAllPlayersButton: Button
@@ -474,6 +476,16 @@ class VistaAdminController : KoinComponent {
             showCreateMemberDialog()
         }
 
+        editPlayerButton.setOnAction {
+            val selected = playersTableView.selectionModel.selectedItem
+            if (selected != null) {
+                // Habilitar la edición de los campos
+                setFieldsEditable(true)
+            } else {
+                showInfoDialog("Selección requerida", "Por favor, seleccione un jugador o entrenador para editar.")
+            }
+        }
+
         deletePlayerButton.setOnAction {
             val selected = playersTableView.selectionModel.selectedItem
             if (selected != null) {
@@ -560,6 +572,9 @@ class VistaAdminController : KoinComponent {
     private fun showPersonalDetails(personal: Personal) {
         // Guardar el personal seleccionado
         selectedPersonal = personal
+
+        // Asegurarse de que los campos estén deshabilitados inicialmente
+        setFieldsEditable(false)
 
         // Mostrar datos comunes
         nombreTextField.text = "${personal.nombre} ${personal.apellidos}"
@@ -666,14 +681,6 @@ class VistaAdminController : KoinComponent {
 
     private fun savePersonalData() {
         try {
-            // Verificar si hay un personal seleccionado
-            if (selectedPersonal == null) {
-                showErrorDialog("Error", "No hay ningún personal seleccionado para editar.")
-                return
-            }
-
-            // Usar el servicio inyectado
-
             // Obtener los datos comunes del formulario
             val nombreCompleto = nombreTextField.text.trim().split(" ", limit = 2)
             val nombre = nombreCompleto.getOrElse(0) { "" }
@@ -686,9 +693,11 @@ class VistaAdminController : KoinComponent {
             val salario = salarioTextField.text.toDoubleOrNull() ?: 0.0
             val fechaIncorporacion = fechaIncorporacionPicker.value ?: LocalDate.now()
 
-            // Crear el objeto Personal según el tipo
-            val updatedPersonal = when (selectedPersonal) {
-                is Jugador -> {
+            // Verificar si estamos creando un nuevo personal o actualizando uno existente
+            if (selectedPersonal == null) {
+                // Estamos creando un nuevo personal
+                val newPersonal = if (posicionComboBox.isVisible) {
+                    // Estamos creando un jugador
                     val posicionStr = posicionComboBox.value ?: "CENTROCAMPISTA"
                     val posicion = try {
                         Jugador.Posicion.valueOf(posicionStr)
@@ -700,28 +709,27 @@ class VistaAdminController : KoinComponent {
                     val goles = golesTextField.text.toIntOrNull() ?: 0
                     val partidosJugados = partidosTextField.text.toIntOrNull() ?: 0
 
-                    // Crear un nuevo Jugador con los datos actualizados
+                    // Crear un nuevo Jugador
                     Jugador(
-                        id = selectedPersonal!!.id,
+                        id = 0, // El ID será asignado por la base de datos
                         nombre = nombre,
                         apellidos = apellidos,
                         fechaNacimiento = fechaNacimiento,
                         fechaIncorporacion = fechaIncorporacion,
                         salario = salario,
-                        paisOrigen = selectedPersonal!!.paisOrigen, // Mantener el país de origen original
-                        createdAt = selectedPersonal!!.createdAt,
+                        paisOrigen = "España", // Valor por defecto
+                        createdAt = LocalDateTime.now(),
                         updatedAt = LocalDateTime.now(),
                         posicion = posicion,
                         dorsal = dorsal,
-                        altura = (selectedPersonal as Jugador).altura,
-                        peso = (selectedPersonal as Jugador).peso,
+                        altura = 180.0, // Valor por defecto
+                        peso = 75.0, // Valor por defecto
                         goles = goles,
                         partidosJugados = partidosJugados,
                         imagenUrl = selectedImageUrl // Usar la URL de la imagen seleccionada
                     )
-                }
-
-                is Entrenador -> {
+                } else {
+                    // Estamos creando un entrenador
                     val especializacionStr = especialidadComboBox.value ?: "ENTRENADOR_PRINCIPAL"
                     val especializacion = try {
                         Entrenador.Especializacion.valueOf(especializacionStr)
@@ -729,40 +737,111 @@ class VistaAdminController : KoinComponent {
                         Entrenador.Especializacion.ENTRENADOR_PRINCIPAL
                     }
 
-                    // Crear un nuevo Entrenador con los datos actualizados
+                    // Crear un nuevo Entrenador
                     Entrenador(
-                        id = selectedPersonal!!.id,
+                        id = 0, // El ID será asignado por la base de datos
                         nombre = nombre,
                         apellidos = apellidos,
                         fechaNacimiento = fechaNacimiento,
                         fechaIncorporacion = fechaIncorporacion,
                         salario = salario,
-                        paisOrigen = selectedPersonal!!.paisOrigen, // Mantener el país de origen original
-                        createdAt = selectedPersonal!!.createdAt,
+                        paisOrigen = "España", // Valor por defecto
+                        createdAt = LocalDateTime.now(),
                         updatedAt = LocalDateTime.now(),
                         especializacion = especializacion,
                         imagenUrl = selectedImageUrl // Usar la URL de la imagen seleccionada
                     )
                 }
 
-                else -> throw IllegalStateException("Tipo de personal no soportado")
-            }
+                // Guardar el nuevo personal en la base de datos
+                val savedResult = personalService.save(newPersonal)
 
-            // Actualizar el personal en la base de datos
-            val updatedResult = personalService.update(selectedPersonal!!.id, updatedPersonal)
+                // Añadir el nuevo personal a la lista
+                personalList.add(savedResult)
+                playersTableView.refresh()
+                updateStatistics()
 
-            if (updatedResult != null) {
-                // Actualizar la lista de personal
-                val index = personalList.indexOfFirst { it.id == updatedResult.id }
-                if (index >= 0) {
-                    personalList[index] = updatedResult
-                    playersTableView.refresh()
-                    updateStatistics()
+                showInfoDialog("Datos guardados", "El nuevo personal se ha creado correctamente.")
+            } else {
+                // Estamos actualizando un personal existente
+                // Crear el objeto Personal según el tipo
+                val updatedPersonal = when (selectedPersonal) {
+                    is Jugador -> {
+                        val posicionStr = posicionComboBox.value ?: "CENTROCAMPISTA"
+                        val posicion = try {
+                            Jugador.Posicion.valueOf(posicionStr)
+                        } catch (e: IllegalArgumentException) {
+                            Jugador.Posicion.CENTROCAMPISTA
+                        }
+
+                        val dorsal = dorsalTextField.text.toIntOrNull() ?: 0
+                        val goles = golesTextField.text.toIntOrNull() ?: 0
+                        val partidosJugados = partidosTextField.text.toIntOrNull() ?: 0
+
+                        // Crear un nuevo Jugador con los datos actualizados
+                        Jugador(
+                            id = selectedPersonal!!.id,
+                            nombre = nombre,
+                            apellidos = apellidos,
+                            fechaNacimiento = fechaNacimiento,
+                            fechaIncorporacion = fechaIncorporacion,
+                            salario = salario,
+                            paisOrigen = selectedPersonal!!.paisOrigen, // Mantener el país de origen original
+                            createdAt = selectedPersonal!!.createdAt,
+                            updatedAt = LocalDateTime.now(),
+                            posicion = posicion,
+                            dorsal = dorsal,
+                            altura = (selectedPersonal as Jugador).altura,
+                            peso = (selectedPersonal as Jugador).peso,
+                            goles = goles,
+                            partidosJugados = partidosJugados,
+                            imagenUrl = selectedImageUrl // Usar la URL de la imagen seleccionada
+                        )
+                    }
+
+                    is Entrenador -> {
+                        val especializacionStr = especialidadComboBox.value ?: "ENTRENADOR_PRINCIPAL"
+                        val especializacion = try {
+                            Entrenador.Especializacion.valueOf(especializacionStr)
+                        } catch (e: IllegalArgumentException) {
+                            Entrenador.Especializacion.ENTRENADOR_PRINCIPAL
+                        }
+
+                        // Crear un nuevo Entrenador con los datos actualizados
+                        Entrenador(
+                            id = selectedPersonal!!.id,
+                            nombre = nombre,
+                            apellidos = apellidos,
+                            fechaNacimiento = fechaNacimiento,
+                            fechaIncorporacion = fechaIncorporacion,
+                            salario = salario,
+                            paisOrigen = selectedPersonal!!.paisOrigen, // Mantener el país de origen original
+                            createdAt = selectedPersonal!!.createdAt,
+                            updatedAt = LocalDateTime.now(),
+                            especializacion = especializacion,
+                            imagenUrl = selectedImageUrl // Usar la URL de la imagen seleccionada
+                        )
+                    }
+
+                    else -> throw IllegalStateException("Tipo de personal no soportado")
                 }
 
-                showInfoDialog("Datos guardados", "Los datos se han guardado correctamente.")
-            } else {
-                showErrorDialog("Error", "No se pudo actualizar el personal en la base de datos.")
+                // Actualizar el personal en la base de datos
+                val updatedResult = personalService.update(selectedPersonal!!.id, updatedPersonal)
+
+                if (updatedResult != null) {
+                    // Actualizar la lista de personal
+                    val index = personalList.indexOfFirst { it.id == updatedResult.id }
+                    if (index >= 0) {
+                        personalList[index] = updatedResult
+                        playersTableView.refresh()
+                        updateStatistics()
+                    }
+
+                    showInfoDialog("Datos guardados", "Los datos se han actualizado correctamente.")
+                } else {
+                    showErrorDialog("Error", "No se pudo actualizar el personal en la base de datos.")
+                }
             }
 
             clearDetailsPanel()
@@ -2615,6 +2694,9 @@ class VistaAdminController : KoinComponent {
      * Muestra un diálogo para elegir entre crear un jugador o un entrenador
      */
     private fun showCreateMemberDialog() {
+        // Limpiar la selección actual y los campos
+        clearDetailsPanel()
+
         // Crear un diálogo de tipo Alert con botones personalizados
         val dialog = Alert(Alert.AlertType.CONFIRMATION)
         dialog.title = "Crear Miembro"

@@ -54,8 +54,19 @@ class PersonalStorageJson: PersonalStorageFile {
     override fun writeToFile(file: File, personalList: List<Personal>) {
         logger.debug { "Escribiendo personal en fichero JSON: $file" }
 
-        try {// Validate file using external validator
-            ValidatorFactory.validate(file)
+        try {
+            // Ensure parent directory exists
+            file.parentFile?.let {
+                if (!it.exists()) {
+                    it.mkdirs()
+                }
+            }
+
+            // For writing, we don't validate if the file exists since we're creating it
+            // Only validate if it's an existing file
+            if (file.exists()) {
+                ValidatorFactory.validate(file)
+            }
 
             val json = Json {
                 prettyPrint = true

@@ -263,4 +263,42 @@ class PersonalStorageJsonTest {
         }
         assertTrue(exception.message!!.contains("El fichero no existe:"))
     }
+
+    @Test
+    fun writeToFileCreatesParentDirectories() {
+        // Crear un directorio que no existe
+        val nonExistentDir = tempDir.resolve("nonexistent/nested").toFile()
+        val file = File(nonExistentDir, "output.json")
+
+        val storage = PersonalStorageJson()
+        val jugador = Jugador(
+            id = 1,
+            nombre = "Carlos",
+            apellidos = "Lopez",
+            dorsal = 5,
+            posicion = Jugador.Posicion.DELANTERO,
+            paisOrigen = "Chile",
+            salario = 3000.0,
+            fechaNacimiento = LocalDate.of(1992, 3, 3),
+            fechaIncorporacion = LocalDate.of(2018, 4, 4),
+            createdAt = LocalDateTime.of(2019, 4, 4, 0, 0),
+            updatedAt = LocalDateTime.of(2023, 4, 4, 0, 0),
+            altura = 190.0,
+            peso = 150.0,
+            goles = 30,
+            partidosJugados = 50,
+        )
+
+        // Esto debería crear los directorios padres
+        storage.writeToFile(file, listOf(jugador))
+
+        // Verificar que el archivo se creó correctamente
+        assertTrue(file.exists())
+
+        // Verificar el contenido
+        val contenido = file.readText()
+        assertTrue(contenido.contains("Carlos"))
+        assertTrue(contenido.startsWith("["))
+        assertTrue(contenido.endsWith("]"))
+    }
 }

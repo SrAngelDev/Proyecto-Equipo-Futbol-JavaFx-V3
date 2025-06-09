@@ -78,6 +78,13 @@ object ZipFile {
             throw IllegalArgumentException("El directorio de origen no existe: $sourceDirPath")
         }
 
+        // Ensure parent directory of zip file exists
+        zipFile.parentFile?.let {
+            if (!it.exists()) {
+                it.mkdirs()
+            }
+        }
+
         ZipOutputStream(FileOutputStream(zipFile)).use { zipOut ->
             sourceDir.walkTopDown().forEach { file ->
                 // Skip the source directory itself
