@@ -992,6 +992,7 @@ FILE_PATTERNS          = *.c \
                          *.c++ \
                          *.c++m \
                          *.java \
+                         *.kt \
                          *.ii \
                          *.ixx \
                          *.ipp \
