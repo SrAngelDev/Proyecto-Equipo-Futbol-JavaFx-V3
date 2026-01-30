@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['module_2dinfo_2ejava_0',['module-info.java',['../module-info_8java.html',1,'']]]
+  ['aboutdialogcontroller_2ekt_0',['AboutDialogController.kt',['../AboutDialogController_8kt.html',1,'']]],
+  ['appmodule_2ekt_1',['AppModule.kt',['../AppModule_8kt.html',1,'']]]
 ];
